@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
-
-void main() => runApp(const BeanBot());
+import 'package:pno2_beans/model/menu_item.dart';
+import 'package:pno2_beans/data/menu_items.dart';
+import 'debug.dart';
+import 'logs.dart';
+void main() {
+  runApp(MaterialApp(
+    title: 'Bean Bot',
+    home: BeanBot(),
+  ));
+}
 
 class BeanBot extends StatelessWidget {
   const BeanBot({Key? key}) : super(key: key);
@@ -15,16 +23,11 @@ class BeanBot extends StatelessWidget {
           appBar: AppBar(
             title: const Text(_title),
             actions: <Widget>[
-              PopupMenuButton<String>(
-                onSelected: handleSettingsMenu,
-                itemBuilder: (BuildContext context) {
-                  return {'Settings', 'Logs'}.map((String choice) {
-                    return PopupMenuItem<String>(
-                      value: choice,
-                      child: Text(choice),
-                    );
-                  }).toList();
-                },
+              PopupMenuButton<MenuItem>(
+                onSelected: (item) => onSelected(context, item),
+                itemBuilder: (context) => [
+                  ...MenuItems.items.map(buildItem).toList()
+                ],
               ),
             ],
           ),
@@ -33,12 +36,21 @@ class BeanBot extends StatelessWidget {
           ])),
     );
   }
-
-  void handleSettingsMenu(String value) {
-    switch (value) {
-      case 'Logout':
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+    value: item,
+    child: Text(item.text),
+  );
+  void onSelected(BuildContext context, MenuItem item) {
+    switch (item) {
+      case MenuItems.itemDebug:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => DebugPage()),
+        );
         break;
-      case 'Settings':
+      case MenuItems.itemLog:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => LogPage()),
+        );
         break;
     }
   }

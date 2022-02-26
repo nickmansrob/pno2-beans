@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="be.rndevelopment.pno2_beans">
+    <uses-permission android:name="android.permission.INTERNET"/>
+
    <application
         android:label="pno2_beans"
         android:name="${applicationName}"

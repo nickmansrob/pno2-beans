@@ -1,4 +1,4 @@
-# pno2_beans
+# The Bean Bot
 
 A new Flutter project.
 

@@ -3,9 +3,10 @@ import 'package:pno2_beans/model/menu_item.dart';
 import 'package:pno2_beans/data/menu_items.dart';
 import 'debug.dart';
 import 'logs.dart';
+
 void main() {
   runApp(MaterialApp(
-    title: 'Bean Bot',
+    title: 'The Bean Bot',
     home: BeanBot(),
   ));
 }

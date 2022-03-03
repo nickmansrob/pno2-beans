@@ -28,8 +28,16 @@ class BeanBot extends StatefulWidget {
 class _BeanBotState extends State<BeanBot> {
   static const String _title = 'The Bean Bot';
 
+  final TextEditingController _messageTextController = TextEditingController();
+
   late MQTTAppState currentAppState;
   late MQTTManager manager;
+
+  @override
+  void dispose() {
+    _messageTextController.dispose();
+    super.dispose();
+  }
 
   void _configureAndConnect() {
     currentAppState.setHostIp('192.168.0.193');
@@ -53,11 +61,21 @@ class _BeanBotState extends State<BeanBot> {
     }
   }
 
+  void _publishMessage(String text) {
+    manager.publish(text);
+    _messageTextController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     // Keep a reference to the app state.
     currentAppState = appState;
+
+    if (currentAppState.getAppConnectionState ==
+        MQTTAppConnectionState.disconnected) {
+      _configureAndConnect();
+    }
 
     return MaterialApp(
       title: _title,
@@ -127,6 +145,7 @@ class _BeanBotState extends State<BeanBot> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: TextFormField(
+              controller: _messageTextController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter the weight',
@@ -157,9 +176,6 @@ class _BeanBotState extends State<BeanBot> {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               onPressed: () {
-                if (state == MQTTAppConnectionState.disconnected) {
-                  _configureAndConnect();
-                }
                 // Dismisses keyboard
                 FocusScopeNode currentFocus = FocusScope.of(context);
                 if (!currentFocus.hasPrimaryFocus) {
@@ -172,6 +188,9 @@ class _BeanBotState extends State<BeanBot> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Processing Data')),
                   );
+                }
+                if (state == MQTTAppConnectionState.connected) {
+                  _publishMessage(_messageTextController.text);
                 }
               },
               child: const Text('SUBMIT'),

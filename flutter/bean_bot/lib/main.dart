@@ -40,7 +40,6 @@ class _BeanBotState extends State<BeanBot> {
   }
 
   void _configureAndConnect() {
-    currentAppState.setHostIp('192.168.0.193');
     manager = MQTTManager(
         host: currentAppState.getHostIP,
         topic: "order",
@@ -74,6 +73,7 @@ class _BeanBotState extends State<BeanBot> {
 
     if (currentAppState.getAppConnectionState ==
         MQTTAppConnectionState.disconnected) {
+      currentAppState.setHostIp('192.168.0.193');
       _configureAndConnect();
     }
 

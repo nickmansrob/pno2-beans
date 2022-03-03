@@ -32,9 +32,7 @@ class BeanBot extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView(children: const [
-            WeightInput(),
-          ])),
+          body: ListView(children: const [WeightInput(), ShowWeigth()])),
     );
   }
 
@@ -176,6 +174,39 @@ class _BeanKindDropdownState extends State<BeanKindDropdown> {
           }).toList(),
         ),
       ),
+    );
+  }
+}
+
+class ShowWeigth extends StatelessWidget {
+  const ShowWeigth({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Divider(
+          indent: 8,
+          endIndent: 8,
+        ),
+        Container(
+          child: Row(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Current weigth',
+                  style: TextStyle(
+                    fontSize: 20,
+                  ),
+                )
+              ]),
+          margin: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 40),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            border: Border.all(width: 1, color: Colors.blue),
+          ),
+        ),
+      ],
     );
   }
 }

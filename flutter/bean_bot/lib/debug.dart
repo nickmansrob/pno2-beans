@@ -7,9 +7,70 @@ class DebugPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Debug Menu'),
         ),
-        body: ListView(
-            children: const [Motors(), ServoInput(), Arduino(), ReadOuts()]),
+        body: ListView(children: const [
+          ManualOverride(),
+          Motors(),
+          ServoInput(),
+          Arduino(),
+          ReadOuts(),
+        ]),
       );
+}
+
+class ManualOverride extends StatefulWidget {
+  const ManualOverride({Key? key}) : super(key: key);
+
+  @override
+  _ManualOverrideState createState() => _ManualOverrideState();
+}
+
+class _ManualOverrideState extends State<ManualOverride> {
+  bool isSwitched = false;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            const Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+                child: Text(
+                  'Manual override',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 8, top: 8, right: 8, bottom: 0),
+                  child: Switch(
+                    value: isSwitched,
+                    onChanged: (value) {
+                      setState(() {
+                        isSwitched = value;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const Divider(
+          indent: 8,
+          endIndent: 8,
+        ),
+      ],
+    );
+  }
 }
 
 class Motors extends StatelessWidget {
@@ -19,8 +80,10 @@ class Motors extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: <Widget>[
-        Row(mainAxisSize: MainAxisSize.max, children: const <Widget>[
-          Padding(
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: const <Widget>[
+            Padding(
               padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
               child: Text(
                 'Motors',
@@ -28,8 +91,10 @@ class Motors extends StatelessWidget {
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
-              ))
-        ]),
+              ),
+            ),
+          ],
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [

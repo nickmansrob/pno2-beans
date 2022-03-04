@@ -1,24 +1,82 @@
 import 'package:bean_bot/data/menu_items.dart';
 import 'package:bean_bot/model/menu_item.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'debug.dart';
 import 'logs.dart';
+import 'mqtt/MQTTManager.dart';
+import 'mqtt/state/MQTTAppState.dart';
 
 void main() {
-  runApp(const MaterialApp(
+  runApp(MaterialApp(
     title: 'The Bean Bot',
-    home: BeanBot(),
+    home: ChangeNotifierProvider<MQTTAppState>(
+      create: (_) => MQTTAppState(),
+      child: const BeanBot(),
+    ),
   ));
 }
 
-class BeanBot extends StatelessWidget {
+class BeanBot extends StatefulWidget {
   const BeanBot({Key? key}) : super(key: key);
 
+  @override
+  _BeanBotState createState() => _BeanBotState();
+}
+
+class _BeanBotState extends State<BeanBot> {
   static const String _title = 'The Bean Bot';
+
+  final TextEditingController _messageTextController = TextEditingController();
+
+  late MQTTAppState currentAppState;
+  late MQTTManager manager;
+
+  @override
+  void dispose() {
+    _messageTextController.dispose();
+    super.dispose();
+  }
+
+  void _configureAndConnect() {
+    manager = MQTTManager(
+        host: currentAppState.getHostIP,
+        topic: "order",
+        identifier: "BeanBotDemo",
+        state: currentAppState);
+    manager.initializeMQTTClient();
+    manager.connect();
+  }
+
+  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  void _publishMessage(String text) {
+    manager.publish(text);
+    _messageTextController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context);
+    // Keep a reference to the app state.
+    currentAppState = appState;
+
+    if (currentAppState.getAppConnectionState ==
+        MQTTAppConnectionState.disconnected) {
+      currentAppState.setHostIp('192.168.0.193');
+      _configureAndConnect();
+    }
+
     return MaterialApp(
       title: _title,
       home: Scaffold(
@@ -32,8 +90,11 @@ class BeanBot extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView(children: const [
-            WeightInput(),
+          body: ListView(children: [
+            _buildConnectionStateText(_prepareStateMessageFrom(
+                currentAppState.getAppConnectionState)),
+            _buildWeightInput(),
+            _buildConfirmButtons(currentAppState.getAppConnectionState),
           ])),
     );
   }
@@ -51,25 +112,30 @@ class BeanBot extends StatelessWidget {
         break;
       case MenuItems.itemLog:
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => LogPage()),
+          MaterialPageRoute(builder: (context) => const LogPage()),
         );
         break;
     }
   }
-}
 
-class WeightInput extends StatefulWidget {
-  const WeightInput({Key? key}) : super(key: key);
-
-  @override
-  _WeightInputState createState() => _WeightInputState();
-}
-
-class _WeightInputState extends State<WeightInput> {
   final _weightForm = GlobalKey<FormState>();
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildConnectionStateText(String status) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Container(
+              color: Colors.deepOrangeAccent,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Text(status, textAlign: TextAlign.center),
+              )),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeightInput() {
     // Build a Form widget using the _formKey created above.
     return Form(
       key: _weightForm,
@@ -79,6 +145,7 @@ class _WeightInputState extends State<WeightInput> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: TextFormField(
+              controller: _messageTextController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter the weight',
@@ -96,46 +163,52 @@ class _WeightInputState extends State<WeightInput> {
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: BeanKindDropdown(),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Dismisses keyboard
-                      FocusScopeNode currentFocus = FocusScope.of(context);
-                      if (!currentFocus.hasPrimaryFocus) {
-                        currentFocus.unfocus();
-                      }
-                      // Validate returns true if the form is valid, or false otherwise.
-                      if (_weightForm.currentState!.validate()) {
-                        // If the form is valid, display a snackbar. In the real world,
-                        // you'd often call a server or save the information in a database.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')),
-                        );
-                      }
-                    },
-                    child: const Text('SUBMIT'),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Respond to button press
-                    },
-                    child: const Text('CANCEL'),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildConfirmButtons(MQTTAppConnectionState state) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                // Dismisses keyboard
+                FocusScopeNode currentFocus = FocusScope.of(context);
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+                // Validate returns true if the form is valid, or false otherwise.
+                if (_weightForm.currentState!.validate()) {
+                  // If the form is valid, display a snackbar. In the real world,
+                  // you'd often call a server or save the information in a database.
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Processing Data')),
+                  );
+                }
+                if (state == MQTTAppConnectionState.connected) {
+                  _publishMessage(_messageTextController.text);
+                }
+              },
+              child: const Text('SUBMIT'),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                // Respond to button press
+              },
+              child: const Text('CANCEL'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

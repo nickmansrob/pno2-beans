@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'mqtt/state/MQTTAppState.dart';
+
 class DebugPage extends StatelessWidget {
   const DebugPage({Key? key}) : super(key: key);
   @override
@@ -12,7 +14,7 @@ class DebugPage extends StatelessWidget {
           Motors(),
           ServoInput(),
           Arduino(),
-          ReadOuts(),
+          AdminInput(),
         ]),
       );
 }
@@ -341,94 +343,94 @@ class Arduino extends StatelessWidget {
   }
 }
 
-class ReadOuts extends StatelessWidget {
-  const ReadOuts({Key? key}) : super(key: key);
+class AdminInput extends StatefulWidget {
+  const AdminInput({Key? key}) : super(key: key);
+
+  @override
+  _AdminInputState createState() => _AdminInputState();
+}
+
+class _AdminInputState extends State<AdminInput> {
+  final _adminForm = GlobalKey<FormState>();
+
+  late MQTTAppState currentAppState;
+
+  final TextEditingController _ipTextController = TextEditingController();
+
+  @override
+  void dispose() {
+    _ipTextController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      Row(children: const <Widget>[
-        Padding(
-          padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
-          child: Text(
-            'Readouts',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ]),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Form(
+      key: _adminForm,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Respond to button press
-                },
-                child: const Text('Read weight'),
-              ),
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: const <Widget>[
+              Padding(
+                padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
+                child: Text(
+                  'Admin',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Respond to button press
-                },
-                child: const Text('Read color'),
-              ),
-            ),
-          ),
-        ],
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Respond to button press
-                },
-                child: const Text('Read position'),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Respond to button press
-                },
-                child: const Text('Read magnet'),
-              ),
-            ),
-          ),
-        ],
-      ),
-      Row(
-        children: [
-          Expanded(
-            child: Container(
-              child: const Text('Readouts'),
-              margin: const EdgeInsets.all(8),
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  width: 1,
-                  color: Colors.blue,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'MQTT IP',
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(10),
+                    ),
+                    keyboardType: TextInputType.phone,
+                    controller: _ipTextController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the IP address';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
               ),
-            ),
-          )
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      currentAppState.setHostIp(_ipTextController.text);
+                      print(currentAppState.getHostIP);
+                    },
+                    child: const Text('Apply'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(
+            indent: 8,
+            endIndent: 8,
+          ),
         ],
       ),
-    ]);
+    );
   }
 }

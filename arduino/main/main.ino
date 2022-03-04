@@ -1,14 +1,15 @@
 /************************* Libraries *************************/
-#include <WiFi.h>
-#include <Arduino.h>
-//#include <ESP8266WiFi.h>
+// #include <WiFi.h>
+// #include <Arduino.h>
+#include <ESP8266WiFi.h>
 #include <Servo.h>
-#include <WebSocketsServer.h>
+#include <PubSubClient.h>
 
-/************************* Definitions *************************/
+/************************* WiFi *************************/
 
-#define WLAN_SSID "BeanBot312"
-#define WLAN_PASS "464UAvp6UR5q"
+const char* ssid = "ENVYROB113004";
+const char* password = "0j085693";
+const char* mqtt_server = "192.168.137.1";
 
 /************************* Servos *************************/
 Servo siloSelect;
@@ -19,90 +20,39 @@ Servo angleSelect;
 const uint8_t ANGLE_PIN_NUMBER = 8;
 int angleSelectPos = 0;
 
-/************************* Websocket *************************/
-WebSocketsServer webSocket = WebSocketsServer(1337);
+/************************* MQTT *************************/
+WiFiClient espClient;
+PubSubClient client(espClient);
+long lastMsg = 0;
+char msg[50];
+int value = 0;
 
-char msg_buf[10];
-int led_state = 0;
-int led_pin = 0;
-
-// Callback: receiving any WebSocket message
-void onWebSocketEvent(uint8_t client_num,
-                      WStype_t type,
-                      uint8_t * payload,
-                      size_t length) {
-
-  // Figure out the type of WebSocket event
-  switch(type) {
-
-    // Client has disconnected
-    case WStype_DISCONNECTED:
-      Serial.printf("[%u] Disconnected!\n", client_num);
-      break;
-
-    // New client has connected
-    case WStype_CONNECTED:
-      {
-        IPAddress ip = webSocket.remoteIP(client_num);
-        Serial.printf("[%u] Connection from ", client_num);
-        Serial.println(ip.toString());
-      }
-      break;
-
-    // Handle text messages from client
-    case WStype_TEXT:
-
-      // Print out raw message
-      Serial.printf("[%u] Received text: %s\n", client_num, payload);
-
-      // Toggle LED
-      if ( strcmp((char *)payload, "toggleLED") == 0 ) {
-        led_state = led_state ? 0 : 1;
-        Serial.printf("Toggling LED to %u\n", led_state);
-        digitalWrite(led_pin, led_state);
-
-      // Report the state of the LED
-      } else if ( strcmp((char *)payload, "getLEDState") == 0 ) {
-        sprintf(msg_buf, "%d", led_state);
-        Serial.printf("Sending to [%u]: %s\n", client_num, msg_buf);
-        webSocket.sendTXT(client_num, msg_buf);
-
-      // Message not recognized
-      } else {
-        Serial.println("[%u] Message not recognized");
-      }
-      break;
-      
-    default:
-      break;
-  }
-}
+byte motorState = LOW;
 
 
 void setup() {
   /************************* Initializaton *************************/
   Serial.begin(115200);
   delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
 
-  // Create WiFi access point.
-  IPAddress apIP(192, 168, 0, 1);   //Static IP for wifi gateway
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)); //set Static IP gateway
-  
-  Serial.print("Creating WiFi network ");
-  Serial.println(WLAN_SSID);
+  WiFi.begin(ssid, password);
 
-  WiFi.softAP(WLAN_SSID, WLAN_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
 
-  delay(1000);
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 
-  Serial.println("WiFi created.");
-  Serial.println("IP address: "); 
-  Serial.println(WiFi.softAPIP());
-
-  // Start WebSocket server and assign callback
-  webSocket.begin();
-  webSocket.onEvent(onWebSocketEvent);
-  Serial.println("Websocket started.");
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
   
   /************************* Servos *************************/
   siloSelect.attach(SILO_PIN_NUMBER);
@@ -111,7 +61,61 @@ void setup() {
 }
 
 void loop() {
-  /************************* Websocket *************************/
-  webSocket.loop(); //keep this line on loop method
+  /************************* MQTT *************************/
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
 
+}
+
+/************************* MQTT Handlers *************************/
+void callback(char* topic, byte* message, unsigned int length) {
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print(". Message: ");
+  String messageTemp;
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+    messageTemp += (char)message[i];
+  }
+  Serial.println();
+
+  // Feel free to add more if statements to control more GPIOs with MQTT
+
+  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
+  // Changes the output state according to the message
+  if (String(topic) == "motor1") {
+    Serial.print("Changing output to ");
+    if(messageTemp == "toggle" && motorState == LOW){
+      Serial.println("on");
+      digitalWrite(5, HIGH);
+      motorState = HIGH;
+    }
+    else if(messageTemp == "toggle" && motorState == HIGH){
+      Serial.println("off");
+      digitalWrite(5, LOW);
+      motorState == LOW;
+    }
+  }
+}
+
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect("BeanBotArduino")) {
+      Serial.println("connected");
+      // Subscribe
+      client.subscribe("motor1");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
 }

@@ -85,7 +85,6 @@ void loop() {
 void callback(char * topic, byte * message, unsigned int length) {
   Serial.print("Message arrived on topic: ");
   Serial.print(topic);
-  Serial.print(String(topic));
   Serial.print(". Message: ");
   String messageString;
 
@@ -98,7 +97,6 @@ void callback(char * topic, byte * message, unsigned int length) {
   logFlow("Arduino received message " + messageString + " on topic " + String(topic));
 
   if (String(topic) == "override") {
-    Serial.println("In override if");
     if (messageString == "1") {
       Serial.println("WARNING: Override enabled");
       // TO DO: Add logFlow to each Serial println as above
@@ -186,7 +184,7 @@ void manualFlow(String topic, String messageString) {
   Serial.print("Changing state of [" + topic + "] to ");
 
   // Motor 1
-  if (topic == "motor1") {
+  if (String(topic) == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
       Serial.println("on");
       digitalWrite(MOTOR1_PIN, HIGH);
@@ -200,7 +198,7 @@ void manualFlow(String topic, String messageString) {
   }
 
   //Servo 1
-  if (topic == "servo1") {
+  if (String(topic) == "servo1") {
     int angle = messageString.toInt();
 
     // Constrain angle between 90+-45, 90 degrees is default state (silo 2)

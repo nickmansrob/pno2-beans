@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
 
-import 'mqtt/state/MQTTAppState.dart';
+import '../Providers/MQTTAppState.dart';
 
-class DebugPage extends StatelessWidget {
+class DebugPage extends StatefulWidget {
   const DebugPage({Key? key}) : super(key: key);
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Debug Menu'),
-        ),
-        body: ListView(children: const [
-          ManualOverride(),
-          Motors(),
-          ServoInput(),
-          Arduino(),
-          AdminInput(),
-        ]),
-      );
+  _DebugPageState createState() => _DebugPageState();
+}
+
+class _DebugPageState extends State<DebugPage> {
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Debug Menu'),
+      ),
+      body: ListView(children: [
+        const ManualOverride(),
+        const Motors(),
+        const ServoInput(),
+        const Arduino(),
+      ]),
+    );
+  }
 }
 
 class ManualOverride extends StatefulWidget {
@@ -340,97 +348,5 @@ class Arduino extends StatelessWidget {
         endIndent: 8,
       ),
     ]);
-  }
-}
-
-class AdminInput extends StatefulWidget {
-  const AdminInput({Key? key}) : super(key: key);
-
-  @override
-  _AdminInputState createState() => _AdminInputState();
-}
-
-class _AdminInputState extends State<AdminInput> {
-  final _adminForm = GlobalKey<FormState>();
-
-  late MQTTAppState currentAppState;
-
-  final TextEditingController _ipTextController = TextEditingController();
-
-  @override
-  void dispose() {
-    _ipTextController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _adminForm,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: const <Widget>[
-              Padding(
-                padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
-                child: Text(
-                  'Admin',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'MQTT IP',
-                      isDense: true,
-                      contentPadding: EdgeInsets.all(10),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    controller: _ipTextController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter the IP address';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      currentAppState.setHostIp(_ipTextController.text);
-                      print(currentAppState.getHostIP);
-                    },
-                    child: const Text('Apply'),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Divider(
-            indent: 8,
-            endIndent: 8,
-          ),
-        ],
-      ),
-    );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:bean_bot/mqtt/state/MQTTAppState.dart';
+import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -28,7 +28,7 @@ class MQTTManager {
     _client!.keepAlivePeriod = 20;
     _client!.onDisconnected = onDisconnected;
     _client!.secure = false;
-    _client!.logging(on: true);
+    _client!.logging(on: false);
 
     /// Add the successful connection callback
     _client!.onConnected = onConnected;

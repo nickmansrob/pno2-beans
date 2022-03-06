@@ -77,26 +77,26 @@ void loop() {
   }
   client.loop();
 
-  readWeight();
-
 }
 
 /************************* MQTT Handlers *************************/
-void callback(char * topic, byte * message, unsigned int length) {
+void callback(char* topic, byte* message, unsigned int length) {
   Serial.print("Message arrived on topic: ");
   Serial.print(topic);
   Serial.print(". Message: ");
   String messageString;
 
+  String topicString = String(topic);
+  
   for (int i = 0; i < length; i++) {
-    Serial.print((char) message[i]);
-    messageString += (char) message[i];
+    Serial.print((char)message[i]);
+    messageString += (char)message[i];
   }
   Serial.println();
 
-  logFlow("Arduino received message " + messageString + " on topic " + String(topic));
+  logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);
 
-  if (String(topic) == "override") {
+  if (topicString == "override") {
     if (messageString == "1") {
       Serial.println("WARNING: Override enabled");
       // TO DO: Add logFlow to each Serial println as above
@@ -107,24 +107,26 @@ void callback(char * topic, byte * message, unsigned int length) {
     }
   }
 
-  // Check if override is active
-  if (manualOverride) {
-    Serial.println("ROUTE: From origin to manualFlow");
-    manualFlow(String(topic), messageString);
-  } else if (String(topic) == "order") {
-    // Incoming order example: 1200, stands for 200gr of the first kind
-    String weight = messageString.substring(1);
-    String beanKind = messageString.substring(0, 1);
+  if (topicString != "override") {
+    // Check if override is active
+    if (manualOverride) {
+      Serial.println("ROUTE: From origin to manualFlow");
+      manualFlow(topicString, messageString);
+    } else if (topicString == "order") {
+      // Incoming order example: 1200, stands for 200gr of the first kind
+      String weight = messageString.substring(1);
+      String beanKind = messageString.substring(0, 1);
 
-    // Sends order to flow
-    Serial.println("ROUTE: From origin to normalFlow");
-    Serial.println("INFO: Incoming order: " + weight + " grams of kind " + beanKind);
-    normalFlow(weight, beanKind);
-  } else if (String(topic) == "admin") {
-    Serial.println("ROUTE: From origin to adminFlow");
-    adminFlow(messageString);
-  } else {
-    Serial.println("ERROR: no matching topic.");
+      // Sends order to flow
+      Serial.println("ROUTE: From origin to normalFlow");
+      Serial.println("INFO: Incoming order: " + weight + " grams of kind " + beanKind);
+      normalFlow(weight, beanKind);
+    } else if (topicString == "admin") {
+      Serial.println("ROUTE: From origin to adminFlow");
+      adminFlow(messageString);
+    } else {
+      Serial.println("ERROR: No matching topic or override not enabled.");
+    }
   }
 }
 
@@ -157,22 +159,9 @@ void readWeight() {
   // TO DO: Implement sensor readings
 
   if (weight != "0") {
-    client.publish("weightListener", convertToChar(weight));
+    client.publish("weightListener", weight.c_str());
   }
   // TO DO: Implement timer to avoid flooding the topic. Weight should be updated once a second. Use millis() function.
-}
-
-/************************* String to char converter *************************/
-
-char* convertToChar(String message) {
-  // Calculate char buffer length
-  int bufferLength = message.length() + 1; // Reserve one extra byte for null terminator (0x00)
-  // Prepare char buffer
-  char serialChar[bufferLength];
-  // Cast String to char
-  message.toCharArray(serialChar, bufferLength);
-
-  return serialChar;
 }
 
 /************************* Program flow *************************/
@@ -184,7 +173,7 @@ void manualFlow(String topic, String messageString) {
   Serial.print("Changing state of [" + topic + "] to ");
 
   // Motor 1
-  if (String(topic) == "motor1") {
+  if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
       Serial.println("on");
       digitalWrite(MOTOR1_PIN, HIGH);
@@ -194,11 +183,13 @@ void manualFlow(String topic, String messageString) {
       Serial.println("off");
       digitalWrite(MOTOR1_PIN, LOW);
       motorOneState = LOW;
+    } else {
+      Serial.println("ERROR: Unspecified state");
     }
   }
 
   //Servo 1
-  if (String(topic) == "servo1") {
+  if (topic == "servo1") {
     int angle = messageString.toInt();
 
     // Constrain angle between 90+-45, 90 degrees is default state (silo 2)
@@ -213,6 +204,8 @@ void manualFlow(String topic, String messageString) {
 
       // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
+    } else {
+      Serial.println("ERROR: Angle out of bounds");
     }
   }
 }
@@ -236,7 +229,7 @@ void adminFlow(String messageString) {
 }
 
 void logFlow(String message) {
-  client.publish("logListener", convertToChar(message));
+  client.publish("logListener", message.c_str());
 
   // TO DO: Move Serial.println to this method for a cleaner code and less duplication
 }

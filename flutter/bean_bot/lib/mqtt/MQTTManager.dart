@@ -28,7 +28,7 @@ class MQTTManager {
     _client!.keepAlivePeriod = 20;
     _client!.onDisconnected = onDisconnected;
     _client!.secure = false;
-    _client!.logging(on: false);
+    _client!.logging(on: true);
 
     /// Add the successful connection callback
     _client!.onConnected = onConnected;

@@ -9,15 +9,14 @@ import 'package:bean_bot/Pages/logs.dart';
 import 'package:bean_bot/mqtt/MQTTManager.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
 
-
-class BeanBot extends StatefulWidget {
-  const BeanBot({Key? key}) : super(key: key);
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
 
   @override
-  _BeanBotState createState() => _BeanBotState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _BeanBotState extends State<BeanBot> {
+class _HomePageState extends State<HomePage> {
   static const String _title = 'The Bean Bot';
   final TextEditingController _messageTextController = TextEditingController();
   late MQTTManager manager;
@@ -28,38 +27,52 @@ class _BeanBotState extends State<BeanBot> {
 
   @override
   void initState() {
-    MQTTAppConnectionState currentAppState = MQTTAppConnectionState.disconnected;
+    MQTTAppConnectionState currentAppState =
+        MQTTAppConnectionState.disconnected;
     super.initState();
   }
+
   void _publishMessage(String text) {
     manager.publish(text);
     _messageTextController.clear();
   }
 
   Widget build(BuildContext context) {
-    final MQTTAppState appState = Provider.of<MQTTAppState>(context, listen: false);
+    final MQTTAppState appState =
+        Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return MaterialApp(
       title: _title,
       home: Scaffold(
-          appBar: AppBar(
-            title: const Text(_title),
-            actions: <Widget>[
-              PopupMenuButton<MenuItem>(
-                onSelected: (item) => onSelected(context, item),
-                itemBuilder: (context) =>
-                    [...MenuItems.items.map(buildItem).toList()],
-              ),
-            ],
-          ),
-          body: ListView(children: [
+        appBar: AppBar(
+          title: const Text(_title),
+          actions: <Widget>[
+            PopupMenuButton<MenuItem>(
+              onSelected: (item) => onSelected(context, item),
+              itemBuilder: (context) =>
+                  [...MenuItems.items.map(buildItem).toList()],
+            ),
+          ],
+        ),
+        body: ListView(
+          children: [
             _buildConnectionStateText(
-              _prepareStateMessageFrom(Provider.of<MQTTAppState>(context).getAppConnectionState),
-              setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),),
+              _prepareStateMessageFrom(
+                  Provider.of<MQTTAppState>(context).getAppConnectionState),
+              setColor(
+                  Provider.of<MQTTAppState>(context).getAppConnectionState),
+            ),
             _buildWeightInput(),
             _buildAdminInput(),
-          ])),
+          ],
+        ),
+      ),
+      initialRoute: '/',
+      routes: {
+        '/debug': (context) => DebugPage(),
+        '/logs': (context) => LogPage(),
+      },
     );
   }
 
@@ -107,14 +120,10 @@ class _BeanBotState extends State<BeanBot> {
   void onSelected(BuildContext context, MenuItem item) {
     switch (item) {
       case MenuItems.itemDebug:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const DebugPage()),
-        );
+        Navigator.pushNamed(context, '/debug');
         break;
       case MenuItems.itemLog:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const LogPage()),
-        );
+        Navigator.pushNamed(context, '/logs');
         break;
     }
   }
@@ -149,8 +158,14 @@ class _BeanBotState extends State<BeanBot> {
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: BeanKindDropdown(),
           ),
+          Divider(
+            indent: 8,
+            endIndent: 8,
+          )
         ],
+
       ),
+
     );
   }
 
@@ -199,7 +214,8 @@ class _BeanBotState extends State<BeanBot> {
   }
 
   Widget _buildAdminInput() {
-    final MQTTAppState appState = Provider.of<MQTTAppState>(context, listen: false);
+    final MQTTAppState appState =
+        Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return Form(
@@ -228,7 +244,7 @@ class _BeanBotState extends State<BeanBot> {
               Expanded(
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: TextFormField(
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -267,7 +283,7 @@ class _BeanBotState extends State<BeanBot> {
               Expanded(
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: ElevatedButton(
                     onPressed: () {
                       if (_adminForm.currentState!.validate()) {
@@ -281,8 +297,14 @@ class _BeanBotState extends State<BeanBot> {
                           currentAppState.setHostIp(_ipTextController.text);
                           _configureAndConnect();
                         }
-                        Provider.of<MQTTAppState>(context, listen: false).setAppConnectionState(MQTTAppConnectionState.connected);
-                        Provider.of<MQTTAppState>(context, listen: false).setHostIp(_ipTextController.text);
+                        Provider.of<MQTTAppState>(context, listen: false)
+                            .setHostIp(_ipTextController.text);
+                        if (currentAppState.getAppConnectionState ==
+                            MQTTAppConnectionState.connected) {
+                          Provider.of<MQTTAppState>(context, listen: false)
+                              .setAppConnectionState(
+                                  MQTTAppConnectionState.connected);
+                        }
                       }
                     },
                     child: const Text('Connect'),
@@ -297,7 +319,7 @@ class _BeanBotState extends State<BeanBot> {
               Expanded(
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: ElevatedButton(
                     onPressed: () {
                       // currentAppState.setHostIp(_ipTextController.text);
@@ -305,7 +327,14 @@ class _BeanBotState extends State<BeanBot> {
                           MQTTAppConnectionState.connected) {
                         _disconnect();
                       }
-                      Provider.of<MQTTAppState>(context, listen: false).setAppConnectionState(MQTTAppConnectionState.disconnected);
+                      if (currentAppState.getAppConnectionState ==
+                          MQTTAppConnectionState.disconnected) {
+                        Provider.of<MQTTAppState>(context, listen: false)
+                            .setAppConnectionState(
+                                MQTTAppConnectionState.disconnected);
+                        Provider.of<MQTTAppState>(context, listen: false)
+                            .setHostIp(_ipTextController.text);
+                      }
                     },
                     child: const Text('Disconnect'),
                     style: TextButton.styleFrom(
@@ -333,7 +362,8 @@ class _BeanBotState extends State<BeanBot> {
   }
 
   void _configureAndConnect() {
-    final MQTTAppState appState = Provider.of<MQTTAppState>(context, listen: false);
+    final MQTTAppState appState =
+        Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     manager = MQTTManager(
@@ -389,7 +419,6 @@ class _BeanKindDropdownState extends State<BeanKindDropdown> {
     );
   }
 }
-
 
 /*
 class ConnectionPageView extends StatefulWidget {

@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 enum MQTTAppConnectionState { connected, disconnected, connecting }
 
 class MQTTAppState with ChangeNotifier {
-  MQTTAppConnectionState _appConnectionState =
-      MQTTAppConnectionState.disconnected;
+  MQTTAppConnectionState _appConnectionState = MQTTAppConnectionState.disconnected;
   String _receivedText = '';
   String _historyText = '';
   String _hostIp = '';

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../Providers/MQTTAppState.dart';
+import 'package:bean_bot/Providers/MQTTAppState.dart';
+import 'package:provider/provider.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({Key? key}) : super(key: key);
@@ -18,12 +20,53 @@ class _DebugPageState extends State<DebugPage> {
         title: const Text('Debug Menu'),
       ),
       body: ListView(children: [
+        // Creates the connection indicator on top of the screen. \
+        _buildConnectionStateText(
+          _prepareStateMessageFrom(Provider.of<MQTTAppState>(context).getAppConnectionState),
+          setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),),
         const ManualOverride(),
         const Motors(),
         const ServoInput(),
         const Arduino(),
       ]),
     );
+  }
+
+  Widget _buildConnectionStateText(String status, Color color) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Container(
+              color: color,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Text(status, textAlign: TextAlign.center),
+              )),
+        ),
+      ],
+    );
+  }
+
+  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  Color setColor(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return Colors.green;
+      case MQTTAppConnectionState.connecting:
+        return Colors.deepOrange;
+      case MQTTAppConnectionState.disconnected:
+        return Colors.red;
+    }
   }
 }
 

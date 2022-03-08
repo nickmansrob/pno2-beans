@@ -529,7 +529,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You're about to order $beanWeight g of $beanColor beans. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
+                    "You're about to order ${beanWeight}g of $beanColor. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
               ],
             ),
           ),
@@ -537,16 +537,10 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               child: const Text('OK'),
               onPressed: () {
+                Navigator.of(context).pop();
                 if (state == MQTTAppConnectionState.connected) {
-                  String beanColor =
-                      Provider.of<WeightInputState>(context, listen: false)
-                          .getColor;
-                  String beanWeight =
-                      Provider.of<WeightInputState>(context, listen: false)
-                          .getColor;
                   String beanWeightIndex = '0';
-
-                  switch (beanWeight) {
+                  switch (beanColor) {
                     case 'Green beans':
                       beanWeightIndex = '0';
                       break;
@@ -554,14 +548,13 @@ class _HomePageState extends State<HomePage> {
                       beanWeightIndex = '1';
                       break;
                     case 'Red beans':
-                      beanWeightIndex = '1';
+                      beanWeightIndex = '2';
                       break;
                   }
-                  String message = beanWeightIndex + beanColor;
-                  _publishMessage(message);
+                  String message = beanWeightIndex + beanWeight;
+                    _publishMessage(message);
+                    _showOrderMessage();
                 }
-                Navigator.of(context).pop();
-                _showOrderMessage();
               },
             ),
             TextButton(
@@ -589,7 +582,7 @@ class _HomePageState extends State<HomePage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                Text("You've ordered $beanWeight g of $beanColor."),
+                Text("You've ordered ${beanWeight}g of $beanColor."),
               ],
             ),
           ),
@@ -604,6 +597,29 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  void _showErrorMessage() {
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const [
+                 Text("Something went wrong, please try again."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      };
   }
 
   // Checks if a given string is a valid IPv4 address.
@@ -641,10 +657,10 @@ class _HomePageState extends State<HomePage> {
 
   // Checks if a given string contains a period and returns the string without that period.
   List containsPeriod(String s) {
-    bool containsPersiod = s.contains('.');
-    List output = [containsPersiod];
+    bool containsPeriod = s.contains('.');
+    List output = [containsPeriod];
 
-    if (containsPersiod) {
+    if (containsPeriod) {
       int firstPeriodIndex = s.indexOf('.');
       String newString =
           s.substring(0, firstPeriodIndex) + s.substring(firstPeriodIndex + 1);

@@ -111,8 +111,19 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Padding(
+            padding:  EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 2),
+            child:
+            Text(
+              'Order Beans',
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: TextFormField(
               controller: _weightController,
               decoration: const InputDecoration(
@@ -134,13 +145,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: _buildBeanColorSelector(context),
           ),
-          const Divider(
-            indent: 8,
-            endIndent: 8,
-          )
         ],
       ),
     );
@@ -209,162 +216,156 @@ class _HomePageState extends State<HomePage> {
         Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
-    return ExpansionWidget(
-      initiallyExpanded: false,
-      titleBuilder:
-          (double animationValue, _, bool isExpanded, toggleFunction) {
-        return InkWell(
-            onTap: () => toggleFunction(animated: true),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Connect to broker',
-                      style: TextStyle(
-                        fontSize: 20,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+        ),
+        child: ExpansionWidget(
+          initiallyExpanded: false,
+          titleBuilder:
+              (double animationValue, _, bool isExpanded, toggleFunction) {
+            return InkWell(
+                onTap: () => toggleFunction(animated: true),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Connect to broker',
+                          style: TextStyle(
+                            fontSize: 18,
+
+                          ),
+                        ),
                       ),
-                    ),
+                      Transform.rotate(
+                        angle: math.pi * animationValue / 2,
+                        child: const Icon(Icons.arrow_right, size: 40),
+                        alignment: Alignment.center,
+                      )
+                    ],
                   ),
-                  Transform.rotate(
-                    angle: math.pi * animationValue / 2,
-                    child: const Icon(Icons.arrow_right, size: 40),
-                    alignment: Alignment.center,
-                  )
-                ],
-              ),
-            ));
-      },
-      content: Form(
-        key: _adminForm,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: const <Widget>[
-                Padding(
-                  padding:
-                      EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 4),
-                  child: Text(
-                    'Enter IP',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                )
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                ));
+          },
+          content: Form(
+            key: _adminForm,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Broker ip',
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: 'Broker IP-address',
+                            isDense: true,
+                            contentPadding: EdgeInsets.all(10),
+                          ),
+                          keyboardType: TextInputType.phone,
+                          controller: _ipTextController,
+                          maxLength: 13,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter the IP address';
+                            } else {
+                              // Checks if a valid IP address is entered.
+                              if (validateIp(value) == false) {
+                                return 'Please enter a valid IP address';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
                       ),
-                      keyboardType: TextInputType.phone,
-                      controller: _ipTextController,
-                      maxLength: 13,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the IP address';
-                        } else {
-                          // Checks if a valid IP address is entered.
-                          if (validateIp(value) == false) {
-                            return 'Please enter a valid IP address';
-                          }
-                        }
-                        return null;
-                      },
                     ),
-                  ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_adminForm.currentState!.validate()) {
+                              // If the form is valid, display a snackbar. In the real world,
+                              // you'd often call a server or save the information in a database.
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Processing Data')),
+                              );
+                              if (currentAppState.getAppConnectionState ==
+                                  MQTTAppConnectionState.disconnected) {
+                                currentAppState
+                                    .setHostIp(_ipTextController.text);
+                                _configureAndConnect();
+                              }
+                              Provider.of<MQTTAppState>(context, listen: false)
+                                  .setHostIp(_ipTextController.text);
+                              if (currentAppState.getAppConnectionState ==
+                                  MQTTAppConnectionState.connected) {
+                                Provider.of<MQTTAppState>(context,
+                                        listen: false)
+                                    .setAppConnectionState(
+                                        MQTTAppConnectionState.connected);
+                              }
+                            }
+                          },
+                          child: const Text('Connect'),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            primary: Colors.white,
+                            onSurface: Colors.greenAccent,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // currentAppState.setHostIp(_ipTextController.text);
+                            if (currentAppState.getAppConnectionState ==
+                                MQTTAppConnectionState.connected) {
+                              _disconnect();
+                            }
+                            if (currentAppState.getAppConnectionState ==
+                                MQTTAppConnectionState.disconnected) {
+                              Provider.of<MQTTAppState>(context, listen: false)
+                                  .setAppConnectionState(
+                                      MQTTAppConnectionState.disconnected);
+                              Provider.of<MQTTAppState>(context, listen: false)
+                                  .setHostIp(_ipTextController.text);
+                            }
+                          },
+                          child: const Text('Disconnect'),
+                          style: TextButton.styleFrom(
+                            primary: Colors.white,
+                            backgroundColor: Colors.red,
+                            onSurface: Colors.redAccent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_adminForm.currentState!.validate()) {
-                          // If the form is valid, display a snackbar. In the real world,
-                          // you'd often call a server or save the information in a database.
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Processing Data')),
-                          );
-                          if (currentAppState.getAppConnectionState ==
-                              MQTTAppConnectionState.disconnected) {
-                            currentAppState.setHostIp(_ipTextController.text);
-                            _configureAndConnect();
-                          }
-                          Provider.of<MQTTAppState>(context, listen: false)
-                              .setHostIp(_ipTextController.text);
-                          if (currentAppState.getAppConnectionState ==
-                              MQTTAppConnectionState.connected) {
-                            Provider.of<MQTTAppState>(context, listen: false)
-                                .setAppConnectionState(
-                                    MQTTAppConnectionState.connected);
-                          }
-                        }
-                      },
-                      child: const Text('Connect'),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        primary: Colors.white,
-                        onSurface: Colors.greenAccent,
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // currentAppState.setHostIp(_ipTextController.text);
-                        if (currentAppState.getAppConnectionState ==
-                            MQTTAppConnectionState.connected) {
-                          _disconnect();
-                        }
-                        if (currentAppState.getAppConnectionState ==
-                            MQTTAppConnectionState.disconnected) {
-                          Provider.of<MQTTAppState>(context, listen: false)
-                              .setAppConnectionState(
-                                  MQTTAppConnectionState.disconnected);
-                          Provider.of<MQTTAppState>(context, listen: false)
-                              .setHostIp(_ipTextController.text);
-                        }
-                      },
-                      child: const Text('Disconnect'),
-                      style: TextButton.styleFrom(
-                        primary: Colors.white,
-                        backgroundColor: Colors.red,
-                        onSurface: Colors.redAccent,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(
-              indent: 8,
-              endIndent: 8,
-            ),
-          ],
+          ),
         ),
       ),
     );

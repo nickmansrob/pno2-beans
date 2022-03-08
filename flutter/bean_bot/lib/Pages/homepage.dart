@@ -75,6 +75,10 @@ class _HomePageState extends State<HomePage> {
             _buildConfirmButtons(
                 Provider.of<MQTTAppState>(context).getAppConnectionState),
             _buildDivider(),
+            _buildShowCurrentWeight(),
+            _buildDivider(),
+            _buildShowCurrentOrder(),
+            _buildDivider(),
             _buildAdminInput(),
           ],
         ),
@@ -112,9 +116,8 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding:  EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 2),
-            child:
-            Text(
+            padding: EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 2),
+            child: Text(
               'Order Beans',
               style: TextStyle(
                 fontSize: 25,
@@ -174,11 +177,10 @@ class _HomePageState extends State<HomePage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Processing Data')),
                   );
-                  Provider.of<WeightInputState>(context, listen: false)
+                  Provider.of<OrderState>(context, listen: false)
                       .setWeight(_weightController.text);
                   beanWeight =
-                      Provider.of<WeightInputState>(context, listen: false)
-                          .getWeight;
+                      Provider.of<OrderState>(context, listen: false).getWeight;
                   _showConfirmMessage(
                       Provider.of<MQTTAppState>(context, listen: false)
                           .getAppConnectionState);
@@ -240,7 +242,6 @@ class _HomePageState extends State<HomePage> {
                           'Connect to broker',
                           style: TextStyle(
                             fontSize: 18,
-
                           ),
                         ),
                       ),
@@ -371,6 +372,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Builds the color selection widget.
   Widget _buildBeanColorSelector(BuildContext context) {
     return InputDecorator(
       decoration: InputDecoration(
@@ -389,7 +391,7 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (value) {
                     setState(() {
                       beanColor = value.toString();
-                      Provider.of<WeightInputState>(context, listen: false)
+                      Provider.of<OrderState>(context, listen: false)
                           .setColor(beanColor);
                     });
                   }),
@@ -405,7 +407,7 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (value) {
                     setState(() {
                       beanColor = value.toString();
-                      Provider.of<WeightInputState>(context, listen: false)
+                      Provider.of<OrderState>(context, listen: false)
                           .setColor(beanColor);
                     });
                   }),
@@ -421,7 +423,7 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (value) {
                     setState(() {
                       beanColor = value.toString();
-                      Provider.of<WeightInputState>(context, listen: false)
+                      Provider.of<OrderState>(context, listen: false)
                           .setColor(beanColor);
                     });
                   }),
@@ -433,6 +435,81 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Build a widget which displays the current weight of the beans.
+  Widget _buildShowCurrentWeight() {
+    String currentWeight =
+        Provider.of<OrderState>(context, listen: false).getCurrentWeight;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+          child: Row(
+            children: const [
+              Text(
+                'Current weigth',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: Row(children: [Text('${currentWeight}g')]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShowCurrentOrder() {
+    String currentOrder = Provider.of<OrderState>(context, listen: false).getCurrentOrder;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+          child: Row(
+            children: const [
+              Text(
+                'Current Order',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              contentPadding:
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: Row(children: [Text('Your current order is: ${currentOrder}.')]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
   // Gets the connection state and returns the associated string.
   String _prepareStateMessageFrom(MQTTAppConnectionState state) {
     switch (state) {
@@ -516,8 +593,7 @@ class _HomePageState extends State<HomePage> {
 
   // Opens a dialog box when the user wants to order beans.
   void _showConfirmMessage(MQTTAppConnectionState state) {
-    String beanColor =
-        Provider.of<WeightInputState>(context, listen: false).getColor;
+    String beanColor = Provider.of<OrderState>(context, listen: false).getColor;
 
     showDialog(
       context: context, barrierDismissible: false, // user must tap button!
@@ -529,7 +605,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You're about to order ${beanWeight}g of $beanColor. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
+                    "You're about to order ${beanWeight}g of ${beanColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
               ],
             ),
           ),
@@ -552,8 +628,8 @@ class _HomePageState extends State<HomePage> {
                       break;
                   }
                   String message = beanWeightIndex + beanWeight;
-                    _publishMessage(message);
-                    _showOrderMessage();
+                  _publishMessage(message);
+                  _showOrderMessage();
                 }
               },
             ),
@@ -571,8 +647,7 @@ class _HomePageState extends State<HomePage> {
 
   // Opens a dialog box when the user has ordered beans.
   void _showOrderMessage() {
-    String beanColor =
-        Provider.of<WeightInputState>(context, listen: false).getColor;
+    String beanColor = Provider.of<OrderState>(context, listen: false).getColor;
     showDialog(
       context: context, barrierDismissible: false, // user must tap button!
 
@@ -582,7 +657,8 @@ class _HomePageState extends State<HomePage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                Text("You've ordered ${beanWeight}g of $beanColor."),
+                Text(
+                    "You've ordered ${beanWeight}g of ${beanColor.toLowerCase()}."),
               ],
             ),
           ),
@@ -600,26 +676,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showErrorMessage() {
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const [
-                 Text("Something went wrong, please try again."),
-              ],
-            ),
+    builder:
+    (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Error'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: const [
+              Text("Something went wrong, please try again."),
+            ],
           ),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      };
+        ),
+        actions: [
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    };
   }
 
   // Checks if a given string is a valid IPv4 address.

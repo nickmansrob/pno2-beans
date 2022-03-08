@@ -17,8 +17,8 @@ void main() {
           ChangeNotifierProvider<MQTTAppState>(
             create: (_) => MQTTAppState(),
           ),
-          ChangeNotifierProvider<WeightInputState>(
-            create: (_) => WeightInputState(),
+          ChangeNotifierProvider<OrderState>(
+            create: (_) => OrderState(),
           )
         ],
         child: const BeanBot(),

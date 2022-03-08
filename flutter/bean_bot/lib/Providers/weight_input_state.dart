@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-class WeightInputState with ChangeNotifier {
+class OrderState with ChangeNotifier {
   String _weight = '';
   String _color  = 'Red Beans';
+  String _currentWeight = '0';
+  String _currentOrder = 'No order';
 
   void setWeight(String weight) {
     _weight = weight;
@@ -13,4 +15,6 @@ class WeightInputState with ChangeNotifier {
 
   String get getWeight => _weight;
   String get getColor => _color;
+  String get getCurrentWeight => _currentWeight;
+  String get getCurrentOrder => _currentOrder;
 }

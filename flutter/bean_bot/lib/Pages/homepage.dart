@@ -9,6 +9,9 @@ import 'package:bean_bot/Pages/logs.dart';
 import 'package:bean_bot/mqtt/MQTTManager.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:bean_bot/Providers/weight_input_state.dart';
+import 'package:expansion_widget/expansion_widget.dart';
+import 'dart:math' as math;
+
 // TODO: clean up code
 // TODO: add comments to the code
 // TODO: make Provider work
@@ -71,6 +74,7 @@ class _HomePageState extends State<HomePage> {
                 Provider.of<MQTTAppState>(context).getAppConnectionState),
             _buildConfirmButtons(
                 Provider.of<MQTTAppState>(context).getAppConnectionState),
+            _buildDivider(),
             _buildAdminInput(),
           ],
         ),
@@ -100,8 +104,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Builds the input field for ordering beans.
-  Widget _buildWeightInput(MQTTAppConnectionState state)
-  {
+  Widget _buildWeightInput(MQTTAppConnectionState state) {
     // Build a Form widget using the _formKey created above.
     return Form(
       key: _weightForm,
@@ -131,7 +134,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: _buildBeanColorSelector(context),
           ),
           const Divider(
@@ -193,141 +196,176 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildDivider() {
+    return const Divider(
+      indent: 8,
+      endIndent: 8,
+    );
+  }
+
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
     final MQTTAppState appState =
-    Provider.of<MQTTAppState>(context, listen: false);
+        Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
-    return Form(
-      key: _adminForm,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: const <Widget>[
-              Padding(
-                padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 4),
-                child: Text(
-                  'Admin',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'MQTT IP',
-                      isDense: true,
-                      contentPadding: EdgeInsets.all(10),
+    return ExpansionWidget(
+      initiallyExpanded: false,
+      titleBuilder:
+          (double animationValue, _, bool isExpanded, toggleFunction) {
+        return InkWell(
+            onTap: () => toggleFunction(animated: true),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Connect to broker',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
                     ),
-                    keyboardType: TextInputType.phone,
-                    controller: _ipTextController,
-                    maxLength: 13,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter the IP address';
-                      }
-                      else {
-                        if (validateIp(value) == false) {
-                          return 'Please enter a valid IP address';
+                  ),
+                  Transform.rotate(
+                    angle: math.pi * animationValue / 2,
+                    child: const Icon(Icons.arrow_right, size: 40),
+                    alignment: Alignment.center,
+                  )
+                ],
+              ),
+            ));
+      },
+      content: Form(
+        key: _adminForm,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: const <Widget>[
+                Padding(
+                  padding:
+                      EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 4),
+                  child: Text(
+                    'Enter IP',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Broker ip',
+                        isDense: true,
+                        contentPadding: EdgeInsets.all(10),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      controller: _ipTextController,
+                      maxLength: 13,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter the IP address';
+                        } else {
+                          // Checks if a valid IP address is entered.
+                          if (validateIp(value) == false) {
+                            return 'Please enter a valid IP address';
+                          }
                         }
-                      }
-                      // Checks if a valid IP address is entered.
-                      // TODO: add valid IP address validation: https://www.geeksforgeeks.org/program-to-validate-an-ip-address/
-                      return null;
-                    },
+                        return null;
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_adminForm.currentState!.validate()) {
-                        // If the form is valid, display a snackbar. In the real world,
-                        // you'd often call a server or save the information in a database.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')),
-                        );
-                        if (currentAppState.getAppConnectionState ==
-                            MQTTAppConnectionState.disconnected) {
-                          currentAppState.setHostIp(_ipTextController.text);
-                          _configureAndConnect();
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_adminForm.currentState!.validate()) {
+                          // If the form is valid, display a snackbar. In the real world,
+                          // you'd often call a server or save the information in a database.
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Processing Data')),
+                          );
+                          if (currentAppState.getAppConnectionState ==
+                              MQTTAppConnectionState.disconnected) {
+                            currentAppState.setHostIp(_ipTextController.text);
+                            _configureAndConnect();
+                          }
+                          Provider.of<MQTTAppState>(context, listen: false)
+                              .setHostIp(_ipTextController.text);
+                          if (currentAppState.getAppConnectionState ==
+                              MQTTAppConnectionState.connected) {
+                            Provider.of<MQTTAppState>(context, listen: false)
+                                .setAppConnectionState(
+                                    MQTTAppConnectionState.connected);
+                          }
                         }
-                        Provider.of<MQTTAppState>(context, listen: false)
-                            .setHostIp(_ipTextController.text);
+                      },
+                      child: const Text('Connect'),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        primary: Colors.white,
+                        onSurface: Colors.greenAccent,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // currentAppState.setHostIp(_ipTextController.text);
                         if (currentAppState.getAppConnectionState ==
                             MQTTAppConnectionState.connected) {
+                          _disconnect();
+                        }
+                        if (currentAppState.getAppConnectionState ==
+                            MQTTAppConnectionState.disconnected) {
                           Provider.of<MQTTAppState>(context, listen: false)
                               .setAppConnectionState(
-                              MQTTAppConnectionState.connected);
+                                  MQTTAppConnectionState.disconnected);
+                          Provider.of<MQTTAppState>(context, listen: false)
+                              .setHostIp(_ipTextController.text);
                         }
-                      }
-                    },
-                    child: const Text('Connect'),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      primary: Colors.white,
-                      onSurface: Colors.greenAccent,
+                      },
+                      child: const Text('Disconnect'),
+                      style: TextButton.styleFrom(
+                        primary: Colors.white,
+                        backgroundColor: Colors.red,
+                        onSurface: Colors.redAccent,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // currentAppState.setHostIp(_ipTextController.text);
-                      if (currentAppState.getAppConnectionState ==
-                          MQTTAppConnectionState.connected) {
-                        _disconnect();
-                      }
-                      if (currentAppState.getAppConnectionState ==
-                          MQTTAppConnectionState.disconnected) {
-                        Provider.of<MQTTAppState>(context, listen: false)
-                            .setAppConnectionState(
-                            MQTTAppConnectionState.disconnected);
-                        Provider.of<MQTTAppState>(context, listen: false)
-                            .setHostIp(_ipTextController.text);
-                      }
-                    },
-                    child: const Text('Disconnect'),
-                    style: TextButton.styleFrom(
-                      primary: Colors.white,
-                      backgroundColor: Colors.red,
-                      onSurface: Colors.redAccent,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Divider(
-            indent: 8,
-            endIndent: 8,
-          ),
-        ],
+              ],
+            ),
+            const Divider(
+              indent: 8,
+              endIndent: 8,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -336,7 +374,7 @@ class _HomePageState extends State<HomePage> {
     return InputDecorator(
       decoration: InputDecoration(
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
+            const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
       child: Column(
@@ -350,7 +388,8 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (value) {
                     setState(() {
                       beanColor = value.toString();
-                      Provider.of<WeightInputState>(context, listen: false).setColor(beanColor);
+                      Provider.of<WeightInputState>(context, listen: false)
+                          .setColor(beanColor);
                     });
                   }),
             ),
@@ -365,7 +404,8 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (value) {
                     setState(() {
                       beanColor = value.toString();
-                      Provider.of<WeightInputState>(context, listen: false).setColor(beanColor);
+                      Provider.of<WeightInputState>(context, listen: false)
+                          .setColor(beanColor);
                     });
                   }),
             ),
@@ -380,7 +420,8 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (value) {
                     setState(() {
                       beanColor = value.toString();
-                      Provider.of<WeightInputState>(context, listen: false).setColor(beanColor);
+                      Provider.of<WeightInputState>(context, listen: false)
+                          .setColor(beanColor);
                     });
                   }),
             ),
@@ -421,8 +462,7 @@ class _HomePageState extends State<HomePage> {
         child: Text(item.text),
       );
 
-
-  /////////////////////////// Voids ///////////////////////////
+  /////////////////////////// Voids and functions ///////////////////////////
   @override
   void initState() {
     super.initState();
@@ -497,14 +537,18 @@ class _HomePageState extends State<HomePage> {
               child: const Text('OK'),
               onPressed: () {
                 if (state == MQTTAppConnectionState.connected) {
-                  String beanColor = Provider.of<WeightInputState>(context, listen: false).getColor;
-                  String beanWeight = Provider.of<WeightInputState>(context, listen: false).getColor;
+                  String beanColor =
+                      Provider.of<WeightInputState>(context, listen: false)
+                          .getColor;
+                  String beanWeight =
+                      Provider.of<WeightInputState>(context, listen: false)
+                          .getColor;
                   String beanWeightIndex = '0';
 
                   switch (beanWeight) {
                     case 'Green beans':
-                       beanWeightIndex = '0';
-                       break;
+                      beanWeightIndex = '0';
+                      break;
                     case 'White beans':
                       beanWeightIndex = '1';
                       break;
@@ -533,7 +577,8 @@ class _HomePageState extends State<HomePage> {
 
   // Opens a dialog box when the user has ordered beans.
   void _showOrderMessage() {
-    String beanColor = Provider.of<WeightInputState>(context, listen: false).getColor;
+    String beanColor =
+        Provider.of<WeightInputState>(context, listen: false).getColor;
     showDialog(
       context: context, barrierDismissible: false, // user must tap button!
 
@@ -543,8 +588,7 @@ class _HomePageState extends State<HomePage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                Text(
-                    "You've ordered $beanWeight g of $beanColor."),
+                Text("You've ordered $beanWeight g of $beanColor."),
               ],
             ),
           ),
@@ -561,7 +605,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // IP validation
+  // Checks if a given string is a valid IPv4 address.
   bool validateIp(String s) {
     var chunks = s.split('.');
     int n = chunks.length;
@@ -577,7 +621,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     for (int i = 0; i < n; i++) {
-      if (int.tryParse(chunks[i]) == null ) {
+      if (int.tryParse(chunks[i]) == null) {
         intCounter++;
       }
       if (int.tryParse(chunks[i]) != null) {
@@ -589,26 +633,24 @@ class _HomePageState extends State<HomePage> {
 
     if (intCounter == 0 && lengthCounter == 0 && n == 4 && periodCounter == 3) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 
+  // Checks if a given string contains a period and returns the string without that period.
   List containsPeriod(String s) {
     bool containsPersiod = s.contains('.');
     List output = [containsPersiod];
 
     if (containsPersiod) {
       int firstPeriodIndex = s.indexOf('.');
-      String newString = s.substring(0, firstPeriodIndex) + s.substring(firstPeriodIndex+1);
+      String newString =
+          s.substring(0, firstPeriodIndex) + s.substring(firstPeriodIndex + 1);
       output.add(newString);
       return output;
-    }
-    else {
+    } else {
       return output;
     }
-
   }
-
 }

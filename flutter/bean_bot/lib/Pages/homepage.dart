@@ -8,6 +8,12 @@ import 'package:bean_bot/Pages/debug.dart';
 import 'package:bean_bot/Pages/logs.dart';
 import 'package:bean_bot/mqtt/MQTTManager.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
+import 'package:bean_bot/Providers/weight_input_state.dart';
+// TODO: clean up code
+// TODO: add comments to the code
+// TODO: make Provider work
+// TODO: wrap AdminInput in a foldable widget
+// TODO: add CurrentWeight widget
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -17,26 +23,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  /////////////////////////// Variables ///////////////////////////
   static const String _title = 'The Bean Bot';
-  final TextEditingController _messageTextController = TextEditingController();
+
+  final _weightForm = GlobalKey<FormState>();
+  final _adminForm = GlobalKey<FormState>();
+
+  final TextEditingController _ipTextController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+
   late MQTTManager manager;
   late MQTTAppState currentAppState;
 
-  final _adminForm = GlobalKey<FormState>();
-  TextEditingController _ipTextController = TextEditingController();
+  String beanWeight = '';
 
+  /////////////////////////// Widgets ///////////////////////////
   @override
-  void initState() {
-    MQTTAppConnectionState currentAppState =
-        MQTTAppConnectionState.disconnected;
-    super.initState();
-  }
-
-  void _publishMessage(String text) {
-    manager.publish(text);
-    _messageTextController.clear();
-  }
-
+  // Builds the main components of the home screen.
   Widget build(BuildContext context) {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
@@ -63,19 +66,23 @@ class _HomePageState extends State<HomePage> {
               setColor(
                   Provider.of<MQTTAppState>(context).getAppConnectionState),
             ),
-            _buildWeightInput(),
+            _buildWeightInput(
+                Provider.of<MQTTAppState>(context).getAppConnectionState),
+            _buildConfirmButtons(
+                Provider.of<MQTTAppState>(context).getAppConnectionState),
             _buildAdminInput(),
           ],
         ),
       ),
       initialRoute: '/',
       routes: {
-        '/debug': (context) => DebugPage(),
-        '/logs': (context) => LogPage(),
+        '/debug': (context) => const DebugPage(),
+        '/logs': (context) => const LogPage(),
       },
     );
   }
 
+  // Creates the connection state widget on top of the screen.
   Widget _buildConnectionStateText(String status, Color color) {
     return Row(
       children: <Widget>[
@@ -91,46 +98,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return 'Connected';
-      case MQTTAppConnectionState.connecting:
-        return 'Connecting';
-      case MQTTAppConnectionState.disconnected:
-        return 'Disconnected';
-    }
-  }
-
-  Color setColor(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return Colors.green;
-      case MQTTAppConnectionState.connecting:
-        return Colors.deepOrange;
-      case MQTTAppConnectionState.disconnected:
-        return Colors.red;
-    }
-  }
-
-  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-        value: item,
-        child: Text(item.text),
-      );
-  void onSelected(BuildContext context, MenuItem item) {
-    switch (item) {
-      case MenuItems.itemDebug:
-        Navigator.pushNamed(context, '/debug');
-        break;
-      case MenuItems.itemLog:
-        Navigator.pushNamed(context, '/logs');
-        break;
-    }
-  }
-
-  final _weightForm = GlobalKey<FormState>();
-
-  Widget _buildWeightInput() {
+  // Builds the input field for ordering beans.
+  Widget _buildWeightInput(MQTTAppConnectionState state) {
     // Build a Form widget using the _formKey created above.
     return Form(
       key: _weightForm,
@@ -140,15 +109,20 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: TextFormField(
-              controller: _messageTextController,
+              controller: _weightController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter the weight',
               ),
               keyboardType: TextInputType.phone,
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter the weight';
+                if (state == MQTTAppConnectionState.disconnected) {
+                  return 'Please connect to the Arduino before ordering beans.';
+                }
+                if (state == MQTTAppConnectionState.connected) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the weight';
+                  }
                 }
                 return null;
               },
@@ -158,17 +132,16 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: BeanKindDropdown(),
           ),
-          Divider(
+          const Divider(
             indent: 8,
             endIndent: 8,
           )
         ],
-
       ),
-
     );
   }
 
+  // Builds the confirm buttons the ordering beans.
   Widget _buildConfirmButtons(MQTTAppConnectionState state) {
     return Row(
       children: [
@@ -189,9 +162,14 @@ class _HomePageState extends State<HomePage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Processing Data')),
                   );
-                }
-                if (state == MQTTAppConnectionState.connected) {
-                  _publishMessage(_messageTextController.text);
+                  Provider.of<WeightInputState>(context, listen: false)
+                      .setWeight(_weightController.text);
+                  beanWeight =
+                      Provider.of<WeightInputState>(context, listen: false)
+                          .getWeight;
+                  _showConfirmMessage(
+                      Provider.of<MQTTAppState>(context, listen: false)
+                          .getAppConnectionState);
                 }
               },
               child: const Text('SUBMIT'),
@@ -213,9 +191,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
     final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+    Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return Form(
@@ -244,7 +223,7 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: TextFormField(
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -260,17 +239,7 @@ class _HomePageState extends State<HomePage> {
                         return 'Please enter the IP address';
                       }
                       // Checks if a valid IP address is entered.
-                      if (value.length != 13) {
-                        return 'Please enter a valid IP address';
-                      }
-                      if (value.length == 13) {
-                        if (value[3] != '.' ||
-                            value[7] != '.' ||
-                            value[9] != '.') {
-                          return 'Please enter a valid IP address';
-                        }
-                      }
-
+                      // TODO: add valid IP address validation: https://www.geeksforgeeks.org/program-to-validate-an-ip-address/
                       return null;
                     },
                   ),
@@ -283,7 +252,7 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: ElevatedButton(
                     onPressed: () {
                       if (_adminForm.currentState!.validate()) {
@@ -303,7 +272,7 @@ class _HomePageState extends State<HomePage> {
                             MQTTAppConnectionState.connected) {
                           Provider.of<MQTTAppState>(context, listen: false)
                               .setAppConnectionState(
-                                  MQTTAppConnectionState.connected);
+                              MQTTAppConnectionState.connected);
                         }
                       }
                     },
@@ -319,7 +288,7 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: ElevatedButton(
                     onPressed: () {
                       // currentAppState.setHostIp(_ipTextController.text);
@@ -331,7 +300,7 @@ class _HomePageState extends State<HomePage> {
                           MQTTAppConnectionState.disconnected) {
                         Provider.of<MQTTAppState>(context, listen: false)
                             .setAppConnectionState(
-                                MQTTAppConnectionState.disconnected);
+                            MQTTAppConnectionState.disconnected);
                         Provider.of<MQTTAppState>(context, listen: false)
                             .setHostIp(_ipTextController.text);
                       }
@@ -356,11 +325,57 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Gets the connection state and returns the associated string.
+  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  // Gets the connection state and returns the associated color.
+  Color setColor(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return Colors.green;
+      case MQTTAppConnectionState.connecting:
+        return Colors.deepOrange;
+      case MQTTAppConnectionState.disconnected:
+        return Colors.red;
+    }
+  }
+
+  // Creates the navigation menu.
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+        value: item,
+        child: Text(item.text),
+      );
+
+
+  /////////////////////////// Voids ///////////////////////////
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  // Sends a message over the MQTT connection.
+  void _publishMessage(String text) {
+    manager.publish(text);
+    _weightController.clear();
+  }
+
+  @override
+  // Clears the text of the IP controller.
   void dispose() {
     _ipTextController.dispose();
     super.dispose();
   }
 
+  // Connects the app to the broker.
   void _configureAndConnect() {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
@@ -375,8 +390,109 @@ class _HomePageState extends State<HomePage> {
     manager.connect();
   }
 
+  // Disconnects the app from the broker.
   void _disconnect() {
     manager.disconnect();
+  }
+
+  // Handles the navigation of the popupmenu.
+  void onSelected(BuildContext context, MenuItem item) {
+    switch (item) {
+      case MenuItems.itemDebug:
+        Navigator.pushNamed(context, '/debug');
+        break;
+      case MenuItems.itemLog:
+        Navigator.pushNamed(context, '/logs');
+        break;
+    }
+  }
+
+  // Opens a dialog box when the user wants to order beans.
+  void _showConfirmMessage(MQTTAppConnectionState state) {
+    String beanColor =
+        Provider.of<WeightInputState>(context, listen: false).getColor;
+
+    showDialog(
+      context: context, barrierDismissible: false, // user must tap button!
+
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm order'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                    "You're about to order $beanWeight g of $beanColor beans. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                if (state == MQTTAppConnectionState.connected) {
+                  String beanColor = Provider.of<WeightInputState>(context, listen: false).getColor;
+                  String beanWeight = Provider.of<WeightInputState>(context, listen: false).getColor;
+                  String beanWeightIndex = '0';
+
+                  switch (beanWeight) {
+                    case 'Green beans':
+                       beanWeightIndex = '0';
+                       break;
+                    case 'White beans':
+                      beanWeightIndex = '1';
+                      break;
+                    case 'Red beans':
+                      beanWeightIndex = '1';
+                      break;
+                  }
+                  String message = beanWeightIndex + beanColor;
+                  _publishMessage(message);
+                }
+                Navigator.of(context).pop();
+                _showOrderMessage();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Opens a dialog box when the user has ordered beans.
+  void _showOrderMessage() {
+    String beanColor = Provider.of<WeightInputState>(context, listen: false).getColor;
+    showDialog(
+      context: context, barrierDismissible: false, // user must tap button!
+
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Bean Order'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                    "You've ordered $beanWeight g of $beanColor."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -388,33 +504,64 @@ class BeanKindDropdown extends StatefulWidget {
 }
 
 class _BeanKindDropdownState extends State<BeanKindDropdown> {
-  String dropdownValue = 'Red beans';
-
+  String beanColor = 'Green beans';
   @override
+  // Builds the radio buttons for selection the color of the beans. 
   Widget build(BuildContext context) {
     return InputDecorator(
       decoration: InputDecoration(
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+            const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: dropdownValue,
-          icon: const Icon(Icons.arrow_drop_down),
-          onChanged: (String? newValue) {
-            setState(() {
-              dropdownValue = newValue!;
-            });
-          },
-          items: <String>['Red beans', 'Green beans', 'Brown beans']
-              .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        ),
+      child: Column(
+        children: [
+          Padding(
+            child: ListTile(
+              title: const Text("Green beans"),
+              leading: Radio(
+                  value: "Green beans",
+                  groupValue: beanColor,
+                  onChanged: (value) {
+                    setState(() {
+                      beanColor = value.toString();
+                      Provider.of<WeightInputState>(context, listen: false).setColor(beanColor);
+                    });
+                  }),
+            ),
+            padding: const EdgeInsets.all(0.0),
+          ),
+          Padding(
+            child: ListTile(
+              title: const Text("White beans"),
+              leading: Radio(
+                  value: "White beans",
+                  groupValue: beanColor,
+                  onChanged: (value) {
+                    setState(() {
+                      beanColor = value.toString();
+                      Provider.of<WeightInputState>(context, listen: false).setColor(beanColor);
+                    });
+                  }),
+            ),
+            padding: const EdgeInsets.all(0.0),
+          ),
+          Padding(
+            child: ListTile(
+              title: const Text("Red beans"),
+              leading: Radio(
+                  value: "Red beans",
+                  groupValue: beanColor,
+                  onChanged: (value) {
+                    setState(() {
+                      beanColor = value.toString();
+                      Provider.of<WeightInputState>(context, listen: false).setColor(beanColor);
+                    });
+                  }),
+            ),
+            padding: const EdgeInsets.all(0.0),
+          ),
+        ],
       ),
     );
   }

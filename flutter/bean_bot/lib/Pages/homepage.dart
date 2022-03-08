@@ -100,7 +100,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Builds the input field for ordering beans.
-  Widget _buildWeightInput(MQTTAppConnectionState state) {
+  Widget _buildWeightInput(MQTTAppConnectionState state)
+  {
     // Build a Form widget using the _formKey created above.
     return Form(
       key: _weightForm,
@@ -238,6 +239,11 @@ class _HomePageState extends State<HomePage> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter the IP address';
+                      }
+                      else {
+                        if (validateIp(value) == false) {
+                          return 'Please enter a valid IP address';
+                        }
                       }
                       // Checks if a valid IP address is entered.
                       // TODO: add valid IP address validation: https://www.geeksforgeeks.org/program-to-validate-an-ip-address/
@@ -554,4 +560,55 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+
+  // IP validation
+  bool validateIp(String s) {
+    var chunks = s.split('.');
+    int n = chunks.length;
+    int intCounter = 0;
+    int lengthCounter = 0;
+    int periodCounter = 0;
+
+    List containsPeriodOutput = containsPeriod(s);
+
+    while (containsPeriodOutput[0]) {
+      containsPeriodOutput = containsPeriod(containsPeriodOutput[1]);
+      periodCounter++;
+    }
+
+    for (int i = 0; i < n; i++) {
+      if (int.tryParse(chunks[i]) == null ) {
+        intCounter++;
+      }
+      if (int.tryParse(chunks[i]) != null) {
+        if (int.parse(chunks[i]) > 255 || int.parse(chunks[i]) < 0) {
+          lengthCounter++;
+        }
+      }
+    }
+
+    if (intCounter == 0 && lengthCounter == 0 && n == 4 && periodCounter == 3) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  List containsPeriod(String s) {
+    bool containsPersiod = s.contains('.');
+    List output = [containsPersiod];
+
+    if (containsPersiod) {
+      int firstPeriodIndex = s.indexOf('.');
+      String newString = s.substring(0, firstPeriodIndex) + s.substring(firstPeriodIndex+1);
+      output.add(newString);
+      return output;
+    }
+    else {
+      return output;
+    }
+
+  }
+
 }

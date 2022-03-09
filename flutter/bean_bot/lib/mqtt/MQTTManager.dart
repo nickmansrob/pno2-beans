@@ -1,4 +1,4 @@
-import 'package:bean_bot/mqtt/state/MQTTAppState.dart';
+import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -8,18 +8,24 @@ class MQTTManager {
   MqttServerClient? _client;
   final String _identifier;
   final String _host;
-  final String _topic;
+  final String _topic1;
+  final String _topic2;
+  final String _topic3;
 
   // Constructor
   // ignore: sort_constructors_first
   MQTTManager(
       {required String host,
-      required String topic,
+      required String topic1,
+      required String topic2,
+      required String topic3,
       required String identifier,
       required MQTTAppState state})
       : _identifier = identifier,
         _host = host,
-        _topic = topic,
+        _topic1 = topic1,
+        _topic2 = topic2,
+        _topic3 = topic3,
         _currentState = state;
 
   void initializeMQTTClient() {
@@ -61,10 +67,10 @@ class MQTTManager {
     _client!.disconnect();
   }
 
-  void publish(String message) {
-    final MqttClientPayloadBu ilder builder = MqttClientPayloadBuilder();
+  void publish(String message, String topic) {
+    final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
     builder.addString(message);
-    _client!.publishMessage(_topic, MqttQos.exactlyOnce, builder.payload!);
+    _client!.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
   }
 
   /// The subscribed callback
@@ -86,7 +92,9 @@ class MQTTManager {
   void onConnected() {
     _currentState.setAppConnectionState(MQTTAppConnectionState.connected);
     print('EXAMPLE::Mosquitto client connected....');
-    _client!.subscribe(_topic, MqttQos.atLeastOnce);
+    _client!.subscribe(_topic1, MqttQos.atLeastOnce);
+    _client!.subscribe(_topic2, MqttQos.atLeastOnce);
+    _client!.subscribe(_topic3, MqttQos.atLeastOnce);
     _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
       // ignore: avoid_as
       final MqttPublishMessage recMess = c![0].payload as MqttPublishMessage;

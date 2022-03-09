@@ -1,237 +1,117 @@
 /************************* Libraries *************************/
-#if defined(__AVR__)
 #include <WiFi.h>
-#elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-#endif
-
+#include <Arduino.h>
+//#include <ESP8266WiFi.h>
 #include <Servo.h>
+#include <WebSocketsServer.h>
 
-#include <PubSubClient.h>
+/************************* Definitions *************************/
 
-/************************* WiFi *************************/
-
-const char * ssid = "ENVYROB113004";
-const char * password = "0j085693";
-const char * mqtt_server = "192.168.137.1";
-
-/************************* DC-motors *************************/
-const uint8_t MOTOR1_PIN = 5;
-byte motorOneState = LOW;
+#define WLAN_SSID "BeanBot312"
+#define WLAN_PASS "464UAvp6UR5q"
 
 /************************* Servos *************************/
-Servo servoOne;
-const uint8_t SERVO1_PIN = 9;
-int servoOneState = 90;
+Servo siloSelect;
+const uint8_t SILO_PIN_NUMBER = 9;
+int siloSelectPos = 0;
 
-/************************* MQTT *************************/
-WiFiClient espClient;
-PubSubClient client(espClient);
-long lastMsg = 0;
-char msg[50];
-int value = 0;
+Servo angleSelect;
+const uint8_t ANGLE_PIN_NUMBER = 8;
+int angleSelectPos = 0;
 
-bool manualOverride = false;
+/************************* Websocket *************************/
+WebSocketsServer webSocket = WebSocketsServer(1337);
 
-/************************* Reset function *************************/
-void(* resetFunc) (void) = 0;
+char msg_buf[10];
+int led_state = 0;
+int led_pin = 0;
 
+// Callback: receiving any WebSocket message
+void onWebSocketEvent(uint8_t client_num,
+                      WStype_t type,
+                      uint8_t * payload,
+                      size_t length) {
 
-/*****************************************************************/
+  // Figure out the type of WebSocket event
+  switch(type) {
+
+    // Client has disconnected
+    case WStype_DISCONNECTED:
+      Serial.printf("[%u] Disconnected!\n", client_num);
+      break;
+
+    // New client has connected
+    case WStype_CONNECTED:
+      {
+        IPAddress ip = webSocket.remoteIP(client_num);
+        Serial.printf("[%u] Connection from ", client_num);
+        Serial.println(ip.toString());
+      }
+      break;
+
+    // Handle text messages from client
+    case WStype_TEXT:
+
+      // Print out raw message
+      Serial.printf("[%u] Received text: %s\n", client_num, payload);
+
+      // Toggle LED
+      if ( strcmp((char *)payload, "toggleLED") == 0 ) {
+        led_state = led_state ? 0 : 1;
+        Serial.printf("Toggling LED to %u\n", led_state);
+        digitalWrite(led_pin, led_state);
+
+      // Report the state of the LED
+      } else if ( strcmp((char *)payload, "getLEDState") == 0 ) {
+        sprintf(msg_buf, "%d", led_state);
+        Serial.printf("Sending to [%u]: %s\n", client_num, msg_buf);
+        webSocket.sendTXT(client_num, msg_buf);
+
+      // Message not recognized
+      } else {
+        Serial.println("[%u] Message not recognized");
+      }
+      break;
+      
+    default:
+      break;
+  }
+}
+
 
 void setup() {
   /************************* Initializaton *************************/
   Serial.begin(115200);
   delay(10);
 
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
+  // Create WiFi access point.
+  IPAddress apIP(192, 168, 0, 1);   //Static IP for wifi gateway
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)); //set Static IP gateway
+  
+  Serial.print("Creating WiFi network ");
+  Serial.println(WLAN_SSID);
 
-  WiFi.begin(ssid, password);
+  WiFi.softAP(WLAN_SSID, WLAN_PASS);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  delay(1000);
 
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  Serial.println("WiFi created.");
+  Serial.println("IP address: "); 
+  Serial.println(WiFi.softAPIP());
 
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
-
-  /************************* DC-motors *************************/
-  pinMode(MOTOR1_PIN, OUTPUT);
-
+  // Start WebSocket server and assign callback
+  webSocket.begin();
+  webSocket.onEvent(onWebSocketEvent);
+  Serial.println("Websocket started.");
+  
   /************************* Servos *************************/
-  //siloSelect.attach(SILO_PIN_NUMBER);
-  //angleSelect.attach(ANGLE_PIN_NUMBER);
+  siloSelect.attach(SILO_PIN_NUMBER);
+  angleSelect.attach(ANGLE_PIN_NUMBER);
 
 }
 
 void loop() {
-  /************************* MQTT *************************/
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
+  /************************* Websocket *************************/
+  webSocket.loop(); //keep this line on loop method
 
-}
-
-/************************* MQTT Handlers *************************/
-void callback(char* topic, byte* message, unsigned int length) {
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
-  String messageString;
-
-  String topicString = String(topic);
-  
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)message[i]);
-    messageString += (char)message[i];
-  }
-  Serial.println();
-
-  logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);
-
-  if (topicString == "override") {
-    if (messageString == "1") {
-      Serial.println("WARNING: Override enabled");
-      // TO DO: Add logFlow to each Serial println as above
-      manualOverride = true;
-    } else if (messageString == "0") {
-      Serial.println("WARNING: Override disabled");
-      manualOverride = false;
-    }
-  }
-
-  if (topicString != "override") {
-    // Check if override is active
-    if (manualOverride) {
-      Serial.println("ROUTE: From origin to manualFlow");
-      manualFlow(topicString, messageString);
-    } else if (topicString == "order") {
-      // Incoming order example: 1200, stands for 200gr of the first kind
-      String weight = messageString.substring(1);
-      String beanKind = messageString.substring(0, 1);
-
-      // Sends order to flow
-      Serial.println("ROUTE: From origin to normalFlow");
-      Serial.println("INFO: Incoming order: " + weight + " grams of kind " + beanKind);
-      normalFlow(weight, beanKind);
-    } else if (topicString == "admin") {
-      Serial.println("ROUTE: From origin to adminFlow");
-      adminFlow(messageString);
-    } else {
-      Serial.println("ERROR: No matching topic or override not enabled.");
-    }
-  }
-}
-
-void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect("ArduinoBeanBot")) {
-      Serial.println("connected");
-      // Subscribe
-      client.subscribe("motor1");
-      client.subscribe("order");
-      client.subscribe("servo1");
-      client.subscribe("admin");
-      client.subscribe("override");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-
-/************************* Read weight sensor and publish *************************/
-void readWeight() {
-  String weight = "0";
-  // TO DO: Implement sensor readings
-
-  if (weight != "0") {
-    client.publish("weightListener", weight.c_str());
-  }
-  // TO DO: Implement timer to avoid flooding the topic. Weight should be updated once a second. Use millis() function.
-}
-
-/************************* Program flow *************************/
-void normalFlow(String weight, String beanKind) {
-  // TO DO: Code needed for a normal program flow.
-}
-
-void manualFlow(String topic, String messageString) {
-  Serial.print("Changing state of [" + topic + "] to ");
-
-  // Motor 1
-  if (topic == "motor1") {
-    if (messageString == "toggle" && motorOneState == LOW) {
-      Serial.println("on");
-      digitalWrite(MOTOR1_PIN, HIGH);
-      // TO DO: If needed implement analogWrite to adjust PWM
-      motorOneState = HIGH;
-    } else if (messageString == "toggle" && motorOneState == HIGH) {
-      Serial.println("off");
-      digitalWrite(MOTOR1_PIN, LOW);
-      motorOneState = LOW;
-    } else {
-      Serial.println("ERROR: Unspecified state");
-    }
-  }
-
-  //Servo 1
-  if (topic == "servo1") {
-    int angle = messageString.toInt();
-
-    // Constrain angle between 90+-45, 90 degrees is default state (silo 2)
-
-    if (-180 <= angle && angle <= 180) {
-      // Angle is valid, proceed
-
-      // TO DO: Implement checking where the servo is located, then constrain angle again to prevent the servo from rotating to far
-
-      servoOne.write(angle);
-      servoOneState = angle;
-
-      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
-    } else {
-      Serial.println("ERROR: Angle out of bounds");
-    }
-  }
-}
-
-void adminFlow(String messageString) {
-  if (messageString == "reset") {
-    Serial.println("WARNING: Hard reset");
-    resetFunc();
-  }
-
-  if (messageString == "reconnect") {
-    Serial.println("WARNING: MQTT Reconnect");
-    client.disconnect();
-    reconnect();
-  }
-
-  if (messageString == "printip") {
-    Serial.println("INFO: Printing broker IP: " + String(mqtt_server));
-    client.publish("ipListener", mqtt_server);
-  }
-}
-
-void logFlow(String message) {
-  client.publish("logListener", message.c_str());
-
-  // TO DO: Move Serial.println to this method for a cleaner code and less duplication
 }

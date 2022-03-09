@@ -13,6 +13,10 @@ class OrderState with ChangeNotifier {
     _color = color;
   }
 
+  void setCurrentOrder(String currentOrder) {
+    _currentOrder  = currentOrder;
+  }
+
   String get getWeight => _weight;
   String get getColor => _color;
   String get getCurrentWeight => _currentWeight;

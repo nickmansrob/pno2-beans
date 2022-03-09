@@ -7,16 +7,14 @@ import 'package:bean_bot/model/menu_item.dart';
 import 'package:bean_bot/Pages/debug.dart';
 import 'package:bean_bot/Pages/logs.dart';
 import 'package:bean_bot/mqtt/MQTTManager.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:bean_bot/Providers/weight_input_state.dart';
 import 'package:expansion_widget/expansion_widget.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
+
 import 'dart:math' as math;
 
-// TODO: clean up code
-// TODO: add comments to the code
-// TODO: make Provider work
-// TODO: wrap AdminInput in a foldable widget
-// TODO: add CurrentWeight widget
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -37,16 +35,19 @@ class _HomePageState extends State<HomePage> {
 
   late MQTTManager manager;
   late MQTTAppState currentAppState;
+  late OrderState currentOrderState;
 
   String beanWeight = '';
   String beanColor = 'Green beans';
+  String logTopic = 'logListener';
+  String weightTopic = 'weightListener';
 
   /////////////////////////// Widgets ///////////////////////////
   @override
   // Builds the main components of the home screen.
   Widget build(BuildContext context) {
-    final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context, listen: false);
+    final OrderState orderState = Provider.of<OrderState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return MaterialApp(
@@ -177,13 +178,10 @@ class _HomePageState extends State<HomePage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Processing Data')),
                   );
-                  Provider.of<OrderState>(context, listen: false)
-                      .setWeight(_weightController.text);
-                  beanWeight =
-                      Provider.of<OrderState>(context, listen: false).getWeight;
+                  currentOrderState.setWeight(_weightController.text);
+                  beanWeight = currentOrderState.getWeight;
                   _showConfirmMessage(
-                      Provider.of<MQTTAppState>(context, listen: false)
-                          .getAppConnectionState);
+                     currentAppState.getAppConnectionState);
                 }
               },
               child: const Text('SUBMIT'),
@@ -214,8 +212,7 @@ class _HomePageState extends State<HomePage> {
 
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
-    final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return Padding(
@@ -510,6 +507,7 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
+
   // Gets the connection state and returns the associated string.
   String _prepareStateMessageFrom(MQTTAppConnectionState state) {
     switch (state) {
@@ -547,8 +545,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Sends a message over the MQTT connection.
-  void _publishMessage(String text) {
-    manager.publish(text);
+  void _publishMessage(String text, String topic) {
+    manager.publish(text, topic);
     _weightController.clear();
   }
 
@@ -563,15 +561,24 @@ class _HomePageState extends State<HomePage> {
   void _configureAndConnect() {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
-    // Keep a reference to the app state.
+    final OrderState orderState =
+    Provider.of<OrderState>(context, listen: false);
+
+    // Keep a reference to the app state and order.
     currentAppState = appState;
+    currentOrderState = orderState;
+
     manager = MQTTManager(
         host: currentAppState.getHostIP,
-        topic: "order",
+        topic1: "order",
+        topic2: "logListener",
+        topic3: "weightListener",
         identifier: "BeanBotDemo",
         state: currentAppState);
     manager.initializeMQTTClient();
     manager.connect();
+
+
   }
 
   // Disconnects the app from the broker.
@@ -593,11 +600,9 @@ class _HomePageState extends State<HomePage> {
 
   // Opens a dialog box when the user wants to order beans.
   void _showConfirmMessage(MQTTAppConnectionState state) {
-    String beanColor = Provider.of<OrderState>(context, listen: false).getColor;
-
     showDialog(
-      context: context, barrierDismissible: false, // user must tap button!
-
+      context: context,
+      barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirm order'),
@@ -605,7 +610,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You're about to order ${beanWeight}g of ${beanColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
+                    "You're about to order ${currentOrderState.getWeight}g of ${currentOrderState.getColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
               ],
             ),
           ),
@@ -616,7 +621,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).pop();
                 if (state == MQTTAppConnectionState.connected) {
                   String beanWeightIndex = '0';
-                  switch (beanColor) {
+                  switch (currentOrderState.getColor) {
                     case 'Green beans':
                       beanWeightIndex = '0';
                       break;
@@ -627,8 +632,10 @@ class _HomePageState extends State<HomePage> {
                       beanWeightIndex = '2';
                       break;
                   }
-                  String message = beanWeightIndex + beanWeight;
-                  _publishMessage(message);
+                  String message = beanWeightIndex + currentOrderState.getWeight;
+                  String currentOrder = '${currentOrderState.getWeight} g of ${currentOrderState.getColor.toLowerCase()}';
+                  currentOrderState.setCurrentOrder(currentOrder);
+                  _publishMessage(message, "order");
                   _showOrderMessage();
                 }
               },
@@ -658,7 +665,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You've ordered ${beanWeight}g of ${beanColor.toLowerCase()}."),
+                    "You've ordered ${currentOrderState.getWeight}g of ${currentOrderState.getColor.toLowerCase()}."),
               ],
             ),
           ),

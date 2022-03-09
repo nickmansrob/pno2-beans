@@ -4,6 +4,13 @@ import '../Providers/MQTTAppState.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:provider/provider.dart';
 
+// TODO: Delete check connection
+// TODO: Make print IP work
+// TODO: Investigate publishing
+
+// weightListener for topic for currentWeight
+// logListener for logs of the arduino
+
 class DebugPage extends StatefulWidget {
   const DebugPage({Key? key}) : super(key: key);
   @override

@@ -18,10 +18,8 @@ class DebugPage extends StatefulWidget {
 }
 
 class _DebugPageState extends State<DebugPage> {
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Debug Menu'),
@@ -29,8 +27,10 @@ class _DebugPageState extends State<DebugPage> {
       body: ListView(children: [
         // Creates the connection indicator on top of the screen. \
         _buildConnectionStateText(
-          _prepareStateMessageFrom(Provider.of<MQTTAppState>(context).getAppConnectionState),
-          setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),),
+          _prepareStateMessageFrom(
+              Provider.of<MQTTAppState>(context).getAppConnectionState),
+          setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),
+        ),
         const ManualOverride(),
         const Motors(),
         const ServoInput(),

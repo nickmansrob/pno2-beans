@@ -10,29 +10,35 @@ class LogPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Logs'),
         ),
-        body: ListView(children: [
-          _buildConnectionStateText(
-            _prepareStateMessageFrom(Provider.of<MQTTAppState>(context).getAppConnectionState),
-            setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),),
-          Container(
-          child: Row(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Output',
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                )
-              ]),
-          margin:
-              const EdgeInsets.only(left: 20, top: 20, right: 20, bottom: 40),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            border: Border.all(width: 1, color: Colors.black),
-          ),
-        ),],),
+        body: ListView(
+          children: [
+            _buildConnectionStateText(
+              _prepareStateMessageFrom(
+                  Provider.of<MQTTAppState>(context).getAppConnectionState),
+              setColor(
+                  Provider.of<MQTTAppState>(context).getAppConnectionState),
+            ),
+            Container(
+              child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Output',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    )
+                  ]),
+              margin: const EdgeInsets.only(
+                  left: 20, top: 20, right: 20, bottom: 40),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(width: 1, color: Colors.black),
+              ),
+            ),
+          ],
+        ),
       );
 
   Widget _buildConnectionStateText(String status, Color color) {

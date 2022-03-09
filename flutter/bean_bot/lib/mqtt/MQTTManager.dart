@@ -17,8 +17,8 @@ class MQTTManager {
   MQTTManager(
       {required String host,
       required String topic1,
-        required String topic2,
-        required String topic3,
+      required String topic2,
+      required String topic3,
       required String identifier,
       required MQTTAppState state})
       : _identifier = identifier,
@@ -47,6 +47,7 @@ class MQTTManager {
     print('EXAMPLE::Mosquitto client connecting....');
     _client!.connectionMessage = connMess;
   }
+
   // Connect to the host
   // ignore: avoid_void_async
   void connect() async {

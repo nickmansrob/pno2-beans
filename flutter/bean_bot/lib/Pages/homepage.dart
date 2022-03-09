@@ -15,7 +15,6 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 
 import 'dart:math' as math;
 
-
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -46,8 +45,10 @@ class _HomePageState extends State<HomePage> {
   @override
   // Builds the main components of the home screen.
   Widget build(BuildContext context) {
-    final MQTTAppState appState = Provider.of<MQTTAppState>(context, listen: false);
-    final OrderState orderState = Provider.of<OrderState>(context, listen: false);
+    final MQTTAppState appState =
+        Provider.of<MQTTAppState>(context, listen: false);
+    final OrderState orderState =
+        Provider.of<OrderState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return MaterialApp(
@@ -180,8 +181,7 @@ class _HomePageState extends State<HomePage> {
                   );
                   currentOrderState.setWeight(_weightController.text);
                   beanWeight = currentOrderState.getWeight;
-                  _showConfirmMessage(
-                     currentAppState.getAppConnectionState);
+                  _showConfirmMessage(currentAppState.getAppConnectionState);
                 }
               },
               child: const Text('SUBMIT'),
@@ -212,7 +212,8 @@ class _HomePageState extends State<HomePage> {
 
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
-    final MQTTAppState appState = Provider.of<MQTTAppState>(context, listen: false);
+    final MQTTAppState appState =
+        Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return Padding(
@@ -472,7 +473,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildShowCurrentOrder() {
-    String currentOrder = Provider.of<OrderState>(context, listen: false).getCurrentOrder;
+    String currentOrder =
+        Provider.of<OrderState>(context, listen: false).getCurrentOrder;
     return Column(
       children: [
         Padding(
@@ -494,13 +496,14 @@ class _HomePageState extends State<HomePage> {
           child: InputDecorator(
             decoration: InputDecoration(
               contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
               border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: Row(children: [Text('Your current order is: ${currentOrder}.')]),
+              child: Row(
+                  children: [Text('Your current order is: ${currentOrder}.')]),
             ),
           ),
         ),
@@ -562,7 +565,7 @@ class _HomePageState extends State<HomePage> {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
     final OrderState orderState =
-    Provider.of<OrderState>(context, listen: false);
+        Provider.of<OrderState>(context, listen: false);
 
     // Keep a reference to the app state and order.
     currentAppState = appState;
@@ -577,8 +580,6 @@ class _HomePageState extends State<HomePage> {
         state: currentAppState);
     manager.initializeMQTTClient();
     manager.connect();
-
-
   }
 
   // Disconnects the app from the broker.
@@ -632,8 +633,10 @@ class _HomePageState extends State<HomePage> {
                       beanWeightIndex = '2';
                       break;
                   }
-                  String message = beanWeightIndex + currentOrderState.getWeight;
-                  String currentOrder = '${currentOrderState.getWeight} g of ${currentOrderState.getColor.toLowerCase()}';
+                  String message =
+                      beanWeightIndex + currentOrderState.getWeight;
+                  String currentOrder =
+                      '${currentOrderState.getWeight} g of ${currentOrderState.getColor.toLowerCase()}';
                   currentOrderState.setCurrentOrder(currentOrder);
                   _publishMessage(message, "order");
                   _showOrderMessage();

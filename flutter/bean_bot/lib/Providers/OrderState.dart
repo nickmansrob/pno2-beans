@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 
 class OrderState with ChangeNotifier {
-  String _weight = '';
+  String _weightOrder = '';
   String _color = 'Red Beans';
-  String _currentWeight = '0';
-  String _currentOrder = 'No order';
+  String _currentOrder = 'no order';
 
-  void setWeight(String weight) {
-    _weight = weight;
+  void setWeightOrder(String weight) {
+    _weightOrder = weight;
+    notifyListeners();
   }
 
   void setColor(String color) {
     _color = color;
+    notifyListeners();
   }
 
   void setCurrentOrder(String currentOrder) {
     _currentOrder = currentOrder;
+    notifyListeners();
   }
 
-  String get getWeight => _weight;
+  String get getWeightOrder => _weightOrder;
   String get getColor => _color;
-  String get getCurrentWeight => _currentWeight;
   String get getCurrentOrder => _currentOrder;
 }

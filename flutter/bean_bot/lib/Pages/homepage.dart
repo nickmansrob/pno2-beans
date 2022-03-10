@@ -7,11 +7,9 @@ import 'package:bean_bot/model/menu_item.dart';
 import 'package:bean_bot/Pages/debug.dart';
 import 'package:bean_bot/Pages/logs.dart';
 import 'package:bean_bot/mqtt/MQTTManager.dart';
-import 'package:mqtt_client/mqtt_client.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
-import 'package:bean_bot/Providers/weight_input_state.dart';
+import 'package:bean_bot/Providers/OrderState.dart';
 import 'package:expansion_widget/expansion_widget.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
 
 import 'dart:math' as math;
 
@@ -51,6 +49,7 @@ class _HomePageState extends State<HomePage> {
         Provider.of<OrderState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
+    currentOrderState = orderState;
     return MaterialApp(
       title: _title,
       home: Scaffold(
@@ -77,9 +76,9 @@ class _HomePageState extends State<HomePage> {
             _buildConfirmButtons(
                 Provider.of<MQTTAppState>(context).getAppConnectionState),
             _buildDivider(),
-            _buildShowCurrentWeight(),
+            _buildShowCurrentWeight(appState.getWeightText),
             _buildDivider(),
-            _buildShowCurrentOrder(),
+            _buildShowCurrentOrder(orderState.getCurrentOrder),
             _buildDivider(),
             _buildAdminInput(),
           ],
@@ -179,8 +178,8 @@ class _HomePageState extends State<HomePage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Processing Data')),
                   );
-                  currentOrderState.setWeight(_weightController.text);
-                  beanWeight = currentOrderState.getWeight;
+                  currentOrderState.setWeightOrder(_weightController.text);
+                  beanWeight = currentOrderState.getWeightOrder;
                   _showConfirmMessage(currentAppState.getAppConnectionState);
                 }
               },
@@ -217,7 +216,7 @@ class _HomePageState extends State<HomePage> {
     // Keep a reference to the app state.
     currentAppState = appState;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 8),
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
@@ -433,10 +432,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Build a widget which displays the current weight of the beans.
-  Widget _buildShowCurrentWeight() {
-    String currentWeight =
-        Provider.of<OrderState>(context, listen: false).getCurrentWeight;
+  // Builds a widget which displays the current weight of the beans.
+  Widget _buildShowCurrentWeight(String text) {
     return Column(
       children: [
         Padding(
@@ -464,7 +461,7 @@ class _HomePageState extends State<HomePage> {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: Row(children: [Text('${currentWeight}g')]),
+              child: Row(children: [Text('${text}g')]),
             ),
           ),
         ),
@@ -472,9 +469,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildShowCurrentOrder() {
-    String currentOrder =
-        Provider.of<OrderState>(context, listen: false).getCurrentOrder;
+  // Builds a widget which displays the current bean order.
+  Widget _buildShowCurrentOrder(String text) {
     return Column(
       children: [
         Padding(
@@ -503,7 +499,7 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               child: Row(
-                  children: [Text('Your current order is: ${currentOrder}.')]),
+                  children: [Text('Your current order is: ${currentOrderState.getCurrentOrder}.')]),
             ),
           ),
         ),
@@ -569,7 +565,6 @@ class _HomePageState extends State<HomePage> {
 
     // Keep a reference to the app state and order.
     currentAppState = appState;
-    currentOrderState = orderState;
 
     manager = MQTTManager(
         host: currentAppState.getHostIP,
@@ -611,7 +606,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You're about to order ${currentOrderState.getWeight}g of ${currentOrderState.getColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
+                    "You're about to order ${currentOrderState.getWeightOrder}g of ${currentOrderState.getColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
               ],
             ),
           ),
@@ -634,9 +629,9 @@ class _HomePageState extends State<HomePage> {
                       break;
                   }
                   String message =
-                      beanWeightIndex + currentOrderState.getWeight;
+                      beanWeightIndex + currentOrderState.getWeightOrder;
                   String currentOrder =
-                      '${currentOrderState.getWeight} g of ${currentOrderState.getColor.toLowerCase()}';
+                      '${currentOrderState.getWeightOrder} g of ${currentOrderState.getColor.toLowerCase()}';
                   currentOrderState.setCurrentOrder(currentOrder);
                   _publishMessage(message, "order");
                   _showOrderMessage();
@@ -668,7 +663,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You've ordered ${currentOrderState.getWeight}g of ${currentOrderState.getColor.toLowerCase()}."),
+                    "You've ordered ${currentOrderState.getWeightOrder}g of ${currentOrderState.getColor.toLowerCase()}."),
               ],
             ),
           ),

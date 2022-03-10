@@ -2,44 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:provider/provider.dart';
 
-class LogPage extends StatelessWidget {
+class LogPage extends StatefulWidget {
   const LogPage({Key? key}) : super(key: key);
+  @override
+  _logPageState createState() => _logPageState();
+}
+
+class _logPageState extends State<LogPage> {
+  final _deleteLogForm = GlobalKey<FormState>();
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Logs'),
-        ),
-        body: ListView(
-          children: [
-            _buildConnectionStateText(
-              _prepareStateMessageFrom(
-                  Provider.of<MQTTAppState>(context).getAppConnectionState),
-              setColor(
-                  Provider.of<MQTTAppState>(context).getAppConnectionState),
-            ),
-            Container(
-              child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Output',
-                      style: TextStyle(
-                        fontSize: 20,
-                      ),
-                    )
-                  ]),
-              margin: const EdgeInsets.only(
-                  left: 20, top: 20, right: 20, bottom: 40),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                border: Border.all(width: 1, color: Colors.black),
-              ),
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    final MQTTAppState appState =
+        Provider.of<MQTTAppState>(context, listen: false);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Logs'),
+      ),
+      body: ListView(
+        children: [
+          _buildConnectionStateText(
+            _prepareStateMessageFrom(
+                Provider.of<MQTTAppState>(context).getAppConnectionState),
+            setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),
+          ),
+          _buildLogText(appState.getLogText),
+          _buildLogDeleteButton(context, appState),
+        ],
+      ),
+    );
+  }
 
   Widget _buildConnectionStateText(String status, Color color) {
     return Row(
@@ -77,4 +69,71 @@ class LogPage extends StatelessWidget {
         return Colors.red;
     }
   }
+
+  Widget _buildLogText(String text) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(8),
+          child: Text(
+            'Arduino logs',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+            ),
+            child: _buildScrollableTextWith(context, text),
+          ),
+        ),
+      ],
+    );
+  }
 }
+
+Widget _buildScrollableTextWith(BuildContext context, String text) {
+  double maxHeight = MediaQuery.of(context).size.height;
+  return Padding(
+    padding: const EdgeInsets.all(20.0),
+    child: SizedBox(
+      width: 400,
+      height: 500,
+      child: SingleChildScrollView(
+        child: Text(text),
+      ),
+    ),
+  );
+}
+
+Widget _buildLogDeleteButton(BuildContext context, MQTTAppState appstate) {
+  final MQTTAppState appState =
+    Provider.of<MQTTAppState>(context, listen: false);
+  return Row(
+    children: [
+      Expanded(
+          child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: ElevatedButton(
+          onPressed: () {appState.deleteLogText();},
+          child: const Text('Delete logs'),
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.red,
+            primary: Colors.white,
+            onSurface: Colors.greenAccent,
+          ),
+        ),
+      ))
+    ],
+  );
+}
+

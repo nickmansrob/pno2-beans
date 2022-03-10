@@ -6,12 +6,22 @@ class MQTTAppState with ChangeNotifier {
   MQTTAppConnectionState _appConnectionState =
       MQTTAppConnectionState.disconnected;
   String _receivedText = '';
-  String _historyText = '';
+  String _weightText = '0';
+  String _logText = '';
   String _hostIp = '';
 
-  void setReceivedText(String text) {
+  void setReceivedLogText(String text) {
     _receivedText = text;
-    _historyText = _historyText + '\n' + _receivedText;
+    _logText = _logText + '\n' + _receivedText;
+    notifyListeners();
+  }
+  void deleteLogText() {
+    _logText = '';
+    notifyListeners();
+  }
+  void setReceivedWeightText(String text) {
+    _receivedText = text;
+    _weightText = _receivedText;
     notifyListeners();
   }
 
@@ -26,7 +36,8 @@ class MQTTAppState with ChangeNotifier {
   }
 
   String get getReceivedText => _receivedText;
-  String get getHistoryText => _historyText;
+  String get getLogText => _logText;
+  String get getWeightText => _weightText;
   String get getHostIP => _hostIp;
   MQTTAppConnectionState get getAppConnectionState => _appConnectionState;
 }

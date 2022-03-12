@@ -16,8 +16,22 @@ const char * password = "0j085693";
 const char * mqtt_server = "192.168.137.1";
 
 /************************* DC-motors *************************/
+const uint8_t MOTOR_VOLTAGE = 2;
+
 const uint8_t MOTOR1_PIN = 5;
 byte motorOneState = LOW;
+
+const uint8_t MOTOR2_PIN = 5;
+byte motorTwoState = LOW;
+
+const uint8_t MOTOR3_PIN = 5;
+byte motorThreeState = LOW;
+
+const uint8_t MOTOR4_PIN = 5;
+byte motorFourState = LOW;
+
+const uint8_t MOTOR5_PIN = 5;
+byte motorFiveState = LOW;
 
 /************************* Servos *************************/
 Servo servoOne;
@@ -67,8 +81,7 @@ void setup() {
   pinMode(MOTOR1_PIN, OUTPUT);
 
   /************************* Servos *************************/
-  //siloSelect.attach(SILO_PIN_NUMBER);
-  //angleSelect.attach(ANGLE_PIN_NUMBER);
+  //servoOne.attach(SERVO1_PIN);
 
 }
 
@@ -79,6 +92,11 @@ void loop() {
   }
   client.loop();
 
+}
+
+/************************* Helpers *************************/
+int getMotorVoltage() {
+  return map(MOTOR_VOLTAGE, 0, 5, 0, 255);
 }
 
 /************************* MQTT Handlers *************************/
@@ -100,11 +118,11 @@ void callback(char* topic, byte* message, unsigned int length) {
 
   if (topicString == "override") {
     if (messageString == "1") {
-      Serial.println("WARNING: Override enabled");
+      logFlow("WARNING: Override enabled");
       // TO DO: Add logFlow to each Serial println as above
       manualOverride = true;
     } else if (messageString == "0") {
-      Serial.println("WARNING: Override disabled");
+      logFlow("WARNING: Override disabled");
       manualOverride = false;
     }
   }
@@ -112,7 +130,7 @@ void callback(char* topic, byte* message, unsigned int length) {
   if (topicString != "override") {
     // Check if override is active
     if (manualOverride) {
-      Serial.println("ROUTE: From origin to manualFlow");
+      logFlow("ROUTE: From origin to manualFlow");
       manualFlow(topicString, messageString);
     } else if (topicString == "order") {
       // Incoming order example: 1200, stands for 200gr of the first kind
@@ -120,14 +138,14 @@ void callback(char* topic, byte* message, unsigned int length) {
       String beanKind = messageString.substring(0, 1);
 
       // Sends order to flow
-      Serial.println("ROUTE: From origin to normalFlow");
-      Serial.println("INFO: Incoming order: " + weight + " grams of kind " + beanKind);
+      logFlow("ROUTE: From origin to normalFlow");
+      logFlow("INFO: Incoming order: " + weight + " grams of kind " + beanKind);
       normalFlow(weight, beanKind);
     } else if (topicString == "admin") {
-      Serial.println("ROUTE: From origin to adminFlow");
+      logFlow("ROUTE: From origin to adminFlow");
       adminFlow(messageString);
     } else {
-      Serial.println("ERROR: No matching topic or override not enabled.");
+      logFlow("ERROR: No matching topic or override not enabled.");
     }
   }
 }
@@ -141,6 +159,10 @@ void reconnect() {
       Serial.println("connected");
       // Subscribe
       client.subscribe("motor1");
+      client.subscribe("motor2");
+      client.subscribe("motor3");
+      client.subscribe("motor4");
+      client.subscribe("motor5");
       client.subscribe("order");
       client.subscribe("servo1");
       client.subscribe("admin");
@@ -168,25 +190,35 @@ void readWeight() {
 
 /************************* Program flow *************************/
 void normalFlow(String weight, String beanKind) {
-  // TO DO: Code needed for a normal program flow.
+  //Section 0: Determine container location
+  //Section 1: BAND1: Choose silo
+  //Section 2: BAND1: Lift into silo
+  //Section 3: BAND1: Start rotation
+  //Section 4: BAND1: Stop rotation
+  //Section 5: BAND2: Set position
+  //Section 6: BAND2: Start rotation
+  //Section 7: BAND1: Reposition
+  //Section 8: BAND2: Stop rotation
+  //Section 9: BAND1: Change to other silo
+  //Section 10: Repeat
 }
 
 void manualFlow(String topic, String messageString) {
-  Serial.print("Changing state of [" + topic + "] to ");
+  logFlow("Changing state of [" + topic + "] to ");
 
   // Motor 1
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
-      Serial.println("on");
+      logFlow("on");
       digitalWrite(MOTOR1_PIN, HIGH);
       // TO DO: If needed implement analogWrite to adjust PWM
       motorOneState = HIGH;
     } else if (messageString == "toggle" && motorOneState == HIGH) {
-      Serial.println("off");
+      logFlow("off");
       digitalWrite(MOTOR1_PIN, LOW);
       motorOneState = LOW;
     } else {
-      Serial.println("ERROR: Unspecified state");
+      logFlow("ERROR: Unspecified state");
     }
   }
 
@@ -207,31 +239,21 @@ void manualFlow(String topic, String messageString) {
       // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
     } else {
-      Serial.println("ERROR: Angle out of bounds");
+      logFlow("ERROR: Angle out of bounds");
     }
   }
 }
 
 void adminFlow(String messageString) {
   if (messageString == "reset") {
-    Serial.println("WARNING: Hard reset");
+    logFlow("WARNING: Hard reset");
     resetFunc();
-  }
-
-  if (messageString == "reconnect") {
-    Serial.println("WARNING: MQTT Reconnect");
-    client.disconnect();
-    reconnect();
-  }
-
-  if (messageString == "printip") {
-    Serial.println("INFO: Printing broker IP: " + String(mqtt_server));
-    client.publish("ipListener", mqtt_server);
+  } else {
+    logFlow("ERROR: Unspecified state");
   }
 }
 
 void logFlow(String message) {
+  Serial.println(message);
   client.publish("logListener", message.c_str());
-
-  // TO DO: Move Serial.println to this method for a cleaner code and less duplication
 }

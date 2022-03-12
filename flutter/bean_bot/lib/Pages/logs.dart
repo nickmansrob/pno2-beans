@@ -117,14 +117,16 @@ Widget _buildScrollableTextWith(BuildContext context, String text) {
 
 Widget _buildLogDeleteButton(BuildContext context, MQTTAppState appstate) {
   final MQTTAppState appState =
-    Provider.of<MQTTAppState>(context, listen: false);
+      Provider.of<MQTTAppState>(context, listen: false);
   return Row(
     children: [
       Expanded(
           child: Padding(
         padding: const EdgeInsets.all(8),
         child: ElevatedButton(
-          onPressed: () {appState.deleteLogText();},
+          onPressed: () {
+            appState.deleteLogText();
+          },
           child: const Text('Delete logs'),
           style: TextButton.styleFrom(
             backgroundColor: Colors.red,
@@ -136,4 +138,3 @@ Widget _buildLogDeleteButton(BuildContext context, MQTTAppState appstate) {
     ],
   );
 }
-

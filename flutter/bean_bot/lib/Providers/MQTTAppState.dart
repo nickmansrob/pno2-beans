@@ -15,10 +15,12 @@ class MQTTAppState with ChangeNotifier {
     _logText = _logText + '\n' + _receivedText;
     notifyListeners();
   }
+
   void deleteLogText() {
     _logText = '';
     notifyListeners();
   }
+
   void setReceivedWeightText(String text) {
     _receivedText = text;
     _weightText = _receivedText;

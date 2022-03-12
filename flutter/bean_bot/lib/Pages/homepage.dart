@@ -36,6 +36,7 @@ class _HomePageState extends State<HomePage> {
 
   String beanWeight = '';
   String beanColor = '';
+  String errorText = '';
   String logTopic = 'logListener';
   String weightTopic = 'weightListener';
 
@@ -382,61 +383,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Gets the connection state and returns the associated string.
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return 'Connected';
-      case MQTTAppConnectionState.connecting:
-        return 'Connecting';
-      case MQTTAppConnectionState.disconnected:
-        return 'Disconnected';
-    }
-  }
-
-  // Gets the connection state and returns the associated color.
-  Color setColor(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return Colors.green;
-      case MQTTAppConnectionState.connecting:
-        return Colors.deepOrange;
-      case MQTTAppConnectionState.disconnected:
-        return Colors.red;
-    }
-  }
-
-  // Gives a greyed out widget if app is not connected to the broker.
-  BoxDecoration? setGreyedOut(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.disconnected ||
-        state == MQTTAppConnectionState.connecting) {
-      return const BoxDecoration(
-        color: Colors.grey,
-        backgroundBlendMode: BlendMode.saturation,
-      );
-    }
-  }
-
-  // Function to disable textfields when not connected to the Arduino.
-  bool disableTextField(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.disconnected ||
-        state == MQTTAppConnectionState.connecting) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  // Creates the navigation menu.
-  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-        value: item,
-        child: Text(item.text),
-      );
-
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
     final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+        Provider.of<MQTTAppState>(context);
     // Keep a reference to the app state.
     currentAppState = appState;
     return Padding(
@@ -533,7 +483,9 @@ class _HomePageState extends State<HomePage> {
                                 currentAppState
                                     .setHostIp(_ipTextController.text);
                                 _configureAndConnect();
+                                }
                               }
+
                               Provider.of<MQTTAppState>(context, listen: false)
                                   .setHostIp(_ipTextController.text);
                               if (currentAppState.getAppConnectionState ==
@@ -543,8 +495,7 @@ class _HomePageState extends State<HomePage> {
                                     .setAppConnectionState(
                                         MQTTAppConnectionState.connected);
                               }
-                            }
-                          },
+                            },
                           child: const Text('Connect'),
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.green,
@@ -593,6 +544,58 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /////////////////////////// Helper functions ///////////////////////////
+  // Gets the connection state and returns the associated string.
+  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  // Gets the connection state and returns the associated color.
+  Color setColor(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return Colors.green;
+      case MQTTAppConnectionState.connecting:
+        return Colors.deepOrange;
+      case MQTTAppConnectionState.disconnected:
+        return Colors.red;
+    }
+  }
+
+  // Gives a greyed out widget if app is not connected to the broker.
+  BoxDecoration? setGreyedOut(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return const BoxDecoration(
+        color: Colors.grey,
+        backgroundBlendMode: BlendMode.saturation,
+      );
+    }
+  }
+
+  // Function to disable textfields when not connected to the Arduino.
+  bool disableTextField(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  // Creates the navigation menu.
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+        value: item,
+        child: Text(item.text),
+      );
+
   /////////////////////////// Voids and functions ///////////////////////////
   @override
   void initState() {
@@ -613,11 +616,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Connects the app to the broker.
-  void _configureAndConnect() {
+  void _configureAndConnect() async{
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
-    final OrderState orderState =
-        Provider.of<OrderState>(context, listen: false);
 
     // Keep a reference to the app state and order.
     currentAppState = appState;
@@ -628,10 +629,11 @@ class _HomePageState extends State<HomePage> {
         topic2: "logListener",
         topic3: "weightListener",
         identifier: "BeanBotDemo",
-        state: currentAppState);
+        state: currentAppState, context: context);
     manager.initializeMQTTClient();
     manager.connect();
   }
+
 
   // Disconnects the app from the broker.
   void _disconnect() {
@@ -708,7 +710,6 @@ class _HomePageState extends State<HomePage> {
 
   // Opens a dialog box when the user has ordered beans.
   void _showOrderMessage() {
-    String beanColor = Provider.of<OrderState>(context, listen: false).getColor;
     showDialog(
       context: context, barrierDismissible: false, // user must tap button!
 
@@ -735,31 +736,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-
-  void _showErrorMessage() {
-    builder:
-    (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Error'),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: const [
-              Text("Something went wrong, please try again."),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('OK'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    };
-  }
-
+  
   // Checks if a given string is a valid IPv4 address.
   bool validateIp(String s) {
     var chunks = s.split('.');

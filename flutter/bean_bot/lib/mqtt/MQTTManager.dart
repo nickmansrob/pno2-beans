@@ -2,7 +2,13 @@ import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
+import 'package:flutter/material.dart';
+
+
 class MQTTManager {
+  final BuildContext context;
+
+
   // Private instance of client
   final MQTTAppState _currentState;
   MqttServerClient? _client;
@@ -20,7 +26,8 @@ class MQTTManager {
       required String topic2,
       required String topic3,
       required String identifier,
-      required MQTTAppState state})
+      required MQTTAppState state,
+        required this.context})
       : _identifier = identifier,
         _host = host,
         _topic1 = topic1,
@@ -57,6 +64,7 @@ class MQTTManager {
       _currentState.setAppConnectionState(MQTTAppConnectionState.connecting);
       await _client!.connect();
     } on Exception catch (e) {
+      _showConnectionErrorMessage();
       print('EXAMPLE::client exception - $e');
       disconnect();
     }
@@ -116,4 +124,30 @@ class MQTTManager {
     print(
         'EXAMPLE::OnConnected client callback - Client connection was successful');
   }
-}
+
+  void _showConnectionErrorMessage() async {
+      showDialog(
+          context: context,
+          barrierDismissible: false, // user must tap button!
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: [
+                    Text('Er ging iets mis. Het is nu niet mogelijk om te verbinden met de broker. Probeer het later opnieuw.'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          });
+    }
+  }

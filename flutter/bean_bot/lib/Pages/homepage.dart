@@ -34,6 +34,8 @@ class _HomePageState extends State<HomePage> {
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
 
+  double weightFraction = 0;
+
   String logTopic = 'logListener';
   String weightTopic = 'weightListener';
 
@@ -55,7 +57,7 @@ class _HomePageState extends State<HomePage> {
             PopupMenuButton<MenuItem>(
               onSelected: (item) => onSelected(context, item),
               itemBuilder: (context) =>
-              [...MenuItems.items.map(buildItem).toList()],
+                  [...MenuItems.items.map(buildItem).toList()],
             ),
           ],
         ),
@@ -161,7 +163,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
+              const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: Column(
@@ -174,12 +176,12 @@ class _HomePageState extends State<HomePage> {
                   groupValue: currentOrderState.getSiloNumber,
                   onChanged: disableTextField(state)
                       ? (value) {
-                    setState(() {
-                      currentOrderState.setSiloNumber(value.toString());
-                      Provider.of<OrderState>(context, listen: false)
-                          .setSiloNumber(currentOrderState.getSiloNumber);
-                    });
-                  }
+                          setState(() {
+                            currentOrderState.setSiloNumber(value.toString());
+                            Provider.of<OrderState>(context, listen: false)
+                                .setSiloNumber(currentOrderState.getSiloNumber);
+                          });
+                        }
                       : null,
                 ),
               ),
@@ -193,12 +195,12 @@ class _HomePageState extends State<HomePage> {
                   groupValue: currentOrderState.getSiloNumber,
                   onChanged: disableTextField(state)
                       ? (value) {
-                    setState(() {
-                      currentOrderState.setSiloNumber(value.toString());
-                      Provider.of<OrderState>(context, listen: false)
-                          .setSiloNumber(currentOrderState.getSiloNumber);
-                    });
-                  }
+                          setState(() {
+                            currentOrderState.setSiloNumber(value.toString());
+                            Provider.of<OrderState>(context, listen: false)
+                                .setSiloNumber(currentOrderState.getSiloNumber);
+                          });
+                        }
                       : null,
                 ),
               ),
@@ -212,12 +214,12 @@ class _HomePageState extends State<HomePage> {
                   groupValue: currentOrderState.getSiloNumber,
                   onChanged: disableTextField(state)
                       ? (value) {
-                    setState(() {
-                      currentOrderState.setSiloNumber(value.toString());
-                      Provider.of<OrderState>(context, listen: false)
-                          .setSiloNumber(currentOrderState.getSiloNumber);
-                    });
-                  }
+                          setState(() {
+                            currentOrderState.setSiloNumber(value.toString());
+                            Provider.of<OrderState>(context, listen: false)
+                                .setSiloNumber(currentOrderState.getSiloNumber);
+                          });
+                        }
                       : null,
                 ),
               ),
@@ -240,24 +242,23 @@ class _HomePageState extends State<HomePage> {
               child: ElevatedButton(
                 onPressed: disableTextField(state)
                     ? () {
-                  // Dismisses keyboard
-                  if (!disableTextField(state)) {
-                    null;
-                  } else {
-                    FocusScopeNode currentFocus = FocusScope.of(context);
-                    if (!currentFocus.hasPrimaryFocus) {
-                      currentFocus.unfocus();
-                    }
-                    // Validate returns true if the form is valid, or false otherwise.
-                    if (_weightForm.currentState!.validate()) {
-
-                      currentOrderState
-                          .setWeightOrder(_weightController.text);
-                      _showConfirmMessage(
-                          currentAppState.getAppConnectionState);
-                    }
-                  }
-                }
+                        // Dismisses keyboard
+                        if (!disableTextField(state)) {
+                          null;
+                        } else {
+                          FocusScopeNode currentFocus = FocusScope.of(context);
+                          if (!currentFocus.hasPrimaryFocus) {
+                            currentFocus.unfocus();
+                          }
+                          // Validate returns true if the form is valid, or false otherwise.
+                          if (_weightForm.currentState!.validate()) {
+                            currentOrderState
+                                .setWeightOrder(_weightController.text);
+                            _showConfirmMessage(
+                                currentAppState.getAppConnectionState);
+                          }
+                        }
+                      }
                     : null,
                 child: const Text('Submit'),
               ),
@@ -267,11 +268,12 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: disableTextField(state) ? () {
-                  _weightController.clear();
-                  currentOrderState.setSiloNumber('');
-
-                } : null,
+                onPressed: disableTextField(state)
+                    ? () {
+                        _weightController.clear();
+                        currentOrderState.setSiloNumber('');
+                      }
+                    : null,
                 child: const Text('Cancel'),
               ),
             ),
@@ -312,7 +314,7 @@ class _HomePageState extends State<HomePage> {
             child: InputDecorator(
               decoration: InputDecoration(
                 contentPadding:
-                const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5.0)),
               ),
@@ -329,6 +331,13 @@ class _HomePageState extends State<HomePage> {
 
   // Builds a widget which displays the current bean order.
   Widget _buildShowCurrentOrder(String text, MQTTAppConnectionState state) {
+    double width = MediaQuery.of(context).size.width;
+
+    if (double.tryParse(currentOrderState.getWeightOrder) != null) {
+      weightFraction = double.parse(currentAppState.getWeightText) /
+          double.parse(currentOrderState.getWeightOrder);
+    }
+
     return Container(
       child: Column(
         children: [
@@ -346,23 +355,39 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                contentPadding:
-                const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0)),
+          Stack(
+            children: [
+              Positioned(
+                left: 9,
+                top: 5,
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.greenAccent,
+                      borderRadius: BorderRadius.circular(4.0)),
+                  width: weightFraction * (width - 18),
+                  height: 46,
+                ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: Row(children: [
-                  Text(
-                      'Your current order is: ${currentOrderState.getCurrentOrder}.')
-                ]),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: Row(children: [
+                      Text(
+                          'Your current order is: ${currentOrderState.getCurrentOrder} (${(weightFraction*100).toStringAsFixed(1)}%).')
+                    ]),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -405,14 +430,14 @@ class _HomePageState extends State<HomePage> {
 
   // Creates the navigation menu.
   PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-    value: item,
-    child: Text(item.text),
-  );
+        value: item,
+        child: Text(item.text),
+      );
 
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
     final MQTTAppState appState =
-    Provider.of<MQTTAppState>(context, listen: false);
+        Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return Padding(
@@ -420,7 +445,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -509,9 +534,9 @@ class _HomePageState extends State<HomePage> {
                               if (currentAppState.getAppConnectionState ==
                                   MQTTAppConnectionState.connected) {
                                 Provider.of<MQTTAppState>(context,
-                                    listen: false)
+                                        listen: false)
                                     .setAppConnectionState(
-                                    MQTTAppConnectionState.connected);
+                                        MQTTAppConnectionState.connected);
                               }
                             }
                           },
@@ -539,7 +564,7 @@ class _HomePageState extends State<HomePage> {
                                 MQTTAppConnectionState.disconnected) {
                               Provider.of<MQTTAppState>(context, listen: false)
                                   .setAppConnectionState(
-                                  MQTTAppConnectionState.disconnected);
+                                      MQTTAppConnectionState.disconnected);
                               Provider.of<MQTTAppState>(context, listen: false)
                                   .setHostIp(_ipTextController.text);
                             }
@@ -585,9 +610,9 @@ class _HomePageState extends State<HomePage> {
   // Connects the app to the broker.
   void _configureAndConnect() {
     final MQTTAppState appState =
-    Provider.of<MQTTAppState>(context, listen: false);
+        Provider.of<MQTTAppState>(context, listen: false);
     final OrderState orderState =
-    Provider.of<OrderState>(context, listen: false);
+        Provider.of<OrderState>(context, listen: false);
 
     // Keep a reference to the app state and order.
     currentAppState = appState;
@@ -607,6 +632,8 @@ class _HomePageState extends State<HomePage> {
   // Disconnects the app from the broker.
   void _disconnect() {
     manager.disconnect();
+    currentAppState.setReceivedWeightText('0');
+    currentOrderState.setCurrentOrder('no order');
   }
 
   // Handles the navigation of the popupmenu.
@@ -707,7 +734,7 @@ class _HomePageState extends State<HomePage> {
 
   void _showErrorMessage() {
     builder:
-        (BuildContext context) {
+    (BuildContext context) {
       return AlertDialog(
         title: const Text('Error'),
         content: SingleChildScrollView(

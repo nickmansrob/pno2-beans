@@ -34,8 +34,6 @@ class _HomePageState extends State<HomePage> {
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
 
-  String beanWeight = '';
-  String beanColor = '';
   String logTopic = 'logListener';
   String weightTopic = 'weightListener';
 
@@ -255,7 +253,6 @@ class _HomePageState extends State<HomePage> {
 
                       currentOrderState
                           .setWeightOrder(_weightController.text);
-                      beanWeight = currentOrderState.getWeightOrder;
                       _showConfirmMessage(
                           currentAppState.getAppConnectionState);
                     }
@@ -270,7 +267,11 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: disableTextField(state) ? () {} : null,
+                onPressed: disableTextField(state) ? () {
+                  _weightController.clear();
+                  currentOrderState.setSiloNumber('');
+
+                } : null,
                 child: const Text('Cancel'),
               ),
             ),

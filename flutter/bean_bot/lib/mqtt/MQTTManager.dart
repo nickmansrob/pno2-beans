@@ -1,17 +1,13 @@
 import 'package:bean_bot/Providers/MQTTAppState.dart';
+import 'package:bean_bot/Providers/OrderState.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
-import 'package:flutter/material.dart';
-
-
 class MQTTManager {
-  final BuildContext context;
-
-
   // Private instance of client
   final MQTTAppState _currentState;
   MqttServerClient? _client;
+  final OrderState _currentOrderState;
   final String _identifier;
   final String _host;
   final String _topic1;
@@ -22,18 +18,18 @@ class MQTTManager {
   // ignore: sort_constructors_first
   MQTTManager(
       {required String host,
-      required String topic1,
-      required String topic2,
-      required String topic3,
-      required String identifier,
-      required MQTTAppState state,
-        required this.context})
+        required String topic1,
+        required String topic2,
+        required String topic3,
+        required String identifier,
+        required MQTTAppState state, required orderState})
       : _identifier = identifier,
         _host = host,
         _topic1 = topic1,
         _topic2 = topic2,
         _topic3 = topic3,
-        _currentState = state;
+        _currentState = state,
+        _currentOrderState = orderState;
 
   void initializeMQTTClient() {
     _client = MqttServerClient(_host, _identifier);
@@ -64,7 +60,6 @@ class MQTTManager {
       _currentState.setAppConnectionState(MQTTAppConnectionState.connecting);
       await _client!.connect();
     } on Exception catch (e) {
-      _showConnectionErrorMessage();
       print('EXAMPLE::client exception - $e');
       disconnect();
     }
@@ -73,6 +68,8 @@ class MQTTManager {
   void disconnect() {
     print('Disconnected');
     _client!.disconnect();
+    _currentOrderState.setBeanColor('');
+    _currentOrderState.setCurrentOrder('no order');
   }
 
   void publish(String message, String topic) {
@@ -109,7 +106,7 @@ class MQTTManager {
 
       // final MqttPublishMessage recMess = c![0].payload;
       final String pt =
-          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+      MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
       switch(c[0].topic) {
         case 'logListener':
           _currentState.setReceivedLogText(pt);
@@ -124,30 +121,4 @@ class MQTTManager {
     print(
         'EXAMPLE::OnConnected client callback - Client connection was successful');
   }
-
-  void _showConnectionErrorMessage() async {
-      showDialog(
-          context: context,
-          barrierDismissible: false, // user must tap button!
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: [
-                    Text('Er ging iets mis. Het is nu niet mogelijk om te verbinden met de broker. Probeer het later opnieuw.'),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          });
-    }
-  }
+}

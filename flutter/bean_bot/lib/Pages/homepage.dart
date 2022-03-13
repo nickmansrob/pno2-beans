@@ -34,8 +34,6 @@ class _HomePageState extends State<HomePage> {
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
 
-  String beanWeight = '';
-  String beanColor = '';
   String logTopic = 'logListener';
   String weightTopic = 'weightListener';
 
@@ -170,16 +168,16 @@ class _HomePageState extends State<HomePage> {
           children: [
             Padding(
               child: ListTile(
-                title: const Text("Green beans"),
+                title: const Text("Silo 1"),
                 leading: Radio(
-                  value: "Green beans",
-                  groupValue: currentOrderState.getBeanColor,
+                  value: "Silo 1",
+                  groupValue: currentOrderState.getSiloNumber,
                   onChanged: disableTextField(state)
                       ? (value) {
                     setState(() {
-                      currentOrderState.setBeanColor(value.toString());
+                      currentOrderState.setSiloNumber(value.toString());
                       Provider.of<OrderState>(context, listen: false)
-                          .setBeanColor(currentOrderState.getBeanColor);
+                          .setSiloNumber(currentOrderState.getSiloNumber);
                     });
                   }
                       : null,
@@ -189,16 +187,16 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               child: ListTile(
-                title: const Text("White beans"),
+                title: const Text("Silo 2"),
                 leading: Radio(
-                  value: "White beans",
-                  groupValue: currentOrderState.getBeanColor,
+                  value: "Silo 2",
+                  groupValue: currentOrderState.getSiloNumber,
                   onChanged: disableTextField(state)
                       ? (value) {
                     setState(() {
-                      currentOrderState.setBeanColor(value.toString());
+                      currentOrderState.setSiloNumber(value.toString());
                       Provider.of<OrderState>(context, listen: false)
-                          .setBeanColor(currentOrderState.getBeanColor);
+                          .setSiloNumber(currentOrderState.getSiloNumber);
                     });
                   }
                       : null,
@@ -208,16 +206,16 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               child: ListTile(
-                title: const Text("Red beans"),
+                title: const Text("Silo 3"),
                 leading: Radio(
-                  value: "Red beans",
-                  groupValue: currentOrderState.getBeanColor,
+                  value: "Silo 3",
+                  groupValue: currentOrderState.getSiloNumber,
                   onChanged: disableTextField(state)
                       ? (value) {
                     setState(() {
-                      currentOrderState.setBeanColor(value.toString());
+                      currentOrderState.setSiloNumber(value.toString());
                       Provider.of<OrderState>(context, listen: false)
-                          .setBeanColor(currentOrderState.getBeanColor);
+                          .setSiloNumber(currentOrderState.getSiloNumber);
                     });
                   }
                       : null,
@@ -252,14 +250,9 @@ class _HomePageState extends State<HomePage> {
                     }
                     // Validate returns true if the form is valid, or false otherwise.
                     if (_weightForm.currentState!.validate()) {
-                      // If the form is valid, display a snackbar. In the real world,
-                      // you'd often call a server or save the information in a database.
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Processing Data')),
-                      );
+
                       currentOrderState
                           .setWeightOrder(_weightController.text);
-                      beanWeight = currentOrderState.getWeightOrder;
                       _showConfirmMessage(
                           currentAppState.getAppConnectionState);
                     }
@@ -274,7 +267,11 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: disableTextField(state) ? () {} : null,
+                onPressed: disableTextField(state) ? () {
+                  _weightController.clear();
+                  currentOrderState.setSiloNumber('');
+
+                } : null,
                 child: const Text('Cancel'),
               ),
             ),
@@ -501,12 +498,6 @@ class _HomePageState extends State<HomePage> {
                         child: ElevatedButton(
                           onPressed: () {
                             if (_adminForm.currentState!.validate()) {
-                              // If the form is valid, display a snackbar. In the real world,
-                              // you'd often call a server or save the information in a database.
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Processing Data')),
-                              );
                               if (currentAppState.getAppConnectionState ==
                                   MQTTAppConnectionState.disconnected) {
                                 currentAppState
@@ -642,7 +633,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You're about to order ${currentOrderState.getWeightOrder}g of ${currentOrderState.getBeanColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel the order."),
+                    "You're about to order ${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloNumber.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel the order."),
               ],
             ),
           ),
@@ -653,21 +644,21 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).pop();
                 if (state == MQTTAppConnectionState.connected) {
                   String beanWeightIndex = '0';
-                  switch (currentOrderState.getBeanColor) {
-                    case 'Green beans':
+                  switch (currentOrderState.getSiloNumber) {
+                    case 'Silo 1':
                       beanWeightIndex = '0';
                       break;
-                    case 'White beans':
+                    case 'Silo 2':
                       beanWeightIndex = '1';
                       break;
-                    case 'Red beans':
+                    case 'Silo 3':
                       beanWeightIndex = '2';
                       break;
                   }
                   String message =
                       beanWeightIndex + currentOrderState.getWeightOrder;
                   String currentOrder =
-                      '${currentOrderState.getWeightOrder} g of ${currentOrderState.getBeanColor.toLowerCase()}';
+                      '${currentOrderState.getWeightOrder} g of ${currentOrderState.getSiloNumber.toLowerCase()}';
                   currentOrderState.setCurrentOrder(currentOrder);
                   _publishMessage(message, "order");
                   _showOrderMessage();
@@ -697,7 +688,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You've ordered ${currentOrderState.getWeightOrder}g of ${currentOrderState.getBeanColor.toLowerCase()}."),
+                    "You've ordered ${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloNumber.toLowerCase()}."),
               ],
             ),
           ),

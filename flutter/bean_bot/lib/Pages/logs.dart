@@ -13,8 +13,6 @@ class _logPageState extends State<LogPage> {
   Widget build(BuildContext context) {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
-    final MQTTAppConnectionState connectionState =
-        Provider.of<MQTTAppState>(context).getAppConnectionState;
 
     return Scaffold(
       appBar: AppBar(
@@ -28,7 +26,7 @@ class _logPageState extends State<LogPage> {
             setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),
           ),
           _buildLogText(appState.getLogText),
-          _buildLogDeleteButton(context, appState, connectionState),
+          _buildLogDeleteButton(context, appState, appState.getAppConnectionState),
         ],
       ),
     );
@@ -116,31 +114,21 @@ class _logPageState extends State<LogPage> {
 
   Widget _buildLogDeleteButton(BuildContext context, MQTTAppState appState,
       MQTTAppConnectionState connectionState) {
-    return Container(
-      foregroundDecoration: setGreyedOut(connectionState),
-    child: Row(
+    return Row(
       children: [
         Expanded(
             child: Padding(
           padding: const EdgeInsets.all(8),
           child: ElevatedButton(
-            onPressed: () {
-              if (!disableTextField(connectionState)) {
-                null;
-              } else {
+            onPressed: disableTextField(connectionState) ? () {
                 appState.deleteLogText();
-              }
-            },
+            }: null,
             child: const Text('Delete logs'),
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.red,
-              primary: Colors.white,
-              onSurface: Colors.greenAccent,
-            ),
+
           ),
         ))
       ],
-    ),);
+    );
   }
 
   bool disableTextField(MQTTAppConnectionState state) {
@@ -152,13 +140,4 @@ class _logPageState extends State<LogPage> {
     }
   }
 
-  BoxDecoration? setGreyedOut(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.disconnected ||
-        state == MQTTAppConnectionState.connecting) {
-      return const BoxDecoration(
-        color: Colors.grey,
-        backgroundBlendMode: BlendMode.saturation,
-      );
-    }
-  }
 }

@@ -65,6 +65,7 @@ class MQTTManager {
   void disconnect() {
     print('Disconnected');
     _client!.disconnect();
+    _currentState.setIsSwitched(false);
   }
 
   void publish(String message, String topic) {

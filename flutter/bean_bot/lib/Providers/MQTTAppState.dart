@@ -9,6 +9,7 @@ class MQTTAppState with ChangeNotifier {
   String _weightText = '0';
   String _logText = '';
   String _hostIp = '';
+  bool _isSwitched = false;
 
   void setReceivedLogText(String text) {
     _receivedText = text;
@@ -35,9 +36,15 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
+  void setIsSwitched(bool value) {
+    _isSwitched = value;
+    notifyListeners();
+  }
+
   String get getReceivedText => _receivedText;
   String get getLogText => _logText;
   String get getWeightText => _weightText;
   String get getHostIP => _hostIp;
+  bool get getIsSwitched => _isSwitched;
   MQTTAppConnectionState get getAppConnectionState => _appConnectionState;
 }

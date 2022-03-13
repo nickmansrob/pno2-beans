@@ -19,7 +19,6 @@ class DebugPage extends StatefulWidget {
 }
 
 class _DebugPageState extends State<DebugPage> {
-  bool isSwitched = false;
   final _servoForm = GlobalKey<FormState>();
 
   @override
@@ -60,6 +59,7 @@ class _DebugPageState extends State<DebugPage> {
   }
 
   Widget _buildManualOverrideState(MQTTAppConnectionState connectionState) {
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Column(
       children: [
         Row(
@@ -84,13 +84,13 @@ class _DebugPageState extends State<DebugPage> {
                   padding: const EdgeInsets.only(
                       left: 8, top: 8, right: 8, bottom: 0),
                   child: Switch(
-                    value: isSwitched,
+                    value: appState.getIsSwitched,
                     onChanged: (value) {
                       if (!disableTextField(connectionState)) {
                         null;
                       } else {
                         setState(() {
-                          isSwitched = value;
+                          appState.setIsSwitched(value);
                         });
                       }
                     },
@@ -109,8 +109,8 @@ class _DebugPageState extends State<DebugPage> {
   }
 
   Widget _buildMotorToggle() {
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Container(
-      foregroundDecoration: setGreyedOurBool(isSwitched),
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
@@ -136,11 +136,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (!isSwitched) {
-                        null;
-                      }
-                    },
+                    onPressed: appState.getIsSwitched?() {}: null,
                     child: const Text('Toggle 1'),
                   ),
                 ),
@@ -149,13 +145,45 @@ class _DebugPageState extends State<DebugPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (!isSwitched) {
-                        null;
-                      }
-                      // Respond to button press
-                    },
+                    onPressed: appState.getIsSwitched? () {} : null,
                     child: const Text('Toggle 2'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched? () {} : null,
+                    child: const Text('Toggle 3'),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched?() {} : null,
+                    child: const Text('Toggle 4'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched? () {} : null,
+                    child: const Text('Toggle 5'),
                   ),
                 ),
               ),
@@ -171,8 +199,8 @@ class _DebugPageState extends State<DebugPage> {
   }
 
   Widget _buildServoInput() {
+    MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Container(
-      foregroundDecoration: setGreyedOurBool(isSwitched),
       child: Form(
           key: _servoForm,
           child: Column(
@@ -198,10 +226,10 @@ class _DebugPageState extends State<DebugPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 0),
                       child: TextFormField(
-                        enabled: isSwitched,
+                        enabled: appState.getIsSwitched,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          hintText: 'Degrees first',
+                          hintText: 'Degrees',
                           isDense: true,
                           contentPadding: EdgeInsets.all(10),
                         ),
@@ -220,12 +248,7 @@ class _DebugPageState extends State<DebugPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 0),
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (!isSwitched) {
-                            null;
-                          }
-                          // Respond to button press
-                        },
+                        onPressed: appState.getIsSwitched?() {}: null,
                         child: const Text('Apply'),
                       ),
                     ),
@@ -242,116 +265,68 @@ class _DebugPageState extends State<DebugPage> {
   }
 
   Widget _buildArduinoToggle() {
-    return Container(
-      foregroundDecoration: setGreyedOurBool(isSwitched),
-      child: Column(children: [
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          children: const <Widget>[
-            Padding(
-              padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
-              child: Text(
-                'Arduino',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+    return Column(children: [
+      Row(
+        mainAxisSize: MainAxisSize.max,
+        children: const <Widget>[
+          Padding(
+            padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
+            child: Text(
+              'Arduino',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _showConfirmMessage();
+                  // Respond to button press
+                },
+                child: const Text('Reset'),
+                style: TextButton.styleFrom(
+                  primary: Colors.white,
+                  backgroundColor: Colors.red,
+                  onSurface: Colors.redAccent,
                 ),
               ),
             ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (!isSwitched) {
-                      null;
-                    }
-                    // Respond to button press
-                  },
-                  child: const Text('Reset'),
+          ),
+        ],
+      ),
+      const Divider(
+        indent: 8,
+        endIndent: 8,
+      ),
+      Row(
+        children: [
+          Expanded(
+            child: Container(
+              child: const Text('Output'),
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  width: 1,
+                  color: Colors.blue,
                 ),
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (!isSwitched) {
-                      null;
-                    }
-                    // Respond to button press
-                  },
-                  child: const Text('Reconnect'),
-                ),
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (!isSwitched) {
-                      null;
-                    }
-                    // Respond to button press
-                  },
-                  child: const Text('Check connection'),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (!isSwitched) {
-                      null;
-                    }
-                    // Respond to button press
-                  },
-                  child: const Text('Print IP'),
-                ),
-              ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                child: const Text('Output'),
-                margin: const EdgeInsets.all(8),
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 1,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
-        const Divider(
-          indent: 8,
-          endIndent: 8,
-        ),
-      ]),
-    );
+          )
+        ],
+      ),
+    ]);
   }
 
-  
   /////////////////////////// Helper functions ///////////////////////////
   Color setColor(MQTTAppConnectionState state) {
     switch (state) {
@@ -384,23 +359,37 @@ class _DebugPageState extends State<DebugPage> {
       return true;
     }
   }
-  BoxDecoration? setGreyedOurBool(boolean) {
-    if (!boolean) {
-      return const BoxDecoration(
-        color: Colors.grey,
-        backgroundBlendMode: BlendMode.saturation,
-      );
-    }
-  }
-
-  // Gives a greyed-out widget if app is not connected to the broker.
-  BoxDecoration? setGreyedOut(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.disconnected ||
-        state == MQTTAppConnectionState.connecting) {
-      return const BoxDecoration(
-        color: Colors.grey,
-        backgroundBlendMode: BlendMode.saturation,
-      );
-    }
+  
+  void _showConfirmMessage() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reset Bean Bot'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const [
+                Text("You're about to reset the Bean Bot. Are you sure?"),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

@@ -9,12 +9,13 @@ class LogPage extends StatefulWidget {
 }
 
 class _logPageState extends State<LogPage> {
-  final _deleteLogForm = GlobalKey<FormState>();
-
   @override
   Widget build(BuildContext context) {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
+    final MQTTAppConnectionState connectionState =
+        Provider.of<MQTTAppState>(context).getAppConnectionState;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Logs'),
@@ -27,7 +28,7 @@ class _logPageState extends State<LogPage> {
             setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),
           ),
           _buildLogText(appState.getLogText),
-          _buildLogDeleteButton(context, appState),
+          _buildLogDeleteButton(context, appState, connectionState),
         ],
       ),
     );
@@ -99,41 +100,65 @@ class _logPageState extends State<LogPage> {
       ],
     );
   }
-}
 
-Widget _buildScrollableTextWith(BuildContext context, String text) {
-  double maxHeight = MediaQuery.of(context).size.height;
-  return Padding(
-    padding: const EdgeInsets.all(20.0),
-    child: SizedBox(
-      width: 400,
-      height: 500,
-      child: SingleChildScrollView(
-        child: Text(text),
-      ),
-    ),
-  );
-}
-
-Widget _buildLogDeleteButton(BuildContext context, MQTTAppState appstate) {
-  final MQTTAppState appState =
-    Provider.of<MQTTAppState>(context, listen: false);
-  return Row(
-    children: [
-      Expanded(
-          child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: ElevatedButton(
-          onPressed: () {appState.deleteLogText();},
-          child: const Text('Delete logs'),
-          style: TextButton.styleFrom(
-            backgroundColor: Colors.red,
-            primary: Colors.white,
-            onSurface: Colors.greenAccent,
-          ),
+  Widget _buildScrollableTextWith(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: SizedBox(
+        width: 400,
+        height: 500,
+        child: SingleChildScrollView(
+          child: Text(text),
         ),
-      ))
-    ],
-  );
-}
+      ),
+    );
+  }
 
+  Widget _buildLogDeleteButton(BuildContext context, MQTTAppState appState,
+      MQTTAppConnectionState connectionState) {
+    return Container(
+      foregroundDecoration: setGreyedOut(connectionState),
+    child: Row(
+      children: [
+        Expanded(
+            child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: ElevatedButton(
+            onPressed: () {
+              if (!disableTextField(connectionState)) {
+                null;
+              } else {
+                appState.deleteLogText();
+              }
+            },
+            child: const Text('Delete logs'),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red,
+              primary: Colors.white,
+              onSurface: Colors.greenAccent,
+            ),
+          ),
+        ))
+      ],
+    ),);
+  }
+
+  bool disableTextField(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  BoxDecoration? setGreyedOut(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return const BoxDecoration(
+        color: Colors.grey,
+        backgroundBlendMode: BlendMode.saturation,
+      );
+    }
+  }
+}

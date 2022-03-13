@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
   late OrderState currentOrderState;
 
   String beanWeight = '';
-  String beanColor = 'Green beans';
+  String beanColor = '';
   String logTopic = 'logListener';
   String weightTopic = 'weightListener';
 
@@ -43,10 +43,8 @@ class _HomePageState extends State<HomePage> {
   @override
   // Builds the main components of the home screen.
   Widget build(BuildContext context) {
-    final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
-    final OrderState orderState =
-        Provider.of<OrderState>(context, listen: false);
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context);
+    final OrderState orderState = Provider.of<OrderState>(context);
     // Keep a reference to the app state.
     currentAppState = appState;
     currentOrderState = orderState;
@@ -59,26 +57,24 @@ class _HomePageState extends State<HomePage> {
             PopupMenuButton<MenuItem>(
               onSelected: (item) => onSelected(context, item),
               itemBuilder: (context) =>
-                  [...MenuItems.items.map(buildItem).toList()],
+              [...MenuItems.items.map(buildItem).toList()],
             ),
           ],
         ),
         body: ListView(
           children: [
             _buildConnectionStateText(
-              _prepareStateMessageFrom(
-                  Provider.of<MQTTAppState>(context).getAppConnectionState),
-              setColor(
-                  Provider.of<MQTTAppState>(context).getAppConnectionState),
+              _prepareStateMessageFrom(appState.getAppConnectionState),
+              setColor(appState.getAppConnectionState),
             ),
-            _buildWeightInput(
-                Provider.of<MQTTAppState>(context).getAppConnectionState),
-            _buildConfirmButtons(
-                Provider.of<MQTTAppState>(context).getAppConnectionState),
+            _buildWeightInput(appState.getAppConnectionState),
+            _buildConfirmButtons(appState.getAppConnectionState),
             _buildDivider(),
-            _buildShowCurrentWeight(appState.getWeightText),
+            _buildShowCurrentWeight(
+                appState.getWeightText, appState.getAppConnectionState),
             _buildDivider(),
-            _buildShowCurrentOrder(orderState.getCurrentOrder),
+            _buildShowCurrentOrder(
+                orderState.getCurrentOrder, appState.getAppConnectionState),
             _buildDivider(),
             _buildAdminInput(),
           ],
@@ -111,94 +107,180 @@ class _HomePageState extends State<HomePage> {
   // Builds the input field for ordering beans.
   Widget _buildWeightInput(MQTTAppConnectionState state) {
     // Build a Form widget using the _formKey created above.
-    return Form(
-      key: _weightForm,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 2),
-            child: Text(
-              'Order Beans',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
+    return Container(
+      child: Form(
+        key: _weightForm,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 2),
+              child: Text(
+                'Order Beans',
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: TextFormField(
-              controller: _weightController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter the weight',
-              ),
-              keyboardType: TextInputType.phone,
-              validator: (value) {
-                if (state == MQTTAppConnectionState.disconnected) {
-                  return 'Please connect to the Arduino before ordering beans.';
-                }
-                if (state == MQTTAppConnectionState.connected) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the weight';
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: TextFormField(
+                enabled: disableTextField(state),
+                controller: _weightController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter the weight',
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (state == MQTTAppConnectionState.disconnected) {
+                    return 'Please connect to the Arduino before ordering beans.';
                   }
-                }
-                return null;
-              },
+                  if (state == MQTTAppConnectionState.connected) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the weight';
+                    }
+                  }
+                  return null;
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: _buildBeanColorSelector(context),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: _buildBeanColorSelector(context, state),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Builds the color selection widget.
+  Widget _buildBeanColorSelector(
+      BuildContext context, MQTTAppConnectionState state) {
+    return Container(
+      child: InputDecorator(
+        decoration: InputDecoration(
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              child: ListTile(
+                title: const Text("Green beans"),
+                leading: Radio(
+                  value: "Green beans",
+                  groupValue: currentOrderState.getBeanColor,
+                  onChanged: disableTextField(state)
+                      ? (value) {
+                    setState(() {
+                      currentOrderState.setBeanColor(value.toString());
+                      Provider.of<OrderState>(context, listen: false)
+                          .setBeanColor(currentOrderState.getBeanColor);
+                    });
+                  }
+                      : null,
+                ),
+              ),
+              padding: const EdgeInsets.all(0.0),
+            ),
+            Padding(
+              child: ListTile(
+                title: const Text("White beans"),
+                leading: Radio(
+                  value: "White beans",
+                  groupValue: currentOrderState.getBeanColor,
+                  onChanged: disableTextField(state)
+                      ? (value) {
+                    setState(() {
+                      currentOrderState.setBeanColor(value.toString());
+                      Provider.of<OrderState>(context, listen: false)
+                          .setBeanColor(currentOrderState.getBeanColor);
+                    });
+                  }
+                      : null,
+                ),
+              ),
+              padding: const EdgeInsets.all(0.0),
+            ),
+            Padding(
+              child: ListTile(
+                title: const Text("Red beans"),
+                leading: Radio(
+                  value: "Red beans",
+                  groupValue: currentOrderState.getBeanColor,
+                  onChanged: disableTextField(state)
+                      ? (value) {
+                    setState(() {
+                      currentOrderState.setBeanColor(value.toString());
+                      Provider.of<OrderState>(context, listen: false)
+                          .setBeanColor(currentOrderState.getBeanColor);
+                    });
+                  }
+                      : null,
+                ),
+              ),
+              padding: const EdgeInsets.all(0.0),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   // Builds the confirm buttons the ordering beans.
   Widget _buildConfirmButtons(MQTTAppConnectionState state) {
-    return Row(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                // Dismisses keyboard
-                FocusScopeNode currentFocus = FocusScope.of(context);
-                if (!currentFocus.hasPrimaryFocus) {
-                  currentFocus.unfocus();
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: disableTextField(state)
+                    ? () {
+                  // Dismisses keyboard
+                  if (!disableTextField(state)) {
+                    null;
+                  } else {
+                    FocusScopeNode currentFocus = FocusScope.of(context);
+                    if (!currentFocus.hasPrimaryFocus) {
+                      currentFocus.unfocus();
+                    }
+                    // Validate returns true if the form is valid, or false otherwise.
+                    if (_weightForm.currentState!.validate()) {
+                      // If the form is valid, display a snackbar. In the real world,
+                      // you'd often call a server or save the information in a database.
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Processing Data')),
+                      );
+                      currentOrderState
+                          .setWeightOrder(_weightController.text);
+                      beanWeight = currentOrderState.getWeightOrder;
+                      _showConfirmMessage(
+                          currentAppState.getAppConnectionState);
+                    }
+                  }
                 }
-                // Validate returns true if the form is valid, or false otherwise.
-                if (_weightForm.currentState!.validate()) {
-                  // If the form is valid, display a snackbar. In the real world,
-                  // you'd often call a server or save the information in a database.
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Processing Data')),
-                  );
-                  currentOrderState.setWeightOrder(_weightController.text);
-                  beanWeight = currentOrderState.getWeightOrder;
-                  _showConfirmMessage(currentAppState.getAppConnectionState);
-                }
-              },
-              child: const Text('SUBMIT'),
+                    : null,
+                child: const Text('Submit'),
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                // Respond to button press
-              },
-              child: const Text('CANCEL'),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: disableTextField(state) ? () {} : null,
+                child: const Text('Cancel'),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -209,10 +291,131 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Builds a widget which displays the current weight of the beans.
+  Widget _buildShowCurrentWeight(String text, MQTTAppConnectionState state) {
+    return Container(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            child: Row(
+              children: const [
+                Text(
+                  'Current weigth',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5.0)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                child: Row(children: [Text('${text}g')]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Builds a widget which displays the current bean order.
+  Widget _buildShowCurrentOrder(String text, MQTTAppConnectionState state) {
+    return Container(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            child: Row(
+              children: const [
+                Text(
+                  'Current Order',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5.0)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                child: Row(children: [
+                  Text(
+                      'Your current order is: ${currentOrderState.getCurrentOrder}.')
+                ]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Gets the connection state and returns the associated string.
+  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  // Gets the connection state and returns the associated color.
+  Color setColor(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return Colors.green;
+      case MQTTAppConnectionState.connecting:
+        return Colors.deepOrange;
+      case MQTTAppConnectionState.disconnected:
+        return Colors.red;
+    }
+  }
+
+  // Function to disable textfields when not connected to the Arduino.
+  bool disableTextField(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  // Creates the navigation menu.
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+    value: item,
+    child: Text(item.text),
+  );
+
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
     final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+    Provider.of<MQTTAppState>(context, listen: false);
     // Keep a reference to the app state.
     currentAppState = appState;
     return Padding(
@@ -220,7 +423,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -315,9 +518,9 @@ class _HomePageState extends State<HomePage> {
                               if (currentAppState.getAppConnectionState ==
                                   MQTTAppConnectionState.connected) {
                                 Provider.of<MQTTAppState>(context,
-                                        listen: false)
+                                    listen: false)
                                     .setAppConnectionState(
-                                        MQTTAppConnectionState.connected);
+                                    MQTTAppConnectionState.connected);
                               }
                             }
                           },
@@ -345,7 +548,7 @@ class _HomePageState extends State<HomePage> {
                                 MQTTAppConnectionState.disconnected) {
                               Provider.of<MQTTAppState>(context, listen: false)
                                   .setAppConnectionState(
-                                      MQTTAppConnectionState.disconnected);
+                                  MQTTAppConnectionState.disconnected);
                               Provider.of<MQTTAppState>(context, listen: false)
                                   .setHostIp(_ipTextController.text);
                             }
@@ -369,174 +572,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Builds the color selection widget.
-  Widget _buildBeanColorSelector(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            child: ListTile(
-              title: const Text("Green beans"),
-              leading: Radio(
-                  value: "Green beans",
-                  groupValue: beanColor,
-                  onChanged: (value) {
-                    setState(() {
-                      beanColor = value.toString();
-                      Provider.of<OrderState>(context, listen: false)
-                          .setColor(beanColor);
-                    });
-                  }),
-            ),
-            padding: const EdgeInsets.all(0.0),
-          ),
-          Padding(
-            child: ListTile(
-              title: const Text("White beans"),
-              leading: Radio(
-                  value: "White beans",
-                  groupValue: beanColor,
-                  onChanged: (value) {
-                    setState(() {
-                      beanColor = value.toString();
-                      Provider.of<OrderState>(context, listen: false)
-                          .setColor(beanColor);
-                    });
-                  }),
-            ),
-            padding: const EdgeInsets.all(0.0),
-          ),
-          Padding(
-            child: ListTile(
-              title: const Text("Red beans"),
-              leading: Radio(
-                  value: "Red beans",
-                  groupValue: beanColor,
-                  onChanged: (value) {
-                    setState(() {
-                      beanColor = value.toString();
-                      Provider.of<OrderState>(context, listen: false)
-                          .setColor(beanColor);
-                    });
-                  }),
-            ),
-            padding: const EdgeInsets.all(0.0),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Builds a widget which displays the current weight of the beans.
-  Widget _buildShowCurrentWeight(String text) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-          child: Row(
-            children: const [
-              Text(
-                'Current weigth',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: Row(children: [Text('${text}g')]),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Builds a widget which displays the current bean order.
-  Widget _buildShowCurrentOrder(String text) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-          child: Row(
-            children: const [
-              Text(
-                'Current Order',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: Row(
-                  children: [Text('Your current order is: ${currentOrderState.getCurrentOrder}.')]),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Gets the connection state and returns the associated string.
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return 'Connected';
-      case MQTTAppConnectionState.connecting:
-        return 'Connecting';
-      case MQTTAppConnectionState.disconnected:
-        return 'Disconnected';
-    }
-  }
-
-  // Gets the connection state and returns the associated color.
-  Color setColor(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return Colors.green;
-      case MQTTAppConnectionState.connecting:
-        return Colors.deepOrange;
-      case MQTTAppConnectionState.disconnected:
-        return Colors.red;
-    }
-  }
-
-  // Creates the navigation menu.
-  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-        value: item,
-        child: Text(item.text),
-      );
-
   /////////////////////////// Voids and functions ///////////////////////////
   @override
   void initState() {
@@ -559,9 +594,9 @@ class _HomePageState extends State<HomePage> {
   // Connects the app to the broker.
   void _configureAndConnect() {
     final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+    Provider.of<MQTTAppState>(context, listen: false);
     final OrderState orderState =
-        Provider.of<OrderState>(context, listen: false);
+    Provider.of<OrderState>(context, listen: false);
 
     // Keep a reference to the app state and order.
     currentAppState = appState;
@@ -572,7 +607,8 @@ class _HomePageState extends State<HomePage> {
         topic2: "logListener",
         topic3: "weightListener",
         identifier: "BeanBotDemo",
-        state: currentAppState);
+        state: currentAppState,
+        orderState: currentOrderState);
     manager.initializeMQTTClient();
     manager.connect();
   }
@@ -606,7 +642,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You're about to order ${currentOrderState.getWeightOrder}g of ${currentOrderState.getColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel to order."),
+                    "You're about to order ${currentOrderState.getWeightOrder}g of ${currentOrderState.getBeanColor.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel the order."),
               ],
             ),
           ),
@@ -617,7 +653,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).pop();
                 if (state == MQTTAppConnectionState.connected) {
                   String beanWeightIndex = '0';
-                  switch (currentOrderState.getColor) {
+                  switch (currentOrderState.getBeanColor) {
                     case 'Green beans':
                       beanWeightIndex = '0';
                       break;
@@ -631,7 +667,7 @@ class _HomePageState extends State<HomePage> {
                   String message =
                       beanWeightIndex + currentOrderState.getWeightOrder;
                   String currentOrder =
-                      '${currentOrderState.getWeightOrder} g of ${currentOrderState.getColor.toLowerCase()}';
+                      '${currentOrderState.getWeightOrder} g of ${currentOrderState.getBeanColor.toLowerCase()}';
                   currentOrderState.setCurrentOrder(currentOrder);
                   _publishMessage(message, "order");
                   _showOrderMessage();
@@ -652,10 +688,8 @@ class _HomePageState extends State<HomePage> {
 
   // Opens a dialog box when the user has ordered beans.
   void _showOrderMessage() {
-    String beanColor = Provider.of<OrderState>(context, listen: false).getColor;
     showDialog(
       context: context, barrierDismissible: false, // user must tap button!
-
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Bean Order'),
@@ -663,7 +697,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "You've ordered ${currentOrderState.getWeightOrder}g of ${currentOrderState.getColor.toLowerCase()}."),
+                    "You've ordered ${currentOrderState.getWeightOrder}g of ${currentOrderState.getBeanColor.toLowerCase()}."),
               ],
             ),
           ),
@@ -682,7 +716,7 @@ class _HomePageState extends State<HomePage> {
 
   void _showErrorMessage() {
     builder:
-    (BuildContext context) {
+        (BuildContext context) {
       return AlertDialog(
         title: const Text('Error'),
         content: SingleChildScrollView(

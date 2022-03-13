@@ -102,7 +102,6 @@ class _logPageState extends State<LogPage> {
   }
 
   Widget _buildScrollableTextWith(BuildContext context, String text) {
-    double maxHeight = MediaQuery.of(context).size.height;
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: SizedBox(

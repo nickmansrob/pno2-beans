@@ -597,7 +597,7 @@ class _HomePageState extends State<HomePage> {
         topic1: "order",
         topic2: "logListener",
         topic3: "weightListener",
-        identifier: "BeanBotDemo",
+        identifier: "FlutterBeanBot",
         state: currentAppState,
         orderState: currentOrderState);
     manager.initializeMQTTClient();

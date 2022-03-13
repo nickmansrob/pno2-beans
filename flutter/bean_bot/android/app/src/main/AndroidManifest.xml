@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="be.rndevelopment.bean_bot">
+    <uses-permission android:name="android.permission.INTERNET" />
    <application
-        android:label="bean_bot"
+        android:label="Bean Bot"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

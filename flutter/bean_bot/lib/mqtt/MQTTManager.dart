@@ -68,6 +68,7 @@ class MQTTManager {
   void disconnect() {
     print('Disconnected');
     _client!.disconnect();
+    _currentState.setIsSwitched(false);
     _currentOrderState.setBeanColor('');
     _currentOrderState.setCurrentOrder('no order');
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 
 import '../Providers/MQTTAppState.dart';
 import 'package:bean_bot/Providers/MQTTAppState.dart';
@@ -18,8 +19,11 @@ class DebugPage extends StatefulWidget {
 }
 
 class _DebugPageState extends State<DebugPage> {
+  final _servoForm = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Debug Menu'),
@@ -27,18 +31,18 @@ class _DebugPageState extends State<DebugPage> {
       body: ListView(children: [
         // Creates the connection indicator on top of the screen. \
         _buildConnectionStateText(
-          _prepareStateMessageFrom(
-              Provider.of<MQTTAppState>(context).getAppConnectionState),
-          setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),
+          _prepareStateMessageFrom(appState.getAppConnectionState),
+          setColor(appState.getAppConnectionState),
         ),
-        const ManualOverride(),
-        const Motors(),
-        const ServoInput(),
-        const Arduino(),
+        _buildManualOverrideState(appState.getAppConnectionState),
+        _buildServoInput(),
+        _buildMotorToggle(),
+        _buildArduinoToggle(),
       ]),
     );
   }
 
+  /////////////////////////// Widgets ///////////////////////////
   Widget _buildConnectionStateText(String status, Color color) {
     return Row(
       children: <Widget>[
@@ -54,40 +58,8 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return 'Connected';
-      case MQTTAppConnectionState.connecting:
-        return 'Connecting';
-      case MQTTAppConnectionState.disconnected:
-        return 'Disconnected';
-    }
-  }
-
-  Color setColor(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return Colors.green;
-      case MQTTAppConnectionState.connecting:
-        return Colors.deepOrange;
-      case MQTTAppConnectionState.disconnected:
-        return Colors.red;
-    }
-  }
-}
-
-class ManualOverride extends StatefulWidget {
-  const ManualOverride({Key? key}) : super(key: key);
-
-  @override
-  _ManualOverrideState createState() => _ManualOverrideState();
-}
-
-class _ManualOverrideState extends State<ManualOverride> {
-  bool isSwitched = false;
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildManualOverrideState(MQTTAppConnectionState connectionState) {
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Column(
       children: [
         Row(
@@ -112,11 +84,15 @@ class _ManualOverrideState extends State<ManualOverride> {
                   padding: const EdgeInsets.only(
                       left: 8, top: 8, right: 8, bottom: 0),
                   child: Switch(
-                    value: isSwitched,
+                    value: appState.getIsSwitched,
                     onChanged: (value) {
-                      setState(() {
-                        isSwitched = value;
-                      });
+                      if (!disableTextField(connectionState)) {
+                        null;
+                      } else {
+                        setState(() {
+                          appState.setIsSwitched(value);
+                        });
+                      }
                     },
                   ),
                 ),
@@ -131,181 +107,164 @@ class _ManualOverrideState extends State<ManualOverride> {
       ],
     );
   }
-}
 
-class Motors extends StatelessWidget {
-  const Motors({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      children: <Widget>[
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          children: const <Widget>[
-            Padding(
-              padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
-              child: Text(
-                'Motors',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+  Widget _buildMotorToggle() {
+    final MQTTAppState appState = Provider.of<MQTTAppState>(context);
+    return Container(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: const <Widget>[
+              Padding(
+                padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+                child: Text(
+                  'Motors',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Toggle 1'),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched?() {}: null,
+                    child: const Text('Toggle 1'),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Respond to button press
-                  },
-                  child: const Text('Toggle 2'),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched? () {} : null,
+                    child: const Text('Toggle 2'),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        const Divider(
-          indent: 8,
-          endIndent: 8,
-        ),
-      ],
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched? () {} : null,
+                    child: const Text('Toggle 3'),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched?() {} : null,
+                    child: const Text('Toggle 4'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched? () {} : null,
+                    child: const Text('Toggle 5'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(
+            indent: 8,
+            endIndent: 8,
+          ),
+        ],
+      ),
     );
   }
-}
 
-class ServoInput extends StatefulWidget {
-  const ServoInput({Key? key}) : super(key: key);
-
-  @override
-  _ServoInputState createState() => _ServoInputState();
-}
-
-class _ServoInputState extends State<ServoInput> {
-  final _servoForm = GlobalKey<FormState>();
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-        key: _servoForm,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(mainAxisSize: MainAxisSize.max, children: const <Widget>[
-              Padding(
-                  padding:
-                      EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
-                  child: Text(
-                    'Servos',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ))
-            ]),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: Padding(
+  Widget _buildServoInput() {
+    MQTTAppState appState = Provider.of<MQTTAppState>(context);
+    return Container(
+      child: Form(
+          key: _servoForm,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(mainAxisSize: MainAxisSize.max, children: const <Widget>[
+                Padding(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Degrees first',
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(10),
+                        EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
+                    child: Text(
+                      'Servos',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the number of degrees';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Respond to button press
-                      },
-                      child: const Text('Apply'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
+                    ))
+              ]),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 0),
+                      child: TextFormField(
+                        enabled: appState.getIsSwitched,
+                        decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          hintText: 'Degrees second',
+                          hintText: 'Degrees',
                           isDense: true,
-                          contentPadding: EdgeInsets.all(10)),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the number of degrees';
-                        }
-                        return null;
-                      },
+                          contentPadding: EdgeInsets.all(10),
+                        ),
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter the number of degrees';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Respond to button press
-                      },
-                      child: const Text('Apply'),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 0),
+                      child: ElevatedButton(
+                        onPressed: appState.getIsSwitched?() {}: null,
+                        child: const Text('Apply'),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const Divider(
-              indent: 8,
-              endIndent: 8,
-            ),
-          ],
-        ));
+                ],
+              ),
+              const Divider(
+                indent: 8,
+                endIndent: 8,
+              ),
+            ],
+          )),
+    );
   }
-}
 
-class Arduino extends StatelessWidget {
-  const Arduino({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildArduinoToggle() {
     return Column(children: [
       Row(
         mainAxisSize: MainAxisSize.max,
@@ -330,51 +289,23 @@ class Arduino extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               child: ElevatedButton(
                 onPressed: () {
+                  _showConfirmMessage();
                   // Respond to button press
                 },
                 child: const Text('Reset'),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Respond to button press
-                },
-                child: const Text('Reconnect'),
+                style: TextButton.styleFrom(
+                  primary: Colors.white,
+                  backgroundColor: Colors.red,
+                  onSurface: Colors.redAccent,
+                ),
               ),
             ),
           ),
         ],
       ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Respond to button press
-                },
-                child: const Text('Check connection'),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Respond to button press
-                },
-                child: const Text('Print IP'),
-              ),
-            ),
-          ),
-        ],
+      const Divider(
+        indent: 8,
+        endIndent: 8,
       ),
       Row(
         children: [
@@ -393,10 +324,72 @@ class Arduino extends StatelessWidget {
           )
         ],
       ),
-      const Divider(
-        indent: 8,
-        endIndent: 8,
-      ),
     ]);
+  }
+
+  /////////////////////////// Helper functions ///////////////////////////
+  Color setColor(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return Colors.green;
+      case MQTTAppConnectionState.connecting:
+        return Colors.deepOrange;
+      case MQTTAppConnectionState.disconnected:
+        return Colors.red;
+    }
+  }
+
+  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  // Function to disable textfields when not connected to the Arduino.
+  bool disableTextField(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  
+  void _showConfirmMessage() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reset Bean Bot'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const [
+                Text("You're about to reset the Bean Bot. Are you sure?"),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

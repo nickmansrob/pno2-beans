@@ -1,19 +1,30 @@
+import 'package:bean_bot/mqtt/MQTTManager.dart';
 import 'package:flutter/material.dart';
 
 enum MQTTAppConnectionState { connected, disconnected, connecting }
 
 class MQTTAppState with ChangeNotifier {
+  late MQTTManager _mqttManager;
+
   MQTTAppConnectionState _appConnectionState =
       MQTTAppConnectionState.disconnected;
   String _receivedText = '';
-  String _weightText = '0';
+  String _firstOrderWeightText = '0';
+  String _secondOrderWeightText = '0';
   String _logText = '';
   String _hostIp = '';
   bool _isSwitched = false;
+  String _firstColor = 'not determined';
+  String _secondColor = 'not determined';
 
   void setReceivedLogText(String text) {
     _receivedText = text;
     _logText = _logText + '\n' + _receivedText;
+    notifyListeners();
+  }
+
+  void setMQTTManger(MQTTManager manager) {
+    _mqttManager = manager;
     notifyListeners();
   }
 
@@ -22,9 +33,13 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void setReceivedWeightText(String text) {
-    _receivedText = text;
-    _weightText = _receivedText;
+  void setFirstOrderReceivedWeightText(String text) {
+    _firstOrderWeightText = text;
+    notifyListeners();
+  }
+  
+  void setSecondOrderReceivedWeightText(String text) {
+    _secondOrderWeightText = text;
     notifyListeners();
   }
 
@@ -45,8 +60,12 @@ class MQTTAppState with ChangeNotifier {
 
   String get getReceivedText => _receivedText;
   String get getLogText => _logText;
-  String get getWeightText => _weightText;
+  String get getFirstOrderWeightText => _firstOrderWeightText;
+  String get getSecondOrderWeightText => _secondOrderWeightText;
   String get getHostIP => _hostIp;
+  String get getSecondColor => _secondColor;
+  String get getFirstColor => _firstColor;
   bool get getIsSwitched => _isSwitched;
   MQTTAppConnectionState get getAppConnectionState => _appConnectionState;
+  MQTTManager get getMQTTManager => _mqttManager;
 }

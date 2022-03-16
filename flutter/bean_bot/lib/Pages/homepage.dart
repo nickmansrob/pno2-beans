@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
 import 'package:bean_bot/data/menu_items.dart';
@@ -34,7 +35,8 @@ class _HomePageState extends State<HomePage> {
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
 
-  double weightFraction = 0;
+  double firstWeightFraction = 0;
+  double secondWeightFraction = 0;
 
   String logTopic = 'logListener';
   String weightTopic = 'weightListener';
@@ -69,12 +71,14 @@ class _HomePageState extends State<HomePage> {
             ),
             _buildWeightInput(appState.getAppConnectionState),
             _buildConfirmButtons(appState.getAppConnectionState),
-            _buildDivider(),
-            _buildShowCurrentWeight(
-                appState.getWeightText, appState.getAppConnectionState),
-            _buildDivider(),
-            _buildShowCurrentOrder(
-                orderState.getCurrentOrder, appState.getAppConnectionState),
+            if (currentOrderState.getFirstOrder != '') _buildDivider(),
+            if (currentOrderState.getFirstOrder != '' ||
+                currentOrderState.getSecondOrder != '')
+              _buildOrderText(),
+            if (currentOrderState.getFirstOrder != '')
+              _buildFirstOrder(currentAppState, currentOrderState),
+            if (currentOrderState.getSecondOrder != '')
+              _buildSecondOrder(currentAppState, currentOrderState),
             _buildDivider(),
             _buildAdminInput(),
           ],
@@ -159,130 +163,129 @@ class _HomePageState extends State<HomePage> {
   // Builds the color selection widget.
   Widget _buildBeanColorSelector(
       BuildContext context, MQTTAppConnectionState state) {
-    return Container(
-      child: InputDecorator(
-        decoration: InputDecoration(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              child: ListTile(
-                title: const Text("Silo 1"),
-                leading: Radio(
-                  value: "Silo 1",
-                  groupValue: currentOrderState.getSiloNumber,
-                  onChanged: disableTextField(state)
-                      ? (value) {
-                          setState(() {
-                            currentOrderState.setSiloNumber(value.toString());
-                            Provider.of<OrderState>(context, listen: false)
-                                .setSiloNumber(currentOrderState.getSiloNumber);
-                          });
-                        }
-                      : null,
-                ),
-              ),
-              padding: const EdgeInsets.all(0.0),
-            ),
-            Padding(
-              child: ListTile(
-                title: const Text("Silo 2"),
-                leading: Radio(
-                  value: "Silo 2",
-                  groupValue: currentOrderState.getSiloNumber,
-                  onChanged: disableTextField(state)
-                      ? (value) {
-                          setState(() {
-                            currentOrderState.setSiloNumber(value.toString());
-                            Provider.of<OrderState>(context, listen: false)
-                                .setSiloNumber(currentOrderState.getSiloNumber);
-                          });
-                        }
-                      : null,
-                ),
-              ),
-              padding: const EdgeInsets.all(0.0),
-            ),
-            Padding(
-              child: ListTile(
-                title: const Text("Silo 3"),
-                leading: Radio(
-                  value: "Silo 3",
-                  groupValue: currentOrderState.getSiloNumber,
-                  onChanged: disableTextField(state)
-                      ? (value) {
-                          setState(() {
-                            currentOrderState.setSiloNumber(value.toString());
-                            Provider.of<OrderState>(context, listen: false)
-                                .setSiloNumber(currentOrderState.getSiloNumber);
-                          });
-                        }
-                      : null,
-                ),
-              ),
-              padding: const EdgeInsets.all(0.0),
-            ),
-          ],
-        ),
+    return InputDecorator(
+      decoration: InputDecoration(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
-    );
-  }
-
-  // Builds the confirm buttons the ordering beans.
-  Widget _buildConfirmButtons(MQTTAppConnectionState state) {
-    return Container(
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: disableTextField(state)
-                    ? () {
-                        // Dismisses keyboard
-                        if (!disableTextField(state)) {
-                          null;
-                        } else {
-                          FocusScopeNode currentFocus = FocusScope.of(context);
-                          if (!currentFocus.hasPrimaryFocus) {
-                            currentFocus.unfocus();
-                          }
-                          // Validate returns true if the form is valid, or false otherwise.
-                          if (_weightForm.currentState!.validate()) {
-                            currentOrderState
-                                .setWeightOrder(_weightController.text);
-                            _showConfirmMessage(
-                                currentAppState.getAppConnectionState);
-                          }
-                        }
+          Padding(
+            child: ListTile(
+              title: const Text("Silo 1"),
+              leading: Radio(
+                value: "Silo 1",
+                groupValue: currentOrderState.getSiloNumber,
+                onChanged: disableTextField(state)
+                    ? (value) {
+                        setState(() {
+                          currentOrderState.setSiloNumber(value.toString());
+                          currentOrderState
+                              .setSiloNumber(currentOrderState.getSiloNumber);
+                        });
                       }
                     : null,
-                child: const Text('Submit'),
               ),
             ),
+            padding: const EdgeInsets.all(0.0),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: disableTextField(state)
-                    ? () {
-                        _weightController.clear();
-                        currentOrderState.setSiloNumber('');
+          Padding(
+            child: ListTile(
+              title: const Text("Silo 2"),
+              leading: Radio(
+                value: "Silo 2",
+                groupValue: currentOrderState.getSiloNumber,
+                onChanged: disableTextField(state)
+                    ? (value) {
+                        setState(() {
+                          currentOrderState.setSiloNumber(value.toString());
+                          currentOrderState
+                              .setSiloNumber(currentOrderState.getSiloNumber);
+                        });
                       }
                     : null,
-                child: const Text('Cancel'),
               ),
             ),
+            padding: const EdgeInsets.all(0.0),
+          ),
+          Padding(
+            child: ListTile(
+              title: const Text("Silo 3"),
+              leading: Radio(
+                value: "Silo 3",
+                groupValue: currentOrderState.getSiloNumber,
+                onChanged: disableTextField(state)
+                    ? (value) {
+                        setState(() {
+                          currentOrderState.setSiloNumber(value.toString());
+                          currentOrderState
+                              .setSiloNumber(currentOrderState.getSiloNumber);
+                        });
+                      }
+                    : null,
+              ),
+            ),
+            padding: const EdgeInsets.all(0.0),
           ),
         ],
       ),
     );
   }
 
+  // Builds the confirm buttons the ordering beans.
+  Widget _buildConfirmButtons(MQTTAppConnectionState state) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
+            child: ElevatedButton(
+              onPressed: disableTextField(state)
+                  ? () {
+                      // Dismisses keyboard
+                      if (!disableTextField(state)) {
+                        null;
+                      } else {
+                        FocusScopeNode currentFocus = FocusScope.of(context);
+                        if (!currentFocus.hasPrimaryFocus) {
+                          currentFocus.unfocus();
+                        }
+                        // Validate returns true if the form is valid, or false otherwise.
+                        if (_weightForm.currentState!.validate()) {
+                          currentOrderState
+                              .setBothWeightOrder(_weightController.text);
+                          currentOrderState
+                              .setWeightOrder(_weightController.text);
+                          _showConfirmMessage(
+                              currentAppState.getAppConnectionState);
+                        }
+                      }
+                    }
+                  : null,
+              child: const Text('Submit'),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
+            child: ElevatedButton(
+              onPressed: disableTextField(state)
+                  ? () {
+                      _weightController.clear();
+                      currentOrderState.setSiloNumber('');
+                    }
+                  : null,
+              child: const Text('Cancel'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Builds a divider.
   Widget _buildDivider() {
     return const Divider(
       indent: 8,
@@ -292,154 +295,43 @@ class _HomePageState extends State<HomePage> {
 
   // Builds a widget which displays the current weight of the beans.
   Widget _buildShowCurrentWeight(String text, MQTTAppConnectionState state) {
-    return Container(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-            child: Row(
-              children: const [
-                Text(
-                  'Current weigth',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: Row(children: [Text('${text}g')]),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Builds a widget which displays the current bean order.
-  Widget _buildShowCurrentOrder(String text, MQTTAppConnectionState state) {
-    double width = MediaQuery.of(context).size.width;
-
-    if (double.tryParse(currentOrderState.getWeightOrder) != null) {
-      weightFraction = double.parse(currentAppState.getWeightText) /
-          double.parse(currentOrderState.getWeightOrder);
-    }
-
-    return Container(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-            child: Row(
-              children: const [
-                Text(
-                  'Current Order',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Stack(
-            children: [
-              Positioned(
-                left: 9,
-                top: 5,
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.greenAccent,
-                      borderRadius: BorderRadius.circular(4.0)),
-                  width: weightFraction * (width - 18),
-                  height: 46,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5.0)),
-                  ),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: Row(children: [
-                      Text(
-                          'Your current order is: ${currentOrderState.getCurrentOrder} (${(weightFraction*100).toStringAsFixed(1)}%).')
-                    ]),
-                  ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+          child: Row(
+            children: const [
+              Text(
+                'Current weigth',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: Row(children: [Text('${text}g')]),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  // Gets the connection state and returns the associated string.
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return 'Connected';
-      case MQTTAppConnectionState.connecting:
-        return 'Connecting';
-      case MQTTAppConnectionState.disconnected:
-        return 'Disconnected';
-    }
-  }
-
-  // Gets the connection state and returns the associated color.
-  Color setColor(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return Colors.green;
-      case MQTTAppConnectionState.connecting:
-        return Colors.deepOrange;
-      case MQTTAppConnectionState.disconnected:
-        return Colors.red;
-    }
-  }
-
-  // Function to disable textfields when not connected to the Arduino.
-  bool disableTextField(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.disconnected ||
-        state == MQTTAppConnectionState.connecting) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  // Creates the navigation menu.
-  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-        value: item,
-        child: Text(item.text),
-      );
-
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
-    final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
-    // Keep a reference to the app state.
-    currentAppState = appState;
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 8),
       child: InputDecorator(
@@ -529,14 +421,11 @@ class _HomePageState extends State<HomePage> {
                                     .setHostIp(_ipTextController.text);
                                 _configureAndConnect();
                               }
-                              Provider.of<MQTTAppState>(context, listen: false)
-                                  .setHostIp(_ipTextController.text);
+                              currentAppState.setHostIp(_ipTextController.text);
                               if (currentAppState.getAppConnectionState ==
                                   MQTTAppConnectionState.connected) {
-                                Provider.of<MQTTAppState>(context,
-                                        listen: false)
-                                    .setAppConnectionState(
-                                        MQTTAppConnectionState.connected);
+                                currentAppState.setAppConnectionState(
+                                    MQTTAppConnectionState.connected);
                               }
                             }
                           },
@@ -562,11 +451,9 @@ class _HomePageState extends State<HomePage> {
                             }
                             if (currentAppState.getAppConnectionState ==
                                 MQTTAppConnectionState.disconnected) {
-                              Provider.of<MQTTAppState>(context, listen: false)
-                                  .setAppConnectionState(
-                                      MQTTAppConnectionState.disconnected);
-                              Provider.of<MQTTAppState>(context, listen: false)
-                                  .setHostIp(_ipTextController.text);
+                              currentAppState.setAppConnectionState(
+                                  MQTTAppConnectionState.disconnected);
+                              currentAppState.setHostIp(_ipTextController.text);
                             }
                           },
                           child: const Text('Disconnect'),
@@ -587,6 +474,430 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  // Builds ordertext
+  Widget _buildOrderText() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Column(
+        children: [
+          Row(
+            children: const [
+              Text(
+                'Orders',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Builds a widget which displays the current order.
+  Widget _buildFirstOrder(MQTTAppState appState, OrderState orderState) {
+    double width = MediaQuery.of(context).size.width;
+    if (double.tryParse(currentOrderState.getFirstWeightOrder) != null &&
+        double.parse(currentOrderState.getFirstWeightOrder) == 0) {
+      firstWeightFraction = 0.0;
+    } else if (double.tryParse(currentOrderState.getFirstWeightOrder) != null &&
+        double.parse(currentAppState.getFirstOrderWeightText) != 0.0) {
+      firstWeightFraction =
+          double.parse(currentAppState.getFirstOrderWeightText) /
+              double.parse(currentOrderState.getFirstWeightOrder);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+        ),
+        child: ExpansionWidget(
+          initiallyExpanded: false,
+          titleBuilder:
+              (double animationValue, _, bool isExpanded, toggleFunction) {
+            return InkWell(
+              onTap: () => toggleFunction(animated: true),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Order 1 (${orderState.getFirstOrder}):',
+                        style: const TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    Transform.rotate(
+                      angle: math.pi * animationValue / 2,
+                      child: const Icon(Icons.arrow_right, size: 40),
+                      alignment: Alignment.center,
+                    )
+                  ],
+                ),
+              ),
+            );
+          },
+          content: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Padding(
+                          child: Text(
+                    'Your current order is: ${orderState.getFirstOrder}.', style: const TextStyle(fontSize: 15)),
+                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                        )
+
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                          child: Text('Color: ${currentAppState.getFirstColor}.', style: const TextStyle(fontSize: 15)),
+
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                            'Current weight: ${currentAppState.getFirstOrderWeightText}g', style: const TextStyle(fontSize: 15)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 8),
+                          child: Row(
+                            children: [
+                              Stack(
+                                children: [
+                                  Positioned(
+                                    left: 1,
+                                    top: 1,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Colors.green,
+                                          borderRadius:
+                                              BorderRadius.circular(4.0)),
+                                      width: firstWeightFraction * (width - 32),
+                                      height: 28,
+                                    ),
+                                  ),
+                                   Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                          BorderRadius.circular(5.0),
+                                          border: Border.all(
+                                            width: 1,
+                                            color: Colors.black,
+                                          )),
+                                      width: width -32,
+                                      height: 30,
+                                      child: Center(
+                                        child: Text(
+                                          'progress (${(firstWeightFraction * 100).toStringAsFixed(1)}%)',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 11,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(0),
+                            child: ElevatedButton(
+                              onPressed: disableFirstCancelOrder(appState)
+                                  ? () {
+                                      orderState.setFirstOrder('');
+                                      firstWeightFraction = 0.0;
+                                    }
+                                  : null,
+                              child: const Text('Cancel order'),
+                              style: TextButton.styleFrom(
+                                primary: Colors.white,
+                                backgroundColor:
+                                    colorFirstOrderCancelButton(appState),
+                                onSurface:
+                                    colorFirstOrderCancelButton(appState),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondOrder(MQTTAppState appState, OrderState orderState) {
+    final int orderNumber;
+
+    double width = MediaQuery.of(context).size.width;
+
+    if (double.tryParse(currentOrderState.getSecondWeightOrder) != null &&
+        double.parse(currentOrderState.getSecondWeightOrder) > 0.0) {
+      secondWeightFraction =
+          double.parse(currentAppState.getSecondOrderWeightText) /
+              double.parse(currentOrderState.getSecondWeightOrder);
+    }
+
+    if (currentOrderState.getFirstOrder == '' &&
+        currentOrderState.getSecondOrder != '') {
+      orderNumber = 1;
+    } else {
+      orderNumber = 2;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+        ),
+        child: ExpansionWidget(
+          initiallyExpanded: false,
+          titleBuilder:
+              (double animationValue, _, bool isExpanded, toggleFunction) {
+            return InkWell(
+                onTap: () => toggleFunction(animated: true),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Order $orderNumber (${orderState.getSecondOrder}):',
+                          style: const TextStyle(
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      Transform.rotate(
+                        angle: math.pi * animationValue / 2,
+                        child: const Icon(Icons.arrow_right, size: 40),
+                        alignment: Alignment.center,
+                      )
+                    ],
+                  ),
+                ));
+          },
+          content: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 2),
+                          child: Row(children: [
+                            Text(
+                                'Your current order is: ${orderState.getSecondOrder}.', style: const TextStyle(fontSize: 15))
+                          ]),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 2),
+                            child: Text(
+                                'Color: ${currentAppState.getSecondColor}.', style: const TextStyle(fontSize: 15))),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 2),
+                            child: Text(
+                                'Current weight: ${currentAppState.getSecondOrderWeightText}g', style: const TextStyle(fontSize: 15))),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 8),
+                          child: Row(
+                            children: [
+                              Stack(
+                                children: [
+                                  Positioned(
+                                    left: 1,
+                                    top: 1,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Colors.green,
+                                          borderRadius:
+                                              BorderRadius.circular(4.0)),
+                                      width:
+                                          secondWeightFraction * (width - 32),
+                                      height: 23,
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(5.0),
+                                        border: Border.all(
+                                          width: 1,
+                                          color: Colors.black,
+                                        )),
+                                    width: width - 32,
+                                    height: 25,
+                                    child: Center(
+                                      child: Text(
+                                        'progress (${(secondWeightFraction * 100).toStringAsFixed(1)}%)',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            color: Colors.black,
+                                          fontSize: 11,
+
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(0),
+                            child: ElevatedButton(
+                              onPressed: disableSecondCancelOrder(appState)
+                                  ? () {
+                                      orderState.setSecondOrder('');
+                                      secondWeightFraction = 0.0;
+                                    }
+                                  : null,
+                              child: const Text('Cancel order'),
+                              style: TextButton.styleFrom(
+                                primary: Colors.white,
+                                backgroundColor:
+                                    colorSecondOrderCancelButton(appState),
+                                onSurface:
+                                    colorSecondOrderCancelButton(appState),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  ////////////////////////// Helper Methodes //////////////////////////
+  // Gets the connection state and returns the associated string.
+  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  // Gets the connection state and returns the associated color.
+  Color setColor(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return Colors.green;
+      case MQTTAppConnectionState.connecting:
+        return Colors.deepOrange;
+      case MQTTAppConnectionState.disconnected:
+        return Colors.red;
+    }
+  }
+
+  Color? colorFirstOrderCancelButton(MQTTAppState appState) {
+    if (double.parse(appState.getFirstOrderWeightText) > 0) {
+      return null;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  Color? colorSecondOrderCancelButton(MQTTAppState appState) {
+    if (double.parse(appState.getSecondOrderWeightText) > 0) {
+      return null;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  // Function to disable textfields when not connected to the Arduino.
+  bool disableTextField(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  // Creates the navigation menu.
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+        value: item,
+        child: Text(item.text),
+      );
 
   /////////////////////////// Voids and functions ///////////////////////////
   @override
@@ -609,31 +920,26 @@ class _HomePageState extends State<HomePage> {
 
   // Connects the app to the broker.
   void _configureAndConnect() {
-    final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
-    final OrderState orderState =
-        Provider.of<OrderState>(context, listen: false);
-
-    // Keep a reference to the app state and order.
-    currentAppState = appState;
-
     manager = MQTTManager(
         host: currentAppState.getHostIP,
         topic1: "order",
         topic2: "logListener",
-        topic3: "weightListener",
-        identifier: "FlutterBeanBot",
+        topic3: "firstWeightListener",
+        topic4: "adminListener",
+        topic5: "secondWeightListener",
+        identifier: "BeanBotDemo",
         state: currentAppState,
         orderState: currentOrderState);
     manager.initializeMQTTClient();
     manager.connect();
+    currentAppState.setMQTTManger(manager);
   }
 
   // Disconnects the app from the broker.
   void _disconnect() {
     manager.disconnect();
-    currentAppState.setReceivedWeightText('0');
-    currentOrderState.setCurrentOrder('no order');
+    currentAppState.setFirstOrderReceivedWeightText('0');
+    currentOrderState.setFirstOrder('');
   }
 
   // Handles the navigation of the popupmenu.
@@ -686,7 +992,7 @@ class _HomePageState extends State<HomePage> {
                       beanWeightIndex + currentOrderState.getWeightOrder;
                   String currentOrder =
                       '${currentOrderState.getWeightOrder} g of ${currentOrderState.getSiloNumber.toLowerCase()}';
-                  currentOrderState.setCurrentOrder(currentOrder);
+                  currentOrderState.setOrder(currentOrder);
                   _publishMessage(message, "order");
                   _showOrderMessage();
                 }
@@ -694,6 +1000,33 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEndOrderMessage() {
+    showDialog(
+      context: context, barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('End Order'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                    "Your order of ${currentOrderState.getWeightOrder}g from ${currentOrderState.getSiloNumber.toLowerCase()} is ready."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -732,28 +1065,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showErrorMessage() {
-    builder:
-    (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Error'),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: const [
-              Text("Something went wrong, please try again."),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('OK'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    };
+  bool disableFirstCancelOrder(MQTTAppState appState) {
+    if (double.parse(appState.getFirstOrderWeightText) > 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  bool disableSecondCancelOrder(MQTTAppState appState) {
+    if (double.parse(appState.getSecondOrderWeightText) > 0) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   // Checks if a given string is a valid IPv4 address.

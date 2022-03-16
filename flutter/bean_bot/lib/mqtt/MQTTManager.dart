@@ -1,9 +1,10 @@
 import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:bean_bot/Providers/OrderState.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
-class MQTTManager {
+class MQTTManager with ChangeNotifier {
   // Private instance of client
   final MQTTAppState _currentState;
   MqttServerClient? _client;
@@ -13,6 +14,8 @@ class MQTTManager {
   final String _topic1;
   final String _topic2;
   final String _topic3;
+  final String _topic4;
+  final String _topic5;
 
   // Constructor
   // ignore: sort_constructors_first
@@ -21,13 +24,17 @@ class MQTTManager {
         required String topic1,
         required String topic2,
         required String topic3,
+        required String topic4,
+        required String topic5,
         required String identifier,
-        required MQTTAppState state, required orderState})
+         required MQTTAppState state,  required OrderState orderState})
       : _identifier = identifier,
         _host = host,
         _topic1 = topic1,
         _topic2 = topic2,
         _topic3 = topic3,
+        _topic4 = topic4,
+  _topic5 = topic5,
         _currentState = state,
         _currentOrderState = orderState;
 
@@ -70,7 +77,7 @@ class MQTTManager {
     _client!.disconnect();
     _currentState.setIsSwitched(false);
     _currentOrderState.setSiloNumber('');
-    _currentOrderState.setCurrentOrder('no order');
+    _currentOrderState.setFirstOrder('no order');
   }
 
   void publish(String message, String topic) {
@@ -101,6 +108,8 @@ class MQTTManager {
     _client!.subscribe(_topic1, MqttQos.atLeastOnce);
     _client!.subscribe(_topic2, MqttQos.atLeastOnce);
     _client!.subscribe(_topic3, MqttQos.atLeastOnce);
+    _client!.subscribe(_topic4, MqttQos.atLeastOnce);
+    _client!.subscribe(_topic5, MqttQos.atLeastOnce);
     _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
       // ignore: avoid_as
       final MqttPublishMessage recMess = c![0].payload as MqttPublishMessage;
@@ -112,9 +121,14 @@ class MQTTManager {
         case 'logListener':
           _currentState.setReceivedLogText(pt);
           break;
-        case 'weightListener':
-          _currentState.setReceivedWeightText(pt);
+        case 'firstWeightListener':
+          _currentState.setFirstOrderReceivedWeightText(pt);
+          break;
+        case 'secondWeightListener':
+          _currentState.setSecondOrderReceivedWeightText(pt);
+          break;
       }
+
       print(
           'EXAMPLE::Change notification:: topic is <${c[0].topic}>, payload is <-- $pt -->');
       print('');

@@ -126,7 +126,7 @@ class _logPageState extends State<LogPage> {
             child: const Text('Delete logs'),
 
           ),
-        ))
+        ),),
       ],
     );
   }

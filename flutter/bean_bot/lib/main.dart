@@ -1,4 +1,5 @@
 import 'package:bean_bot/Providers/OrderState.dart';
+import 'package:bean_bot/mqtt/MQTTManager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +20,7 @@ void main() {
           ),
           ChangeNotifierProvider<OrderState>(
             create: (_) => OrderState(),
-          )
+          ),
         ],
         child: const BeanBot(),
       ),

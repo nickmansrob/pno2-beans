@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-
-import '../Providers/MQTTAppState.dart';
-import 'package:bean_bot/Providers/MQTTAppState.dart';
 import 'package:provider/provider.dart';
+import 'package:bean_bot/Providers/OrderState.dart';
+
+import 'package:bean_bot/mqtt/MQTTManager.dart';
+import 'package:bean_bot/Providers/MQTTAppState.dart';
 
 // TODO: Delete check connection
 // TODO: Make print IP work
@@ -20,6 +20,10 @@ class DebugPage extends StatefulWidget {
 
 class _DebugPageState extends State<DebugPage> {
   final _servoForm = GlobalKey<FormState>();
+
+  late MQTTAppState currentAppState;
+  late OrderState currentOrderState;
+  late MQTTManager manager;
 
   @override
   Widget build(BuildContext context) {
@@ -110,103 +114,79 @@ class _DebugPageState extends State<DebugPage> {
 
   Widget _buildMotorToggle() {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
-    return Container(
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: const <Widget>[
-              Padding(
-                padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
-                child: Text(
-                  'Motors',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      children: <Widget>[
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: const <Widget>[
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+              child: Text(
+                'Motors',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: appState.getIsSwitched?() {}: null,
-                    child: const Text('Toggle 1'),
-                  ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: appState.getIsSwitched ? () {} : null,
+                  child: const Text('Toggle 1'),
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: appState.getIsSwitched? () {} : null,
-                    child: const Text('Toggle 2'),
-                  ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: appState.getIsSwitched ? () {} : null,
+                  child: const Text('Toggle 2'),
                 ),
               ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: appState.getIsSwitched? () {} : null,
-                    child: const Text('Toggle 3'),
-                  ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: appState.getIsSwitched ? () {} : null,
+                  child: const Text('Toggle 3'),
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: appState.getIsSwitched?() {} : null,
-                    child: const Text('Toggle 4'),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: appState.getIsSwitched? () {} : null,
-                    child: const Text('Toggle 5'),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Divider(
-            indent: 8,
-            endIndent: 8,
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+        const Divider(
+          indent: 8,
+          endIndent: 8,
+        ),
+      ],
     );
   }
 
   Widget _buildServoInput() {
     MQTTAppState appState = Provider.of<MQTTAppState>(context);
-    return Container(
-      child: Form(
-          key: _servoForm,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(mainAxisSize: MainAxisSize.max, children: const <Widget>[
+    return Form(
+        key: _servoForm,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: const <Widget>[
                 Padding(
                     padding:
                         EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
@@ -216,52 +196,126 @@ class _DebugPageState extends State<DebugPage> {
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
-                    ))
-              ]),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 0),
-                      child: TextFormField(
-                        enabled: appState.getIsSwitched,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Degrees',
-                          isDense: true,
-                          contentPadding: EdgeInsets.all(10),
-                        ),
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter the number of degrees';
-                          }
-                          return null;
-                        },
+                    )),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: TextFormField(
+                      enabled: appState.getIsSwitched,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Degrees servo 1',
+                        isDense: true,
+                        contentPadding: EdgeInsets.all(10),
                       ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter the number of degrees';
+                        }
+                        return null;
+                      },
                     ),
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 0),
-                      child: ElevatedButton(
-                        onPressed: appState.getIsSwitched?() {}: null,
-                        child: const Text('Apply'),
-                      ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: ElevatedButton(
+                      onPressed: appState.getIsSwitched ? () {} : null,
+                      child: const Text('Apply'),
                     ),
                   ),
-                ],
-              ),
-              const Divider(
-                indent: 8,
-                endIndent: 8,
-              ),
-            ],
-          )),
-    );
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: TextFormField(
+                      enabled: appState.getIsSwitched,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Degrees servo 2',
+                        isDense: true,
+                        contentPadding: EdgeInsets.all(10),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter the number of degrees';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: ElevatedButton(
+                      onPressed: appState.getIsSwitched ? () {} : null,
+                      child: const Text('Apply'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: TextFormField(
+                      enabled: appState.getIsSwitched,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Degrees servo 3',
+                        isDense: true,
+                        contentPadding: EdgeInsets.all(10),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter the number of degrees';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    child: ElevatedButton(
+                      onPressed: appState.getIsSwitched ? () {} : null,
+                      child: const Text('Apply'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(
+              indent: 8,
+              endIndent: 8,
+            ),
+          ],
+        ));
   }
 
   Widget _buildArduinoToggle() {
@@ -289,7 +343,24 @@ class _DebugPageState extends State<DebugPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               child: ElevatedButton(
                 onPressed: () {
-                  _showConfirmMessage();
+                  _showRestoreConfirmMessage();
+                  // Respond to button press
+                },
+                child: const Text('Restore'),
+                style: TextButton.styleFrom(
+                  primary: Colors.white,
+                  backgroundColor: Colors.red,
+                  onSurface: Colors.redAccent,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _showResetConfirmMessage();
                   // Respond to button press
                 },
                 child: const Text('Reset'),
@@ -301,27 +372,6 @@ class _DebugPageState extends State<DebugPage> {
               ),
             ),
           ),
-        ],
-      ),
-      const Divider(
-        indent: 8,
-        endIndent: 8,
-      ),
-      Row(
-        children: [
-          Expanded(
-            child: Container(
-              child: const Text('Output'),
-              margin: const EdgeInsets.all(8),
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  width: 1,
-                  color: Colors.blue,
-                ),
-              ),
-            ),
-          )
         ],
       ),
     ]);
@@ -359,18 +409,24 @@ class _DebugPageState extends State<DebugPage> {
       return true;
     }
   }
-  
-  void _showConfirmMessage() {
+
+  /////////////////////////// Void ///////////////////////////
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _showResetConfirmMessage() {
     showDialog(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Reset Bean Bot'),
+          title: const Text('Reset Arduino'),
           content: SingleChildScrollView(
             child: ListBody(
               children: const [
-                Text("You're about to reset the Bean Bot. Are you sure?"),
+                Text("You're about to reset the Arduino. Are you sure?"),
               ],
             ),
           ),
@@ -379,6 +435,7 @@ class _DebugPageState extends State<DebugPage> {
               child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
+                _publishMessage('reset', 'adminListener');
               },
             ),
             TextButton(
@@ -391,5 +448,52 @@ class _DebugPageState extends State<DebugPage> {
         );
       },
     );
+  }
+
+  void _showRestoreConfirmMessage() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Restore Bean Bot'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const [
+                Text("You're about to restore the Bean Bot. Are you sure?"),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _publishMessage('restore', 'adminListener');
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _publishMessage(String text, String topic) {
+    final MQTTAppState appState =
+        Provider.of<MQTTAppState>(context, listen: false);
+    final OrderState orderState =
+        Provider.of<OrderState>(context, listen: false);
+
+    // Keep a reference to the app state and order.
+    currentAppState = appState;
+    currentOrderState = orderState;
+    manager = currentAppState.getMQTTManager;
+    manager.publish(text, topic);
   }
 }

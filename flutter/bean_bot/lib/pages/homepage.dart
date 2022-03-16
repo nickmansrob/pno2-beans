@@ -470,9 +470,10 @@ class _HomePageState extends State<HomePage> {
         .size
         .width;
     if (double.tryParse(currentOrderState.getFirstWeightOrder) != null &&
-        double.parse(currentOrderState.getFirstWeightOrder) == 0) {
-      firstWeightFraction = 0.0;
-    } else if (double.tryParse(currentOrderState.getFirstWeightOrder) != null &&
+        double.tryParse(currentAppState.getFirstOrderWeightText) != 0 && double.parse(currentOrderState.getFirstWeightOrder) <= double.parse(currentAppState.getFirstOrderWeightText)) {
+      firstWeightFraction = 1.0;
+    }
+    else if (double.tryParse(currentOrderState.getFirstWeightOrder) != null &&
         double.parse(currentAppState.getFirstOrderWeightText) != 0.0) {
       firstWeightFraction =
           double.parse(currentAppState.getFirstOrderWeightText) /
@@ -550,7 +551,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Text(
                             'Current weight: ${currentAppState
-                                .getFirstOrderWeightText}g',
+                                .getFirstOrderWeightText}g.' ,
                             style: const TextStyle(fontSize: 15)),
                       ],
                     ),
@@ -647,8 +648,11 @@ class _HomePageState extends State<HomePage> {
         .of(context)
         .size
         .width;
-
     if (double.tryParse(currentOrderState.getSecondWeightOrder) != null &&
+        double.tryParse(currentAppState.getSecondOrderWeightText) != 0 && double.parse(currentOrderState.getSecondWeightOrder) <= double.parse(currentAppState.getSecondOrderWeightText)) {
+      secondWeightFraction = 1.0;
+    }
+     else if (double.tryParse(currentOrderState.getSecondWeightOrder) != null &&
         double.parse(currentOrderState.getSecondWeightOrder) > 0.0) {
       secondWeightFraction =
           double.parse(currentAppState.getSecondOrderWeightText) /
@@ -742,7 +746,7 @@ class _HomePageState extends State<HomePage> {
                               horizontal: 0, vertical: 2),
                           child: Text(
                             'Current weight: ${currentAppState
-                                .getSecondOrderWeightText}g',
+                                .getSecondOrderWeightText}g.',
                             style: const TextStyle(fontSize: 15),
                           ),
                         ),
@@ -767,7 +771,7 @@ class _HomePageState extends State<HomePage> {
                                           BorderRadius.circular(4.0)),
                                       width:
                                       secondWeightFraction * (width - 32),
-                                      height: 23,
+                                      height: 28,
                                     ),
                                   ),
                                   Container(
@@ -779,7 +783,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                     width: width - 32,
-                                    height: 25,
+                                    height: 30,
                                     child: Center(
                                       child: Text(
                                         'progress (${(secondWeightFraction *
@@ -835,6 +839,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   ////////////////////////// Helper Methods //////////////////////////
+
   // Gets the connection state and returns the associated string.
   String _prepareStateMessageFrom(MQTTAppConnectionState state) {
     switch (state) {

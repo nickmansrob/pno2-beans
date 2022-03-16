@@ -1,4 +1,4 @@
-import 'package:bean_bot/Providers/MQTTAppState.dart';
+import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/OrderState.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -11,30 +11,18 @@ class MQTTManager with ChangeNotifier {
   final OrderState _currentOrderState;
   final String _identifier;
   final String _host;
-  final String _topic1;
-  final String _topic2;
-  final String _topic3;
-  final String _topic4;
-  final String _topic5;
+  final List _topicList;
 
   // Constructor
   // ignore: sort_constructors_first
   MQTTManager(
       {required String host,
-        required String topic1,
-        required String topic2,
-        required String topic3,
-        required String topic4,
-        required String topic5,
+        required List topicList,
         required String identifier,
          required MQTTAppState state,  required OrderState orderState})
       : _identifier = identifier,
         _host = host,
-        _topic1 = topic1,
-        _topic2 = topic2,
-        _topic3 = topic3,
-        _topic4 = topic4,
-  _topic5 = topic5,
+        _topicList = topicList,
         _currentState = state,
         _currentOrderState = orderState;
 
@@ -105,11 +93,10 @@ class MQTTManager with ChangeNotifier {
   void onConnected() {
     _currentState.setAppConnectionState(MQTTAppConnectionState.connected);
     print('EXAMPLE::Mosquitto client connected....');
-    _client!.subscribe(_topic1, MqttQos.atLeastOnce);
-    _client!.subscribe(_topic2, MqttQos.atLeastOnce);
-    _client!.subscribe(_topic3, MqttQos.atLeastOnce);
-    _client!.subscribe(_topic4, MqttQos.atLeastOnce);
-    _client!.subscribe(_topic5, MqttQos.atLeastOnce);
+    for (var i = 0; i < _topicList.length; i++) {
+      _client!.subscribe(_topicList[i], MqttQos.atLeastOnce);
+    }
+
     _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
       // ignore: avoid_as
       final MqttPublishMessage recMess = c![0].payload as MqttPublishMessage;

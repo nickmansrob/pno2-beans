@@ -2,28 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bean_bot/Providers/OrderState.dart';
 
-import 'package:bean_bot/mqtt/MQTTManager.dart';
-import 'package:bean_bot/Providers/MQTTAppState.dart';
-
-// TODO: Delete check connection
-// TODO: Make print IP work
-// TODO: Investigate publishing
-
-// weightListener for topic for currentWeight
-// logListener for logs of the arduino
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
+import 'package:bean_bot/Providers/mqtt_app_state.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({Key? key}) : super(key: key);
+
   @override
   _DebugPageState createState() => _DebugPageState();
 }
 
 class _DebugPageState extends State<DebugPage> {
-  final _servoForm = GlobalKey<FormState>();
+  final _servoForm1 = GlobalKey<FormState>();
+  final _servoForm2 = GlobalKey<FormState>();
+  final _servoForm3 = GlobalKey<FormState>();
 
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
   late MQTTManager manager;
+
+  final TextEditingController _firstServoController = TextEditingController();
+  final TextEditingController _secondServoController = TextEditingController();
+  final TextEditingController _thirdServoController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +97,11 @@ class _DebugPageState extends State<DebugPage> {
                           appState.setIsSwitched(value);
                         });
                       }
+                      if (value == false) {
+                        _firstServoController.text = '';
+                        _secondServoController.text = '';
+                        _thirdServoController.text = '';
+                      }
                     },
                   ),
                 ),
@@ -107,6 +112,178 @@ class _DebugPageState extends State<DebugPage> {
         const Divider(
           indent: 8,
           endIndent: 8,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServoInput() {
+    MQTTAppState appState = Provider.of<MQTTAppState>(context);
+    return Column(
+      children: [
+        Form(
+          key: _servoForm1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: const <Widget>[
+                  Padding(
+                      padding:
+                          EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
+                      child: Text(
+                        'Servos',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 0),
+                      child: TextFormField(
+                        enabled: appState.getIsSwitched,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Degrees servo 1',
+                          isDense: true,
+                          contentPadding: EdgeInsets.all(10),
+                        ),
+                        keyboardType: TextInputType.phone,
+                        controller: _firstServoController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter the number of degrees';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 0),
+                      child: ElevatedButton(
+                        onPressed: appState.getIsSwitched
+                            ? () {
+                                if (_servoForm1.currentState!.validate()) {
+                                  _publishMessage(
+                                      _firstServoController.text, 'servo1');
+                                }
+                              }
+                            : null,
+                        child: const Text('Apply'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Form(
+          key: _servoForm2,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: TextFormField(
+                    enabled: appState.getIsSwitched,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Degrees servo 2',
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(10),
+                    ),
+                    keyboardType: TextInputType.phone,
+                    controller: _secondServoController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the number of degrees';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched
+                        ? () {
+                            if (_servoForm2.currentState!.validate()) {
+                              _publishMessage(
+                                  _secondServoController.text, 'servo2');
+                            }
+                          }
+                        : null,
+                    child: const Text('Apply'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Form(
+          key: _servoForm3,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: TextFormField(
+                    enabled: appState.getIsSwitched,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Degrees servo 3',
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(10),
+                    ),
+                    keyboardType: TextInputType.phone,
+                    controller: _thirdServoController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the number of degrees';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched
+                        ? () {
+                            if (_servoForm3.currentState!.validate()) {
+                              _publishMessage(
+                                  _thirdServoController.text, 'servo3');
+                            }
+                          }
+                        : null,
+                    child: const Text('Apply'),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -139,7 +316,11 @@ class _DebugPageState extends State<DebugPage> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: appState.getIsSwitched ? () {} : null,
+                  onPressed: appState.getIsSwitched
+                      ? () {
+                          _publishMessage('toggle', 'motor1');
+                        }
+                      : null,
                   child: const Text('Toggle 1'),
                 ),
               ),
@@ -148,7 +329,11 @@ class _DebugPageState extends State<DebugPage> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: appState.getIsSwitched ? () {} : null,
+                  onPressed: appState.getIsSwitched
+                      ? () {
+                          _publishMessage('toggle', 'motor2');
+                        }
+                      : null,
                   child: const Text('Toggle 2'),
                 ),
               ),
@@ -162,7 +347,11 @@ class _DebugPageState extends State<DebugPage> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: appState.getIsSwitched ? () {} : null,
+                  onPressed: appState.getIsSwitched
+                      ? () {
+                          _publishMessage('toggle', 'motor3');
+                        }
+                      : null,
                   child: const Text('Toggle 3'),
                 ),
               ),
@@ -175,147 +364,6 @@ class _DebugPageState extends State<DebugPage> {
         ),
       ],
     );
-  }
-
-  Widget _buildServoInput() {
-    MQTTAppState appState = Provider.of<MQTTAppState>(context);
-    return Form(
-        key: _servoForm,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: const <Widget>[
-                Padding(
-                    padding:
-                        EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
-                    child: Text(
-                      'Servos',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: TextFormField(
-                      enabled: appState.getIsSwitched,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Degrees servo 1',
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(10),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the number of degrees';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: ElevatedButton(
-                      onPressed: appState.getIsSwitched ? () {} : null,
-                      child: const Text('Apply'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: TextFormField(
-                      enabled: appState.getIsSwitched,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Degrees servo 2',
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(10),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the number of degrees';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: ElevatedButton(
-                      onPressed: appState.getIsSwitched ? () {} : null,
-                      child: const Text('Apply'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: TextFormField(
-                      enabled: appState.getIsSwitched,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Degrees servo 3',
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(10),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the number of degrees';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    child: ElevatedButton(
-                      onPressed: appState.getIsSwitched ? () {} : null,
-                      child: const Text('Apply'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(
-              indent: 8,
-              endIndent: 8,
-            ),
-          ],
-        ));
   }
 
   Widget _buildArduinoToggle() {
@@ -410,7 +458,7 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
-  /////////////////////////// Void ///////////////////////////
+  /////////////////////////// Voids ///////////////////////////
   @override
   void initState() {
     super.initState();

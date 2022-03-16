@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
 import 'package:bean_bot/data/menu_items.dart';
 import 'package:bean_bot/model/menu_item.dart';
 
-import 'package:bean_bot/Pages/debug.dart';
-import 'package:bean_bot/Pages/logs.dart';
-import 'package:bean_bot/mqtt/MQTTManager.dart';
-import 'package:bean_bot/Providers/MQTTAppState.dart';
+import 'package:bean_bot/pages/debug.dart';
+import 'package:bean_bot/pages/logs.dart';
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
+import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/OrderState.dart';
 import 'package:expansion_widget/expansion_widget.dart';
 
@@ -59,7 +58,7 @@ class _HomePageState extends State<HomePage> {
             PopupMenuButton<MenuItem>(
               onSelected: (item) => onSelected(context, item),
               itemBuilder: (context) =>
-                  [...MenuItems.items.map(buildItem).toList()],
+              [...MenuItems.items.map(buildItem).toList()],
             ),
           ],
         ),
@@ -111,62 +110,60 @@ class _HomePageState extends State<HomePage> {
   // Builds the input field for ordering beans.
   Widget _buildWeightInput(MQTTAppConnectionState state) {
     // Build a Form widget using the _formKey created above.
-    return Container(
-      child: Form(
-        key: _weightForm,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 2),
-              child: Text(
-                'Order Beans',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
+    return Form(
+      key: _weightForm,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 2),
+            child: Text(
+              'Order Beans',
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: TextFormField(
-                enabled: disableTextField(state),
-                controller: _weightController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter the weight',
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (state == MQTTAppConnectionState.disconnected) {
-                    return 'Please connect to the Arduino before ordering beans.';
-                  }
-                  if (state == MQTTAppConnectionState.connected) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the weight';
-                    }
-                  }
-                  return null;
-                },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: TextFormField(
+              enabled: disableTextField(state),
+              controller: _weightController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Enter the weight',
               ),
+              keyboardType: TextInputType.phone,
+              validator: (value) {
+                if (state == MQTTAppConnectionState.disconnected) {
+                  return 'Please connect to the Arduino before ordering beans.';
+                }
+                if (state == MQTTAppConnectionState.connected) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the weight';
+                  }
+                }
+                return null;
+              },
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: _buildBeanColorSelector(context, state),
-            ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: _buildBeanColorSelector(context, state),
+          ),
+        ],
       ),
     );
   }
 
   // Builds the color selection widget.
-  Widget _buildBeanColorSelector(
-      BuildContext context, MQTTAppConnectionState state) {
+  Widget _buildBeanColorSelector(BuildContext context,
+      MQTTAppConnectionState state) {
     return InputDecorator(
       decoration: InputDecoration(
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
+        const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
       child: Column(
@@ -179,12 +176,14 @@ class _HomePageState extends State<HomePage> {
                 groupValue: currentOrderState.getSiloNumber,
                 onChanged: disableTextField(state)
                     ? (value) {
-                        setState(() {
-                          currentOrderState.setSiloNumber(value.toString());
-                          currentOrderState
-                              .setSiloNumber(currentOrderState.getSiloNumber);
-                        });
-                      }
+                  setState(
+                        () {
+                      currentOrderState.setSiloNumber(value.toString());
+                      currentOrderState
+                          .setSiloNumber(currentOrderState.getSiloNumber);
+                    },
+                  );
+                }
                     : null,
               ),
             ),
@@ -198,12 +197,14 @@ class _HomePageState extends State<HomePage> {
                 groupValue: currentOrderState.getSiloNumber,
                 onChanged: disableTextField(state)
                     ? (value) {
-                        setState(() {
-                          currentOrderState.setSiloNumber(value.toString());
-                          currentOrderState
-                              .setSiloNumber(currentOrderState.getSiloNumber);
-                        });
-                      }
+                  setState(
+                        () {
+                      currentOrderState.setSiloNumber(value.toString());
+                      currentOrderState
+                          .setSiloNumber(currentOrderState.getSiloNumber);
+                    },
+                  );
+                }
                     : null,
               ),
             ),
@@ -217,12 +218,14 @@ class _HomePageState extends State<HomePage> {
                 groupValue: currentOrderState.getSiloNumber,
                 onChanged: disableTextField(state)
                     ? (value) {
-                        setState(() {
-                          currentOrderState.setSiloNumber(value.toString());
-                          currentOrderState
-                              .setSiloNumber(currentOrderState.getSiloNumber);
-                        });
-                      }
+                  setState(
+                        () {
+                      currentOrderState.setSiloNumber(value.toString());
+                      currentOrderState
+                          .setSiloNumber(currentOrderState.getSiloNumber);
+                    },
+                  );
+                }
                     : null,
               ),
             ),
@@ -243,25 +246,25 @@ class _HomePageState extends State<HomePage> {
             child: ElevatedButton(
               onPressed: disableTextField(state)
                   ? () {
-                      // Dismisses keyboard
-                      if (!disableTextField(state)) {
-                        null;
-                      } else {
-                        FocusScopeNode currentFocus = FocusScope.of(context);
-                        if (!currentFocus.hasPrimaryFocus) {
-                          currentFocus.unfocus();
-                        }
-                        // Validate returns true if the form is valid, or false otherwise.
-                        if (_weightForm.currentState!.validate()) {
-                          currentOrderState
-                              .setBothWeightOrder(_weightController.text);
-                          currentOrderState
-                              .setWeightOrder(_weightController.text);
-                          _showConfirmMessage(
-                              currentAppState.getAppConnectionState);
-                        }
-                      }
-                    }
+                // Dismisses keyboard
+                if (!disableTextField(state)) {
+                  null;
+                } else {
+                  FocusScopeNode currentFocus = FocusScope.of(context);
+                  if (!currentFocus.hasPrimaryFocus) {
+                    currentFocus.unfocus();
+                  }
+                  // Validate returns true if the form is valid, or false otherwise.
+                  if (_weightForm.currentState!.validate()) {
+                    currentOrderState
+                        .setBothWeightOrder(_weightController.text);
+                    currentOrderState
+                        .setWeightOrder(_weightController.text);
+                    _showConfirmMessage(
+                        currentAppState.getAppConnectionState);
+                  }
+                }
+              }
                   : null,
               child: const Text('Submit'),
             ),
@@ -273,9 +276,9 @@ class _HomePageState extends State<HomePage> {
             child: ElevatedButton(
               onPressed: disableTextField(state)
                   ? () {
-                      _weightController.clear();
-                      currentOrderState.setSiloNumber('');
-                    }
+                _weightController.clear();
+                currentOrderState.setSiloNumber('');
+              }
                   : null,
               child: const Text('Cancel'),
             ),
@@ -293,43 +296,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Builds a widget which displays the current weight of the beans.
-  Widget _buildShowCurrentWeight(String text, MQTTAppConnectionState state) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-          child: Row(
-            children: const [
-              Text(
-                'Current weigth',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: Row(children: [Text('${text}g')]),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
     return Padding(
@@ -337,7 +303,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -475,10 +441,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Builds ordertext
+  // Builds the heading of the order menu.
   Widget _buildOrderText() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 6),
       child: Column(
         children: [
           Row(
@@ -486,7 +452,7 @@ class _HomePageState extends State<HomePage> {
               Text(
                 'Orders',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -497,9 +463,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Builds a widget which displays the current order.
+  // Builds a widget which displays the first order.
   Widget _buildFirstOrder(MQTTAppState appState, OrderState orderState) {
-    double width = MediaQuery.of(context).size.width;
+    double width = MediaQuery
+        .of(context)
+        .size
+        .width;
     if (double.tryParse(currentOrderState.getFirstWeightOrder) != null &&
         double.parse(currentOrderState.getFirstWeightOrder) == 0) {
       firstWeightFraction = 0.0;
@@ -515,7 +484,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -558,25 +527,31 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Padding(
                           child: Text(
-                    'Your current order is: ${orderState.getFirstOrder}.', style: const TextStyle(fontSize: 15)),
-                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                              'Your current order is: ${orderState
+                                  .getFirstOrder}.',
+                              style: const TextStyle(fontSize: 15)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 2),
                         )
-
                       ],
                     ),
                     Row(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
-                          child: Text('Color: ${currentAppState.getFirstColor}.', style: const TextStyle(fontSize: 15)),
-
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 2),
+                          child: Text(
+                              'Color: ${currentAppState.getFirstColor}.',
+                              style: const TextStyle(fontSize: 15)),
                         )
                       ],
                     ),
                     Row(
                       children: [
                         Text(
-                            'Current weight: ${currentAppState.getFirstOrderWeightText}g', style: const TextStyle(fontSize: 15)),
+                            'Current weight: ${currentAppState
+                                .getFirstOrderWeightText}g',
+                            style: const TextStyle(fontSize: 15)),
                       ],
                     ),
                     Row(
@@ -595,32 +570,33 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                           color: Colors.green,
                                           borderRadius:
-                                              BorderRadius.circular(4.0)),
+                                          BorderRadius.circular(4.0)),
                                       width: firstWeightFraction * (width - 32),
                                       height: 28,
                                     ),
                                   ),
-                                   Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                          BorderRadius.circular(5.0),
-                                          border: Border.all(
-                                            width: 1,
-                                            color: Colors.black,
-                                          )),
-                                      width: width -32,
-                                      height: 30,
-                                      child: Center(
-                                        child: Text(
-                                          'progress (${(firstWeightFraction * 100).toStringAsFixed(1)}%)',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 11,
-                                          ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius:
+                                        BorderRadius.circular(5.0),
+                                        border: Border.all(
+                                          width: 1,
+                                          color: Colors.black,
+                                        )),
+                                    width: width - 32,
+                                    height: 30,
+                                    child: Center(
+                                      child: Text(
+                                        'progress (${(firstWeightFraction * 100)
+                                            .toStringAsFixed(1)}%)',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 11,
                                         ),
                                       ),
                                     ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -636,17 +612,17 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableFirstCancelOrder(appState)
                                   ? () {
-                                      orderState.setFirstOrder('');
-                                      firstWeightFraction = 0.0;
-                                    }
+                                orderState.setFirstOrder('');
+                                firstWeightFraction = 0.0;
+                              }
                                   : null,
                               child: const Text('Cancel order'),
                               style: TextButton.styleFrom(
                                 primary: Colors.white,
                                 backgroundColor:
-                                    colorFirstOrderCancelButton(appState),
+                                colorFirstOrderCancelButton(appState),
                                 onSurface:
-                                    colorFirstOrderCancelButton(appState),
+                                colorFirstOrderCancelButton(appState),
                               ),
                             ),
                           ),
@@ -663,10 +639,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Builds a widget which displays the second order.
   Widget _buildSecondOrder(MQTTAppState appState, OrderState orderState) {
     final int orderNumber;
 
-    double width = MediaQuery.of(context).size.width;
+    double width = MediaQuery
+        .of(context)
+        .size
+        .width;
 
     if (double.tryParse(currentOrderState.getSecondWeightOrder) != null &&
         double.parse(currentOrderState.getSecondWeightOrder) > 0.0) {
@@ -687,7 +667,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -698,7 +678,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => toggleFunction(animated: true),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -714,7 +694,7 @@ class _HomePageState extends State<HomePage> {
                         angle: math.pi * animationValue / 2,
                         child: const Icon(Icons.arrow_right, size: 40),
                         alignment: Alignment.center,
-                      )
+                      ),
                     ],
                   ),
                 ));
@@ -731,29 +711,41 @@ class _HomePageState extends State<HomePage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 0, vertical: 2),
-                          child: Row(children: [
-                            Text(
-                                'Your current order is: ${orderState.getSecondOrder}.', style: const TextStyle(fontSize: 15))
-                          ]),
+                          child: Row(
+                            children: [
+                              Text(
+                                'Your current order is: ${orderState
+                                    .getSecondOrder}.',
+                                style: const TextStyle(fontSize: 15),
+                              )
+                            ],
+                          ),
                         ),
                       ],
                     ),
                     Row(
                       children: [
                         Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 2),
-                            child: Text(
-                                'Color: ${currentAppState.getSecondColor}.', style: const TextStyle(fontSize: 15))),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 2),
+                          child: Text(
+                            'Color: ${currentAppState.getSecondColor}.',
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                        ),
                       ],
                     ),
                     Row(
                       children: [
                         Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 2),
-                            child: Text(
-                                'Current weight: ${currentAppState.getSecondOrderWeightText}g', style: const TextStyle(fontSize: 15))),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 2),
+                          child: Text(
+                            'Current weight: ${currentAppState
+                                .getSecondOrderWeightText}g',
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                        ),
                       ],
                     ),
                     Row(
@@ -772,30 +764,30 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                           color: Colors.green,
                                           borderRadius:
-                                              BorderRadius.circular(4.0)),
+                                          BorderRadius.circular(4.0)),
                                       width:
-                                          secondWeightFraction * (width - 32),
+                                      secondWeightFraction * (width - 32),
                                       height: 23,
                                     ),
                                   ),
                                   Container(
                                     decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(5.0),
-                                        border: Border.all(
-                                          width: 1,
-                                          color: Colors.black,
-                                        )),
+                                      borderRadius: BorderRadius.circular(5.0),
+                                      border: Border.all(
+                                        width: 1,
+                                        color: Colors.black,
+                                      ),
+                                    ),
                                     width: width - 32,
                                     height: 25,
                                     child: Center(
                                       child: Text(
-                                        'progress (${(secondWeightFraction * 100).toStringAsFixed(1)}%)',
+                                        'progress (${(secondWeightFraction *
+                                            100).toStringAsFixed(1)}%)',
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
-                                            color: Colors.black,
+                                          color: Colors.black,
                                           fontSize: 11,
-
                                         ),
                                       ),
                                     ),
@@ -815,17 +807,17 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableSecondCancelOrder(appState)
                                   ? () {
-                                      orderState.setSecondOrder('');
-                                      secondWeightFraction = 0.0;
-                                    }
+                                orderState.setSecondOrder('');
+                                secondWeightFraction = 0.0;
+                              }
                                   : null,
                               child: const Text('Cancel order'),
                               style: TextButton.styleFrom(
                                 primary: Colors.white,
                                 backgroundColor:
-                                    colorSecondOrderCancelButton(appState),
+                                colorSecondOrderCancelButton(appState),
                                 onSurface:
-                                    colorSecondOrderCancelButton(appState),
+                                colorSecondOrderCancelButton(appState),
                               ),
                             ),
                           ),
@@ -842,7 +834,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  ////////////////////////// Helper Methodes //////////////////////////
+  ////////////////////////// Helper Methods //////////////////////////
   // Gets the connection state and returns the associated string.
   String _prepareStateMessageFrom(MQTTAppConnectionState state) {
     switch (state) {
@@ -867,6 +859,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Makes the cancel button in the order menu grey when disabled.
   Color? colorFirstOrderCancelButton(MQTTAppState appState) {
     if (double.parse(appState.getFirstOrderWeightText) > 0) {
       return null;
@@ -875,6 +868,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Makes the cancel button in the order menu grey when disabled.
   Color? colorSecondOrderCancelButton(MQTTAppState appState) {
     if (double.parse(appState.getSecondOrderWeightText) > 0) {
       return null;
@@ -883,7 +877,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Function to disable textfields when not connected to the Arduino.
+  // Disables text-fields when not connected to the Arduino.
   bool disableTextField(MQTTAppConnectionState state) {
     if (state == MQTTAppConnectionState.disconnected ||
         state == MQTTAppConnectionState.connecting) {
@@ -894,177 +888,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Creates the navigation menu.
-  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) =>
+      PopupMenuItem(
         value: item,
         child: Text(item.text),
       );
 
-  /////////////////////////// Voids and functions ///////////////////////////
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  // Sends a message over the MQTT connection.
-  void _publishMessage(String text, String topic) {
-    manager.publish(text, topic);
-    _weightController.clear();
-  }
-
-  @override
-  // Clears the text of the IP controller.
-  void dispose() {
-    _ipTextController.dispose();
-    super.dispose();
-  }
-
-  // Connects the app to the broker.
-  void _configureAndConnect() {
-    manager = MQTTManager(
-        host: currentAppState.getHostIP,
-        topic1: "order",
-        topic2: "logListener",
-        topic3: "firstWeightListener",
-        topic4: "adminListener",
-        topic5: "secondWeightListener",
-        identifier: "BeanBotDemo",
-        state: currentAppState,
-        orderState: currentOrderState);
-    manager.initializeMQTTClient();
-    manager.connect();
-    currentAppState.setMQTTManger(manager);
-  }
-
-  // Disconnects the app from the broker.
-  void _disconnect() {
-    manager.disconnect();
-    currentAppState.setFirstOrderReceivedWeightText('0');
-    currentOrderState.setFirstOrder('');
-  }
-
-  // Handles the navigation of the popupmenu.
-  void onSelected(BuildContext context, MenuItem item) {
-    switch (item) {
-      case MenuItems.itemDebug:
-        Navigator.pushNamed(context, '/debug');
-        break;
-      case MenuItems.itemLog:
-        Navigator.pushNamed(context, '/logs');
-        break;
-    }
-  }
-
-  // Opens a dialog box when the user wants to order beans.
-  void _showConfirmMessage(MQTTAppConnectionState state) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm order'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(
-                    "You're about to order ${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloNumber.toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel the order."),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (state == MQTTAppConnectionState.connected) {
-                  String beanWeightIndex = '0';
-                  switch (currentOrderState.getSiloNumber) {
-                    case 'Silo 1':
-                      beanWeightIndex = '0';
-                      break;
-                    case 'Silo 2':
-                      beanWeightIndex = '1';
-                      break;
-                    case 'Silo 3':
-                      beanWeightIndex = '2';
-                      break;
-                  }
-                  String message =
-                      beanWeightIndex + currentOrderState.getWeightOrder;
-                  String currentOrder =
-                      '${currentOrderState.getWeightOrder} g of ${currentOrderState.getSiloNumber.toLowerCase()}';
-                  currentOrderState.setOrder(currentOrder);
-                  _publishMessage(message, "order");
-                  _showOrderMessage();
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showEndOrderMessage() {
-    showDialog(
-      context: context, barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('End Order'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(
-                    "Your order of ${currentOrderState.getWeightOrder}g from ${currentOrderState.getSiloNumber.toLowerCase()} is ready."),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Opens a dialog box when the user has ordered beans.
-  void _showOrderMessage() {
-    showDialog(
-      context: context, barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Bean Order'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(
-                    "You've ordered ${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloNumber.toLowerCase()}."),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+  // Returns false when the first order has started.
   bool disableFirstCancelOrder(MQTTAppState appState) {
     if (double.parse(appState.getFirstOrderWeightText) > 0) {
       return false;
@@ -1073,6 +903,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Returns true when the first order has started.
   bool disableSecondCancelOrder(MQTTAppState appState) {
     if (double.parse(appState.getSecondOrderWeightText) > 0) {
       return false;
@@ -1128,5 +959,177 @@ class _HomePageState extends State<HomePage> {
     } else {
       return output;
     }
+  }
+
+
+  /////////////////////////// Voids ///////////////////////////
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  // Sends a message over the MQTT connection.
+  void _publishMessage(String text, String topic) {
+    manager.publish(text, topic);
+    _weightController.clear();
+  }
+
+  @override
+  // Clears the text of the IP controller.
+  void dispose() {
+    _ipTextController.dispose();
+    super.dispose();
+  }
+
+  // Connects the app to the broker.
+  void _configureAndConnect() {
+    manager = MQTTManager(
+        host: currentAppState.getHostIP,
+        topicList: ["order", "logListener", "firstWeightListener", "secondWeightListener", 'adminListener', "motor1", 'motor2', 'motor3', 'servo1', 'servo2', 'servo3', 'firstColorListener', 'secondColorListener'],
+        identifier: "BeanBotDemo",
+        state: currentAppState,
+        orderState: currentOrderState);
+    manager.initializeMQTTClient();
+    manager.connect();
+    currentAppState.setMQTTManger(manager);
+  }
+
+  // Disconnects the app from the broker.
+  void _disconnect() {
+    manager.disconnect();
+    currentAppState.setFirstOrderReceivedWeightText('0');
+    currentOrderState.setFirstOrder('');
+  }
+
+  // Handles the navigation of the popupmenu.
+  void onSelected(BuildContext context, MenuItem item) {
+    switch (item) {
+      case MenuItems.itemDebug:
+        Navigator.pushNamed(context, '/debug');
+        break;
+      case MenuItems.itemLog:
+        Navigator.pushNamed(context, '/logs');
+        break;
+    }
+  }
+
+  // Opens a dialog box when the user wants to order beans.
+  void _showConfirmMessage(MQTTAppConnectionState state) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm order'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                    "You're about to order ${currentOrderState
+                        .getWeightOrder}g of ${currentOrderState.getSiloNumber
+                        .toLowerCase()}. Are you sure? Click OK to continue. Press Cancel to cancel the order."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (state == MQTTAppConnectionState.connected) {
+                  String beanWeightIndex = '0';
+                  switch (currentOrderState.getSiloNumber) {
+                    case 'Silo 1':
+                      beanWeightIndex = '0';
+                      break;
+                    case 'Silo 2':
+                      beanWeightIndex = '1';
+                      break;
+                    case 'Silo 3':
+                      beanWeightIndex = '2';
+                      break;
+                  }
+                  String message =
+                      beanWeightIndex + currentOrderState.getWeightOrder;
+                  String currentOrder =
+                      '${currentOrderState
+                      .getWeightOrder} g of ${currentOrderState.getSiloNumber
+                      .toLowerCase()}';
+                  currentOrderState.setOrder(currentOrder);
+                  _publishMessage(message, "order");
+                  _showOrderMessage();
+                }
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Shows a message when the order of the user is ready.
+  void _showEndOrderMessage() {
+    showDialog(
+      context: context, barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('End Order'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                    "Your order of ${currentOrderState
+                        .getWeightOrder}g from ${currentOrderState.getSiloNumber
+                        .toLowerCase()} is ready."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Opens a dialog box when the user has ordered beans.
+  void _showOrderMessage() {
+    showDialog(
+      context: context, barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Bean Order'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                    "You've ordered ${currentOrderState
+                        .getWeightOrder}g of ${currentOrderState.getSiloNumber
+                        .toLowerCase()}."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

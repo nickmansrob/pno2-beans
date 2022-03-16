@@ -1,4 +1,4 @@
-import 'package:bean_bot/mqtt/MQTTManager.dart';
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
 
 enum MQTTAppConnectionState { connected, disconnected, connecting }
@@ -14,8 +14,8 @@ class MQTTAppState with ChangeNotifier {
   String _logText = '';
   String _hostIp = '';
   bool _isSwitched = false;
-  String _firstColor = 'not determined';
-  String _secondColor = 'not determined';
+   String _firstColor = 'not determined';
+   String _secondColor = 'not determined';
 
   void setReceivedLogText(String text) {
     _receivedText = text;
@@ -55,6 +55,16 @@ class MQTTAppState with ChangeNotifier {
 
   void setIsSwitched(bool value) {
     _isSwitched = value;
+    notifyListeners();
+  }
+
+  void setFirstColor(String color) {
+    _firstColor = color;
+    notifyListeners();
+  }
+
+  void setSecondColor(String color) {
+    _secondColor = color;
     notifyListeners();
   }
 

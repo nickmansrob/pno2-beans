@@ -1,12 +1,11 @@
 import 'package:bean_bot/Providers/OrderState.dart';
-import 'package:bean_bot/mqtt/MQTTManager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:bean_bot/Pages/logs.dart';
-import 'package:bean_bot/Pages/debug.dart';
-import 'Providers/MQTTAppState.dart';
-import 'package:bean_bot/Pages/homepage.dart';
+import 'package:bean_bot/pages/logs.dart';
+import 'package:bean_bot/pages/debug.dart';
+import 'Providers/mqtt_app_state.dart';
+import 'package:bean_bot/pages/homepage.dart';
 
 void main() {
   runApp(

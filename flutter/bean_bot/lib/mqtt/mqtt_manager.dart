@@ -17,9 +17,10 @@ class MQTTManager with ChangeNotifier {
   // ignore: sort_constructors_first
   MQTTManager(
       {required String host,
-        required List topicList,
-        required String identifier,
-         required MQTTAppState state,  required OrderState orderState})
+      required List topicList,
+      required String identifier,
+      required MQTTAppState state,
+      required OrderState orderState})
       : _identifier = identifier,
         _host = host,
         _topicList = topicList,
@@ -103,8 +104,8 @@ class MQTTManager with ChangeNotifier {
 
       // final MqttPublishMessage recMess = c![0].payload;
       final String pt =
-      MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-      switch(c[0].topic) {
+          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+      switch (c[0].topic) {
         case 'logListener':
           _currentState.setReceivedLogText(pt);
           break;
@@ -114,6 +115,19 @@ class MQTTManager with ChangeNotifier {
         case 'secondWeightListener':
           _currentState.setSecondOrderReceivedWeightText(pt);
           break;
+        case 'firstColorListener':
+          _currentState.setFirstColor(convertIntToColor(pt));
+          break;
+        case 'secondColorListener':
+          _currentState.setSecondColor(convertIntToColor(pt));
+          break;
+        case 'order':
+          if (pt == 'done1') {
+            _currentState.setFirstOrderDone('done');
+          } else if (pt == 'done2') {
+            _currentState.setSecondOrderDone('done');
+          }
+          break;
       }
 
       print(
@@ -122,5 +136,22 @@ class MQTTManager with ChangeNotifier {
     });
     print(
         'EXAMPLE::OnConnected client callback - Client connection was successful');
+  }
+
+  String convertIntToColor(String colorInt) {
+    List intList = [
+      int.parse(colorInt.substring(0, 3)),
+      int.parse(colorInt.substring(3, 6)),
+      int.parse(colorInt.substring(6, 9))
+    ];
+    if (intList[0] == 255 && intList[1] == 0 && intList[2] == 0) {
+      return 'red';
+    } else if (intList[0] == 255 && intList[1] == 255 && intList[2] == 255) {
+      return 'white';
+    } else if (intList[0] == 0 && intList[1] == 0 && intList[2] == 0) {
+      return 'black';
+    } else {
+      return 'not determined';
+    }
   }
 }

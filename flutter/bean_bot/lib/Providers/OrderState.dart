@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
-
 class OrderState with ChangeNotifier {
   String _firstWeightOrder = '';
   String _secondWeightOrder = '';
   String _weightOrder = '';
-  String _siloNumber =  '';
+  String _siloChoiceNumber = '';
   String _firstSiloNumber = '';
   String _secondSiloNumber = '';
   String _firstOrder = '';
   String _secondOrder = '';
 
-  
   void setWeightOrder(String weight) {
     _weightOrder = weight;
     notifyListeners();
@@ -28,17 +26,25 @@ class OrderState with ChangeNotifier {
   }
 
   void setBothWeightOrder(String weight) {
-    if (_secondWeightOrder == '' && _firstWeightOrder == '') {
-      _firstWeightOrder = weight;
-    }
-    else if (_secondWeightOrder == '' && _firstWeightOrder != '') {
-      _secondWeightOrder = weight;
+    if (_firstWeightOrder == '') {
+      setFirstWeightOrder(weight);
+    } else {
+      setSecondWeightOrder(weight);
     }
     notifyListeners();
   }
 
+  void setSiloChoiceNumber(String siloNumber) {
+    _siloChoiceNumber = siloNumber;
+    notifyListeners();
+  }
+
   void setSiloNumber(String siloNumber) {
-    _siloNumber = siloNumber;
+    if (_firstSiloNumber == '') {
+      _firstSiloNumber = siloNumber;
+    } else {
+      _secondSiloNumber = siloNumber;
+    }
     notifyListeners();
   }
 
@@ -46,6 +52,7 @@ class OrderState with ChangeNotifier {
     _firstSiloNumber = siloNumber;
     notifyListeners();
   }
+
   void setSecondSiloNumber(String siloNumber) {
     _secondSiloNumber = siloNumber;
     notifyListeners();
@@ -64,14 +71,25 @@ class OrderState with ChangeNotifier {
   void setOrder(String order) {
     if (_firstOrder == '') {
       setFirstOrder(order);
-    }
-    else {
+    } else {
       setSecondOrder(order);
     }
     notifyListeners();
   }
 
-  String get getSiloNumber => _siloNumber;
+  void disposeFirstOrder() {
+    _firstSiloNumber = '';
+    _firstWeightOrder = '';
+    _firstOrder = '';
+  }
+
+  void disposeSecondOrder() {
+    _secondSiloNumber = '';
+    _secondWeightOrder = '';
+    _secondOrder = '';
+  }
+
+  String get getSiloChoiceNumber => _siloChoiceNumber;
   String get getFirstSiloNumber => _firstSiloNumber;
   String get getSecondSiloNumber => _secondSiloNumber;
   String get getFirstOrder => _firstOrder;

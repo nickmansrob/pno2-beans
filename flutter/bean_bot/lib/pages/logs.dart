@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:bean_bot/Providers/MQTTAppState.dart';
+import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:provider/provider.dart';
 
 class LogPage extends StatefulWidget {
@@ -126,7 +126,7 @@ class _logPageState extends State<LogPage> {
             child: const Text('Delete logs'),
 
           ),
-        ))
+        ),),
       ],
     );
   }

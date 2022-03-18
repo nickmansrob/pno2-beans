@@ -18,25 +18,56 @@ const char * mqtt_server = "192.168.137.1";
 /************************* DC-motors *************************/
 const uint8_t MOTOR_VOLTAGE = 2;
 
-const uint8_t MOTOR1_PIN = 5;
-byte motorOneState = LOW;
+const uint8_t MOTOR1_PIN = 2;
+const uint8_t MOTOR1_RELAY_PIN = 24;
+uint8_t motorOneState = LOW;
+bool motorOneClockwise = true;
 
-const uint8_t MOTOR2_PIN = 5;
-byte motorTwoState = LOW;
+const uint8_t MOTOR2_PIN = 3;
+const uint8_t MOTOR2_RELAY_PIN = 26;
+uint8_t motorTwoState = LOW;
+bool motorTwoClockwise = true;
 
-const uint8_t MOTOR3_PIN = 5;
-byte motorThreeState = LOW;
-
-const uint8_t MOTOR4_PIN = 5;
-byte motorFourState = LOW;
-
-const uint8_t MOTOR5_PIN = 5;
-byte motorFiveState = LOW;
+const uint8_t MOTOR3_PIN = 4;
+const uint8_t MOTOR3_RELAY_PIN = 27;
+uint8_t motorThreeState = LOW;
+bool motorThreeClockwise = true;
 
 /************************* Servos *************************/
 Servo servoOne;
-const uint8_t SERVO1_PIN = 9;
-int servoOneState = 90;
+const uint8_t SERVO1_PIN = 0; // Not known yet
+uint8_t servoOneState = 90;
+
+Servo servoTwo;
+const uint8_t SERVO2_PIN = 0; // Not known yet
+uint8_t servoTwoState = 90;
+
+Servo servoThree;
+const uint8_t SERVO3_PIN = 0; // Not known yet
+uint8_t servoThreeState = 90;
+
+/************************* LCD *************************/
+const uint8_t LCDRS_PIN = 48;
+const uint8_t LCDE_PIN = 49;
+const uint8_t LCDDB4_PIN = 50;
+const uint8_t LCDDB5_PIN = 51;
+const uint8_t LCDDB6_PIN = 52;
+const uint8_t LCDDB7_PIN = 53;
+
+/************************* Sensors *************************/
+const uint8_t UTRIG_PIN = 8;
+const uint8_t UECHO_PIN = 14;
+
+const uint8_t LEDR_PIN = 9;
+const uint8_t LEDG_PIN = 10;
+const uint8_t LEDB_PIN = 11;
+
+const uint8_t KS2_PIN = 17;
+const uint8_t KS3_PIN = 18;
+const uint8_t KOUT_PIN = 19;
+
+const uint8_t WSDA_PIN = 20;
+const uint8_t WSCL_PIN = 21;
 
 /************************* MQTT *************************/
 WiFiClient espClient;
@@ -49,6 +80,11 @@ bool manualOverride = false;
 
 /************************* Reset function *************************/
 void(* resetFunc) (void) = 0;
+
+/************************* Miscellaneous ***********************/
+uint8_t orderState = 1;
+
+long lastReadingTime = 0;
 
 
 /*****************************************************************/
@@ -79,10 +115,13 @@ void setup() {
 
   /************************* DC-motors *************************/
   pinMode(MOTOR1_PIN, OUTPUT);
+  pinMode(MOTOR2_PIN, OUTPUT);
+  pinMode(MOTOR3_PIN, OUTPUT);
 
   /************************* Servos *************************/
-  //servoOne.attach(SERVO1_PIN);
-
+  servoOne.attach(SERVO1_PIN);
+  servoTwo.attach(SERVO2_PIN);
+  servoThree.attach(SERVO3_PIN);
 }
 
 void loop() {
@@ -95,8 +134,8 @@ void loop() {
 }
 
 /************************* Helpers *************************/
-int getMotorVoltage() {
-  return map(MOTOR_VOLTAGE, 0, 5, 0, 255);
+uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
+  return map(motorVoltage, 0, 5, 0, 255);
 }
 
 /************************* MQTT Handlers *************************/
@@ -107,7 +146,7 @@ void callback(char* topic, byte* message, unsigned int length) {
   String messageString;
 
   String topicString = String(topic);
-  
+
   for (int i = 0; i < length; i++) {
     Serial.print((char)message[i]);
     messageString += (char)message[i];
@@ -135,17 +174,18 @@ void callback(char* topic, byte* message, unsigned int length) {
     } else if (topicString == "order") {
       // Incoming order example: 1200, stands for 200gr of the first kind
       String weight = messageString.substring(1);
-      String beanKind = messageString.substring(0, 1);
+      String siloNumber = messageString.substring(0, 1);
 
       // Sends order to flow
       logFlow("ROUTE: From origin to normalFlow");
-      logFlow("INFO: Incoming order: " + weight + " grams of kind " + beanKind);
-      normalFlow(weight, beanKind);
+      logFlow("INFO: Incoming order: " + weight + " grams of silo " + siloNumber);
+      readColor();
+      normalFlow(weight, siloNumber);
     } else if (topicString == "admin") {
       logFlow("ROUTE: From origin to adminFlow");
       adminFlow(messageString);
     } else {
-      logFlow("ERROR: No matching topic or override not enabled.");
+      logFlow("ERROR: callback() :: no matching topic or override not enabled.");
     }
   }
 }
@@ -181,16 +221,60 @@ void reconnect() {
 void readWeight() {
   String weight = "0";
   // TO DO: Implement sensor readings
+  // https://mschoeffler.com/2017/12/04/arduino-tutorial-hx711-load-cell-amplifier-weight-sensor-module-lcm1602-iic-v1-lcd/
 
-  if (weight != "0") {
-    client.publish("weightListener", weight.c_str());
+  // TO DO: Implement LCD output
+  // https://docs.arduino.cc/learn/electronics/lcd-displays
+
+  // If one second has passed, weight is updated.
+  if (weight != "0" && (millis() - lastReadingTime) > 1000) {
+    if (orderState == 1) {
+      lastReadingTime = millis();
+      client.publish("firstWeightListener", weight.c_str());
+    } else if (orderState == 2) {
+      lastReadingTime = millis();
+      client.publish("secondWeightListener", weight.c_str());
+    } else {
+      logFlow("ERROR: readWeight() :: orderState out of bounds.");
+    }
   }
-  // TO DO: Implement timer to avoid flooding the topic. Weight should be updated once a second. Use millis() function.
+}
+
+/************************* Read color sensor and publish *************************/
+void readColor() {
+  String red = "0";
+  String green = "0";
+  String blue = "0";
+  // TO DO: Implement sensor readings
+  // https://create.arduino.cc/projecthub/SurtrTech/color-detection-using-tcs3200-230-84a663
+
+  String color = red + green + blue;
+
+  if (orderState == 1) {
+    client.publish("firstColorListener", color.c_str());
+  } else if (orderState == 2) {
+    client.publish("secondColorListener", color.c_str());
+  } else {
+    logFlow("ERROR: readColor() :: orderState out of bounds.");
+  }
+}
+
+/************************* Read ultrasonic sensor *************************/
+void readUltrasonic() {
+  uint8_t theta = servoOneState;
+  uint16_t radius = 0;
+
+  // TO DO: Implement sensor readings
+  // https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
+
+  // TO DO: Add about 2 cm to distance measured to deliver approximately in the center of the container.
+  
 }
 
 /************************* Program flow *************************/
-void normalFlow(String weight, String beanKind) {
-  //Section 0: Determine container location
+void normalFlow(String weight, String siloNumber) {
+  //Section 0: BAND2: Determine container location
+  //Section 0: BAND1: Determine bean color
   //Section 1: BAND1: Choose silo
   //Section 2: BAND1: Lift into silo
   //Section 3: BAND1: Start rotation
@@ -201,45 +285,78 @@ void normalFlow(String weight, String beanKind) {
   //Section 8: BAND2: Stop rotation
   //Section 9: BAND1: Change to other silo
   //Section 10: Repeat
+  //Section X: Done
+  if (orderState == 1) {
+    client.publish("firstOrderListener", "done");
+  } else if (orderState == 2) {
+    client.publish("secondOrderListener", "done");
+  } else {
+    logFlow("ERROR: normalFlow() :: orderState out of bounds.");
+  }
+
 }
 
 void manualFlow(String topic, String messageString) {
   logFlow("Changing state of [" + topic + "] to ");
 
-  // Motor 1
+  // Motors
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
       logFlow("on");
-      digitalWrite(MOTOR1_PIN, HIGH);
-      // TO DO: If needed implement analogWrite to adjust PWM
+      analogWrite(MOTOR1_PIN, getMotorVoltage());
       motorOneState = HIGH;
     } else if (messageString == "toggle" && motorOneState == HIGH) {
       logFlow("off");
-      digitalWrite(MOTOR1_PIN, LOW);
+      analogWrite(MOTOR1_PIN, 0);
       motorOneState = LOW;
     } else {
-      logFlow("ERROR: Unspecified state");
+      logFlow("ERROR: motor1 :: no message match");
     }
-  }
-
-  //Servo 1
-  if (topic == "servo1") {
-    int angle = messageString.toInt();
-
-    // Constrain angle between 90+-45, 90 degrees is default state (silo 2)
-
-    if (-180 <= angle && angle <= 180) {
-      // Angle is valid, proceed
-
-      // TO DO: Implement checking where the servo is located, then constrain angle again to prevent the servo from rotating to far
-
-      servoOne.write(angle);
-      servoOneState = angle;
-
-      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
+  } else if (topic == "motor2") {
+    if (messageString == "toggle" && motorTwoState == LOW) {
+      logFlow("on");
+      analogWrite(MOTOR2_PIN, getMotorVoltage());
+      motorTwoState = HIGH;
+    } else if (messageString == "toggle" && motorTwoState == HIGH) {
+      logFlow("off");
+      analogWrite(MOTOR2_PIN, 0);
+      motorTwoState = LOW;
     } else {
-      logFlow("ERROR: Angle out of bounds");
+      logFlow("ERROR: motor2 :: no message match");
+    }
+  } else if (topic == "motor3") {
+    if (messageString == "toggle" && motorThreeState == LOW) {
+      logFlow("on");
+      analogWrite(MOTOR3_PIN, getMotorVoltage());
+      motorThreeState = HIGH;
+    } else if (messageString == "toggle" && motorThreeState == HIGH) {
+      logFlow("off");
+      analogWrite(MOTOR3_PIN, 0);
+      motorThreeState = LOW;
+    } else {
+      logFlow("ERROR: motor3 :: no message match");
+    }
+  } else {
+
+    //Servos
+    if (topic == "servo1") {
+      uint8_t angle = messageString.toInt();
+
+      // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+
+      if (0 <= angle && angle <= 180) {
+        // Angle is valid, proceed
+
+        servoOne.write(angle);
+        servoOneState = angle;
+
+        // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+
+      } else {
+        logFlow("ERROR: servo1 :: angle out of bounds");
+      }
+    } else {
+      logFlow("ERROR: manualFlow() :: no topic match");
     }
   }
 }
@@ -248,12 +365,19 @@ void adminFlow(String messageString) {
   if (messageString == "reset") {
     logFlow("WARNING: Hard reset");
     resetFunc();
+  } else if (messageString == "restore") {
+    logFlow("WARNING: Beanbot reset");
+    restoreFlow();
   } else {
-    logFlow("ERROR: Unspecified state");
+    logFlow("ERROR: adminFlow() :: no message match");
   }
 }
 
 void logFlow(String message) {
   Serial.println(message);
   client.publish("logListener", message.c_str());
+}
+
+void restoreFlow() {
+  // TO DO: Restore beanbot to start state.
 }

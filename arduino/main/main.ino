@@ -85,7 +85,8 @@ void(* resetFunc) (void) = 0;
 /************************* Miscellaneous ***********************/
 uint8_t orderState = 1;
 
-long lastReadingTime = 0;
+long lastReadingTimeWeight = 0;
+long lastReadingTimeDistance = 0;
 
 uint8_t calibrationFactor = 1;
 
@@ -112,6 +113,7 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
 
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
@@ -154,25 +156,27 @@ uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
 // Method for calibrating the weight sensor.
 void calibrate_scale() {
   const uint8_t calibrationWeight = 100;
+  // Used as disposable variable for calibrating the weight sensor.
   uint8_t count = 0;
 
-  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN); 
+  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
   HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
 
 
   lcd.clear();
-  lcd.print("Please put " + String(calibrationWeight)+ "g on the sensor.");
-  lcd.clear();
+  lcd.print("Please put " + String(calibrationWeight) + "g on the sensor.");
 
-  while(count<1000) {
+  // Used to display the message on the LCD until the user puts something on the scale.
+  while (count < 1000) {
     LoadCell.update();
     count = LoadCell.getData();
-    Serial.println(count);
   }
 
+  lcd.clear();
   lcd.print("Please wait...");
-  delay(2000);
-  for(int i=0;i<100;i++) {
+
+  // Used to get an accurate result for the calibrationFactor.
+  for (int i = 0; i < 100; i++) {
     LoadCell.update();
     count = LoadCell.getData();
     calibrationFactor = count / calibrationWeight;
@@ -185,11 +189,7 @@ void calibrate_scale() {
 
 /************************* MQTT Handlers *************************/
 void callback(char* topic, byte* message, unsigned int length) {
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
   String messageString;
-
   String topicString = String(topic);
 
   for (int i = 0; i < length; i++) {
@@ -247,10 +247,10 @@ void reconnect() {
       client.subscribe("motor1");
       client.subscribe("motor2");
       client.subscribe("motor3");
-      client.subscribe("motor4");
-      client.subscribe("motor5");
-      client.subscribe("order");
       client.subscribe("servo1");
+      client.subscribe("servo2");
+      client.subscribe("servo3");
+      client.subscribe("order");
       client.subscribe("admin");
       client.subscribe("override");
     } else {
@@ -265,20 +265,18 @@ void reconnect() {
 
 /************************* Read weight sensor and publish *************************/
 void readWeight() {
-  uint8_t calibrationFactor = 1;
-
   String weight = "0";
   float weightInt = 0.0;
 
   // Initializing LCD
-  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN); 
+  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
   lcd.begin(16, 2); // starts connection to the LCD
 
   HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
   LoadCell.begin(); // Starts  connection to the weight sensor.
   LoadCell.start(2000); // Sets the time the sensor gets to configure
   calibrate_scale();
-  LoadCell.setCalFactor(calibrationFactor); // Calibaration 
+  LoadCell.setCalFactor(calibrationFactor); // Calibaration
 
   LoadCell.update(); // gets data from load cell
   weightInt = LoadCell.getData(); // gets output values
@@ -294,12 +292,12 @@ void readWeight() {
   // https://docs.arduino.cc/learn/electronics/lcd-displays
 
   // If one second has passed, weight is updated.
-  if (weight != "0" && (millis() - lastReadingTime) > 1000) {
+  if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
     if (orderState == 1) {
-      lastReadingTime = millis();
+      lastReadingTimeWeight = millis();
       client.publish("firstWeightListener", weight.c_str());
     } else if (orderState == 2) {
-      lastReadingTime = millis();
+      lastReadingTimeWeight = millis();
       client.publish("secondWeightListener", weight.c_str());
     } else {
       logFlow("ERROR: readWeight() :: orderState out of bounds.");
@@ -315,19 +313,20 @@ void readColor() {
   // TO DO: Implement sensor readings
   // https://create.arduino.cc/projecthub/SurtrTech/color-detection-using-tcs3200-230-84a663
 
-  digitalWrite(KS2_PIN,LOW); // S2/S3 levels define which set of photodiodes we are using LOW/LOW is for RED LOW/HIGH is for Blue and HIGH/HIGH is for green
-  digitalWrite(KS3_PIN,LOW);
-  red = String(pulseIn(KOUT_PIN,LOW));
+  digitalWrite(KS2_PIN, LOW); // S2/S3 levels define which set of photodiodes we are using LOW/LOW is for RED LOW/HIGH is for Blue and HIGH/HIGH is for green
+  digitalWrite(KS3_PIN, LOW);
+  red = String(pulseIn(KOUT_PIN, LOW));
 
-  digitalWrite(KS2_PIN,LOW);
-  digitalWrite(KS3_PIN,HIGH);
-  blue = String(pulseIn(KOUT_PIN,LOW));
+  digitalWrite(KS2_PIN, LOW);
+  digitalWrite(KS3_PIN, HIGH);
+  blue = String(pulseIn(KOUT_PIN, LOW));
 
 
-  digitalWrite(KS2_PIN,HIGH);
-  digitalWrite(KS3_PIN,HIGH);
-  green = String(pulseIn(KOUT_PIN,LOW));
+  digitalWrite(KS2_PIN, HIGH);
+  digitalWrite(KS3_PIN, HIGH);
+  green = String(pulseIn(KOUT_PIN, LOW));
 
+  logFlow("Red: " + String(red) + "; green: " + String(green) + "; blue: " + String(blue) + ".");
   String color = red + green + blue;
 
   if (orderState == 1) {
@@ -354,17 +353,17 @@ void readUltrasonic() {
   // Sets the trig pin active for 10 microseconds.
   digitalWrite(UTRIG_PIN, HIGH);
   delayMicroseconds(10);
-  // Mesures the time the sound wave traveled. 
+  // Mesures the time the sound wave traveled.
   duration = pulseIn(UECHO_PIN, HIGH);
   // Gives the distance in cm.
-  distance = duration * 0.034 /2;
+  distance = duration * 0.034 / 2;
   distance = distance + cilinderOffset;
 
-  // TO DO: Implement sensor readings
-  // https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
+  if (distance > 0 && (millis() - lastReadingTimeDistance) > 500) {
+    lastReadingTimeDistance = millis();
+    logFlow("Distance to truck: " + String(distance) + "cm.");
+  }
 
-  // TO DO: Add about 2 cm to distance measured to deliver approximately in the center of the container.
-  
 }
 
 /************************* Program flow *************************/
@@ -398,11 +397,11 @@ void manualFlow(String topic, String messageString) {
   // Motors
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
-      logFlow("on");
+      logFlow("motor 1: on");
       analogWrite(MOTOR1_PIN, getMotorVoltage());
       motorOneState = HIGH;
     } else if (messageString == "toggle" && motorOneState == HIGH) {
-      logFlow("off");
+      logFlow("motor1: off");
       analogWrite(MOTOR1_PIN, 0);
       motorOneState = LOW;
     } else {
@@ -410,11 +409,11 @@ void manualFlow(String topic, String messageString) {
     }
   } else if (topic == "motor2") {
     if (messageString == "toggle" && motorTwoState == LOW) {
-      logFlow("on");
+      logFlow("motor2: on");
       analogWrite(MOTOR2_PIN, getMotorVoltage());
       motorTwoState = HIGH;
     } else if (messageString == "toggle" && motorTwoState == HIGH) {
-      logFlow("off");
+      logFlow("motor2: off");
       analogWrite(MOTOR2_PIN, 0);
       motorTwoState = LOW;
     } else {
@@ -422,11 +421,11 @@ void manualFlow(String topic, String messageString) {
     }
   } else if (topic == "motor3") {
     if (messageString == "toggle" && motorThreeState == LOW) {
-      logFlow("on");
+      logFlow("motor3: on");
       analogWrite(MOTOR3_PIN, getMotorVoltage());
       motorThreeState = HIGH;
     } else if (messageString == "toggle" && motorThreeState == HIGH) {
-      logFlow("off");
+      logFlow("motor3: off");
       analogWrite(MOTOR3_PIN, 0);
       motorThreeState = LOW;
     } else {
@@ -437,21 +436,14 @@ void manualFlow(String topic, String messageString) {
     //Servos
     if (topic == "servo1") {
       uint8_t angle = messageString.toInt();
-
       // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
-      if (0 <= angle && angle <= 180) {
-        // Angle is valid, proceed
+      servoOne.write(angle);
+      servoOneState = angle;
+      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
-        servoOne.write(angle);
-        servoOneState = angle;
-
-        // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
-      } else {
-        logFlow("ERROR: servo1 :: angle out of bounds");
-      }
-    } else {
+    }
+    else {
       logFlow("ERROR: manualFlow() :: no topic match");
     }
   }
@@ -477,4 +469,3 @@ void logFlow(String message) {
 void restoreFlow() {
   // TO DO: Restore beanbot to start state.
 }
-

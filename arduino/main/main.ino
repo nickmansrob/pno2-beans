@@ -75,6 +75,9 @@ const calibrationWeight = 100;
 float count = 0;
 float calibrationFactor = 1;
 
+long duration;
+int distance;
+
 /************************* MQTT *************************/
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -138,8 +141,15 @@ void setup() {
   LoadCell.begin(); // Starts  connection to the weight sensor.
   LoadCell.start(2000); // Sets the time the sensor gets to configure
   calibrate_scale();
-  LoadCell.setCalFactor(calibrationFactor); // Calibaration !! Has to be checked manually!
+  LoadCell.setCalFactor(calibrationFactor); // Calibaration 
 
+  /************************* Color sensor *************************/
+  pinMode(KOUT_PIN, INPUT);
+  pinMode(KS2_PIN, OUTPUT);
+  pinMode(KS3_PIN, OUTPUT);
+  /************************* Color sensor *************************/
+  pinMode(UTRIG_PIN, OUTPUT);
+  pinMode(UECHO_PIN, INPUT);
 }
 
 void loop() {
@@ -268,7 +278,7 @@ void readWeight() {
   // TO DO: Implement sensor readings
   // https://mschoeffler.com/2017/12/04/arduino-tutorial-hx711-load-cell-amplifier-weight-sensor-module-lcm1602-iic-v1-lcd/
 
-  LoadCell.update(); // gets dat from load cell
+  LoadCell.update(); // gets data from load cell
   weightInt = LoadCell.getData(); // gets output values
   weight = String(weightInt);
 
@@ -303,6 +313,19 @@ void readColor() {
   // TO DO: Implement sensor readings
   // https://create.arduino.cc/projecthub/SurtrTech/color-detection-using-tcs3200-230-84a663
 
+  digitalWrite(s2,LOW); // S2/S3 levels define which set of photodiodes we are using LOW/LOW is for RED LOW/HIGH is for Blue and HIGH/HIGH is for green
+  digitalWrite(s3,LOW);
+  red = String(GetData());
+
+  digitalWrite(s2,LOW);
+  digitalWrite(s3,HIGH);
+  blue = String(GetData());
+
+
+  digitalWrite(s2,HIGH);
+  digitalWrite(s3,HIGH);
+  green = String(GetDate());
+
   String color = red + green + blue;
 
   if (orderState == 1) {
@@ -318,6 +341,20 @@ void readColor() {
 void readUltrasonic() {
   uint8_t theta = servoOneState;
   uint16_t radius = 0;
+  const cilinderOffset = 2;
+
+  // Clears the condition on the trig pin.
+  digitalWrite(UTRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+  // Sets the trig pin active for 10 microseconds.
+  digitalWrite(UTRIG_PIN, HIGH);
+  delayMicrosecoonds(10);
+  // Mesures the time the sound wave traveled. 
+  duration = pulseIn(UECHO_PIN, HIGH);
+  // Gives the distance in cm.
+  distance = duration * 0.034 /2;
+  distance = distance + cilinderOffset;
 
   // TO DO: Implement sensor readings
   // https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6

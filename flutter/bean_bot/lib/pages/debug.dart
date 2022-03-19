@@ -102,6 +102,9 @@ class _DebugPageState extends State<DebugPage> {
                         _secondServoController.text = '';
                         _thirdServoController.text = '';
                       }
+                      if (value == true) {
+                        _publishMessage('override', 'override');
+                      }
                     },
                   ),
                 ),
@@ -162,6 +165,9 @@ class _DebugPageState extends State<DebugPage> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter the number of degrees';
                           }
+                          if (int.parse(value) > 180 || int.parse(value) < 0) {
+                            return 'Between 0 and 180!';
+                          }
                           return null;
                         },
                       ),
@@ -212,6 +218,9 @@ class _DebugPageState extends State<DebugPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter the number of degrees';
                       }
+                      if (int.parse(value) > 180 || int.parse(value) < 0) {
+                        return 'Between 0 and 180!';
+                      }
                       return null;
                     },
                   ),
@@ -259,6 +268,9 @@ class _DebugPageState extends State<DebugPage> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter the number of degrees';
+                      }
+                      if (int.parse(value) > 180 || int.parse(value) < 0) {
+                        return 'Between 0 and 180!';
                       }
                       return null;
                     },
@@ -310,49 +322,182 @@ class _DebugPageState extends State<DebugPage> {
           ],
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: appState.getIsSwitched
-                      ? () {
-                          _publishMessage('toggle', 'motor1');
-                        }
-                      : null,
-                  child: const Text('Toggle 1'),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: appState.getIsSwitched
-                      ? () {
-                          _publishMessage('toggle', 'motor2');
-                        }
-                      : null,
-                  child: const Text('Toggle 2'),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Text('Motor 1', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                        _publishMessage('toggle', 'motor1');
+                                      }
+                                    : null,
+                                child: const Text('Toggle'),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                        _publishMessage(
+                                            'change rotation', 'motor1');
+                                      }
+                                    : null,
+                                child: const Text('Change rotation'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
+        const Divider(
+          indent: 8,
+          endIndent: 8,
+        ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: appState.getIsSwitched
-                      ? () {
-                          _publishMessage('toggle', 'motor3');
-                        }
-                      : null,
-                  child: const Text('Toggle 3'),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text('Motor 2', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                  _publishMessage('toggle', 'motor2');
+                                }
+                                    : null,
+                                child: const Text('Toggle'),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                  _publishMessage(
+                                      'change rotation', 'motor2');
+                                }
+                                    : null,
+                                child: const Text('Change rotation'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const Divider(
+          indent: 8,
+          endIndent: 8,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text('Motor 3', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                  _publishMessage('toggle', 'motor3');
+                                }
+                                    : null,
+                                child: const Text('Toggle'),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                  _publishMessage(
+                                      'change rotation', 'motor3');
+                                }
+                                    : null,
+                                child: const Text('Change rotation'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

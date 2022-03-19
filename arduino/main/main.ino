@@ -7,7 +7,6 @@
 
 #include <Servo.h>
 #include <HX711_ADC.h> // Library for operating the scales.
-#include <Wire.h>
 #include <LiquidCrystal.h> // Library for operating the LCD display.
 #include <PubSubClient.h>
 
@@ -20,7 +19,7 @@ const char * mqtt_server = "192.168.137.1";
 /************************* DC-motors *************************/
 const uint8_t MOTOR_VOLTAGE = 2;
 
-const uint8_t MOTOR1_PIN = 2;a
+const uint8_t MOTOR1_PIN = 2;
 const uint8_t MOTOR1_RELAY_PIN = 24;
 uint8_t motorOneState = LOW;
 bool motorOneClockwise = true;
@@ -71,13 +70,6 @@ const uint8_t KOUT_PIN = 19;
 const uint8_t WSDA_PIN = 20;
 const uint8_t WSCL_PIN = 21;
 
-const calibrationWeight = 100;
-float count = 0;
-float calibrationFactor = 1;
-
-long duration;
-int distance;
-
 /************************* MQTT *************************/
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -94,6 +86,8 @@ void(* resetFunc) (void) = 0;
 uint8_t orderState = 1;
 
 long lastReadingTime = 0;
+
+uint8_t calibrationFactor = 1;
 
 
 /*****************************************************************/
@@ -132,24 +126,15 @@ void setup() {
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
 
-  /************************* LCD *************************/
-  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN); 
-  lcd.begin(16, 2); // starts connection to the LCD
-  lcd.backlight();
-  /************************* Weight Sensor *************************/
-  HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
-  LoadCell.begin(); // Starts  connection to the weight sensor.
-  LoadCell.start(2000); // Sets the time the sensor gets to configure
-  calibrate_scale();
-  LoadCell.setCalFactor(calibrationFactor); // Calibaration 
-
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
   pinMode(KS2_PIN, OUTPUT);
   pinMode(KS3_PIN, OUTPUT);
-  /************************* Color sensor *************************/
+
+  /************************* Weight sensor *************************/
   pinMode(UTRIG_PIN, OUTPUT);
   pinMode(UECHO_PIN, INPUT);
+
 }
 
 void loop() {
@@ -168,8 +153,15 @@ uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
 
 // Method for calibrating the weight sensor.
 void calibrate_scale() {
+  const uint8_t calibrationWeight = 100;
+  uint8_t count = 0;
+
+  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN); 
+  HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
+
+
   lcd.clear();
-  lcd.print("Please put " + String(calibrationWeight)+ "g on the sensor.") 
+  lcd.print("Please put " + String(calibrationWeight)+ "g on the sensor.");
   lcd.clear();
 
   while(count<1000) {
@@ -182,7 +174,7 @@ void calibrate_scale() {
   delay(2000);
   for(int i=0;i<100;i++) {
     LoadCell.update();
-    count = LoadCell.getDate();
+    count = LoadCell.getData();
     calibrationFactor = count / calibrationWeight;
   }
 
@@ -273,10 +265,20 @@ void reconnect() {
 
 /************************* Read weight sensor and publish *************************/
 void readWeight() {
+  uint8_t calibrationFactor = 1;
+
   String weight = "0";
   float weightInt = 0.0;
-  // TO DO: Implement sensor readings
-  // https://mschoeffler.com/2017/12/04/arduino-tutorial-hx711-load-cell-amplifier-weight-sensor-module-lcm1602-iic-v1-lcd/
+
+  // Initializing LCD
+  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN); 
+  lcd.begin(16, 2); // starts connection to the LCD
+
+  HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
+  LoadCell.begin(); // Starts  connection to the weight sensor.
+  LoadCell.start(2000); // Sets the time the sensor gets to configure
+  calibrate_scale();
+  LoadCell.setCalFactor(calibrationFactor); // Calibaration 
 
   LoadCell.update(); // gets data from load cell
   weightInt = LoadCell.getData(); // gets output values
@@ -313,18 +315,18 @@ void readColor() {
   // TO DO: Implement sensor readings
   // https://create.arduino.cc/projecthub/SurtrTech/color-detection-using-tcs3200-230-84a663
 
-  digitalWrite(s2,LOW); // S2/S3 levels define which set of photodiodes we are using LOW/LOW is for RED LOW/HIGH is for Blue and HIGH/HIGH is for green
-  digitalWrite(s3,LOW);
-  red = String(GetData());
+  digitalWrite(KS2_PIN,LOW); // S2/S3 levels define which set of photodiodes we are using LOW/LOW is for RED LOW/HIGH is for Blue and HIGH/HIGH is for green
+  digitalWrite(KS3_PIN,LOW);
+  red = String(pulseIn(KOUT_PIN,LOW));
 
-  digitalWrite(s2,LOW);
-  digitalWrite(s3,HIGH);
-  blue = String(GetData());
+  digitalWrite(KS2_PIN,LOW);
+  digitalWrite(KS3_PIN,HIGH);
+  blue = String(pulseIn(KOUT_PIN,LOW));
 
 
-  digitalWrite(s2,HIGH);
-  digitalWrite(s3,HIGH);
-  green = String(GetDate());
+  digitalWrite(KS2_PIN,HIGH);
+  digitalWrite(KS3_PIN,HIGH);
+  green = String(pulseIn(KOUT_PIN,LOW));
 
   String color = red + green + blue;
 
@@ -341,7 +343,9 @@ void readColor() {
 void readUltrasonic() {
   uint8_t theta = servoOneState;
   uint16_t radius = 0;
-  const cilinderOffset = 2;
+  const uint8_t cilinderOffset = 2;
+  uint8_t duration;
+  uint8_t distance;
 
   // Clears the condition on the trig pin.
   digitalWrite(UTRIG_PIN, LOW);
@@ -349,7 +353,7 @@ void readUltrasonic() {
 
   // Sets the trig pin active for 10 microseconds.
   digitalWrite(UTRIG_PIN, HIGH);
-  delayMicrosecoonds(10);
+  delayMicroseconds(10);
   // Mesures the time the sound wave traveled. 
   duration = pulseIn(UECHO_PIN, HIGH);
   // Gives the distance in cm.

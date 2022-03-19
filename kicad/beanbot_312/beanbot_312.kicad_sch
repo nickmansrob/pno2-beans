@@ -2035,7 +2035,6 @@
     )
   )
 
-
   (junction (at 297.18 195.58) (diameter 0) (color 0 0 0 0)
     (uuid 01827339-49fb-470c-9765-33dfaa65c169)
   )
@@ -3260,7 +3259,7 @@
     (property "Value" "P&O2_RESISTOR" (id 1) (at 31.75 269.24 90)
       (effects (font (size 1.143 1.143)) (justify left))
     )
-    (property "Footprint" "1_P&O2_lib:P&O2_RES" (id 2) (at 33.02 268.732 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_RESISTOR" (id 2) (at 33.02 268.732 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 29.21 267.97 0)
@@ -3418,7 +3417,7 @@
     (property "Value" "P&O2_LCD" (id 1) (at 105.41 200.66 90)
       (effects (font (size 1.143 1.143)))
     )
-    (property "Footprint" "" (id 2) (at 115.57 189.738 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_DIP16" (id 2) (at 115.57 189.738 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 119.38 190.5 0)
@@ -3527,7 +3526,7 @@
     (property "Value" "P&O2_RESISTOR" (id 1) (at 85.09 177.8 0)
       (effects (font (size 1.143 1.143)))
     )
-    (property "Footprint" "1_P&O2_lib:P&O2_RES" (id 2) (at 85.09 177.038 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_RESISTOR" (id 2) (at 85.09 177.038 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 88.9 177.8 0)
@@ -3718,7 +3717,7 @@
     (property "Value" "P&O2_RESISTOR" (id 1) (at 73.66 245.11 90)
       (effects (font (size 1.143 1.143)) (justify left))
     )
-    (property "Footprint" "1_P&O2_lib:P&O2_RES" (id 2) (at 74.93 244.602 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_RESISTOR" (id 2) (at 74.93 244.602 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 71.12 243.84 0)
@@ -3847,7 +3846,7 @@
     (property "Value" "P&O2_RESISTOR" (id 1) (at 36.83 245.11 90)
       (effects (font (size 1.143 1.143)) (justify left))
     )
-    (property "Footprint" "1_P&O2_lib:P&O2_RES" (id 2) (at 38.1 244.602 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_RESISTOR" (id 2) (at 38.1 244.602 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 34.29 243.84 0)
@@ -3862,7 +3861,7 @@
     (uuid 93bc6bf3-eadd-4f0c-82a1-9da79f283ddb)
     (property "Reference" "U1" (id 0) (at 97.155 46.99 0))
     (property "Value" "P&O2_ARDUINO_MEGA_SHIELD" (id 1) (at 97.155 49.53 0))
-    (property "Footprint" "1_P&O2_lib:P&O2_ARDUINO_MEGA_SHIELD" (id 2) (at 49.53 149.86 0)
+    (property "Footprint" "" (id 2) (at 49.53 149.86 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "" (id 3) (at 49.53 149.86 0)
@@ -3954,7 +3953,7 @@
     (property "Value" "P&O2_RESISTOR" (id 1) (at 68.58 269.24 90)
       (effects (font (size 1.143 1.143)) (justify left))
     )
-    (property "Footprint" "1_P&O2_lib:P&O2_RES" (id 2) (at 69.85 268.732 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_RESISTOR" (id 2) (at 69.85 268.732 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 66.04 267.97 0)
@@ -3991,7 +3990,7 @@
     (property "Value" "P&O2_RESISTOR" (id 1) (at 109.22 245.11 90)
       (effects (font (size 1.143 1.143)) (justify left))
     )
-    (property "Footprint" "1_P&O2_lib:P&O2_RES" (id 2) (at 110.49 244.602 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_RESISTOR" (id 2) (at 110.49 244.602 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 106.68 243.84 0)
@@ -4218,7 +4217,7 @@
     (property "Value" "P&O2_RESISTOR" (id 1) (at 104.14 269.24 90)
       (effects (font (size 1.143 1.143)) (justify left))
     )
-    (property "Footprint" "1_P&O2_lib:P&O2_RES" (id 2) (at 105.41 268.732 0)
+    (property "Footprint" "1_P&O2_lib:P&O2_RESISTOR" (id 2) (at 105.41 268.732 0)
       (effects (font (size 0.508 0.508)) hide)
     )
     (property "Datasheet" "" (id 3) (at 101.6 267.97 0)
@@ -4374,43 +4373,43 @@
       (reference "M2") (unit 1) (value "P&O2_MEETPUNT") (footprint "1_P&O2_lib:P&O2_MEETPUNT")
     )
     (path "/14482988-d976-4b64-84c3-34b19aa3c080"
-      (reference "M3") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RES")
+      (reference "M3") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RESISTOR")
     )
     (path "/6c971ce3-1431-46f9-8da7-bbee1109d8c7"
       (reference "M4") (unit 1) (value "P&O2_MOSFET") (footprint "1_P&O2_lib:P&O2_TO220")
     )
     (path "/89a9d6ea-785f-4361-8a21-ea3d7a427841"
-      (reference "M5") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RES")
+      (reference "M5") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RESISTOR")
     )
     (path "/27fa6b28-2749-4951-8431-a85c04f7dccf"
       (reference "M6") (unit 1) (value "P&O2_MEETPUNT") (footprint "1_P&O2_lib:P&O2_MEETPUNT")
     )
     (path "/a9fbfec0-73fe-4272-aeae-3ce0e9053838"
-      (reference "M7") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RES")
+      (reference "M7") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RESISTOR")
     )
     (path "/1e4ba2ce-8f73-4698-94a3-6f7c8d2840a2"
       (reference "M8") (unit 1) (value "P&O2_MOSFET") (footprint "1_P&O2_lib:P&O2_TO220")
     )
     (path "/760a86ab-c275-4512-b55b-15f683b8a6dd"
-      (reference "M9") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RES")
+      (reference "M9") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RESISTOR")
     )
     (path "/f3747c8d-50dd-4b9f-b48c-f49fc331b26d"
       (reference "M10") (unit 1) (value "P&O2_RGB_LED") (footprint "1_P&O2_lib:P&O2_RGB_LED")
     )
     (path "/495f9e22-4870-42e2-8c9f-b89669711850"
-      (reference "M11") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RES")
+      (reference "M11") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RESISTOR")
     )
     (path "/83e7bd01-8410-4616-9457-7ee77c468abc"
       (reference "M12") (unit 1) (value "P&O2_MEETPUNT") (footprint "1_P&O2_lib:P&O2_MEETPUNT")
     )
     (path "/f3adaaab-422c-4953-8879-b08863ca4923"
-      (reference "M13") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RES")
+      (reference "M13") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RESISTOR")
     )
     (path "/ca63cb53-2ff8-4934-af06-3de3b0c74780"
       (reference "M14") (unit 1) (value "P&O2_MOSFET") (footprint "1_P&O2_lib:P&O2_TO220")
     )
     (path "/baab9130-8189-4ac5-bff7-a58ac8995f3b"
-      (reference "M15") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RES")
+      (reference "M15") (unit 1) (value "P&O2_RESISTOR") (footprint "1_P&O2_lib:P&O2_RESISTOR")
     )
     (path "/524c9472-4b27-4e81-93fa-4ac570aaef19"
       (reference "M16") (unit 1) (value "P&O2_ULTRASONE_HC_SR04") (footprint "1_P&O2_lib:P&O2_ULTRASONE")
@@ -4542,10 +4541,10 @@
       (reference "M52") (unit 1) (value "P&O2_MEETPUNT") (footprint "1_P&O2_lib:P&O2_MEETPUNT")
     )
     (path "/31e61e3b-86e2-42f7-90c4-159698048ccb"
-      (reference "SV1") (unit 1) (value "P&O2_LCD") (footprint "")
+      (reference "SV1") (unit 1) (value "P&O2_LCD") (footprint "1_P&O2_lib:P&O2_DIP16")
     )
     (path "/93bc6bf3-eadd-4f0c-82a1-9da79f283ddb"
-      (reference "U1") (unit 1) (value "P&O2_ARDUINO_MEGA_SHIELD") (footprint "1_P&O2_lib:P&O2_ARDUINO_MEGA_SHIELD")
+      (reference "U1") (unit 1) (value "P&O2_ARDUINO_MEGA_SHIELD") (footprint "")
     )
   )
 )

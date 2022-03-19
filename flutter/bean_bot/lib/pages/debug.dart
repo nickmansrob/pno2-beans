@@ -101,9 +101,10 @@ class _DebugPageState extends State<DebugPage> {
                         _firstServoController.text = '';
                         _secondServoController.text = '';
                         _thirdServoController.text = '';
+                        _publishMessage('0', 'override');
                       }
-                      if (value == true) {
-                        _publishMessage('override', 'override');
+                      else  {
+                        _publishMessage('1', 'override');
                       }
                     },
                   ),

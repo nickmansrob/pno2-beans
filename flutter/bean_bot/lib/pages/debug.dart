@@ -363,7 +363,7 @@ class _DebugPageState extends State<DebugPage> {
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                         _publishMessage(
-                                            'change rotation', 'motor1');
+                                            'change_rotation', 'motor1');
                                       }
                                     : null,
                                 child: const Text('Change rotation'),
@@ -425,7 +425,7 @@ class _DebugPageState extends State<DebugPage> {
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                   _publishMessage(
-                                      'change rotation', 'motor2');
+                                      'change_rotation', 'motor2');
                                 }
                                     : null,
                                 child: const Text('Change rotation'),
@@ -487,7 +487,7 @@ class _DebugPageState extends State<DebugPage> {
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                   _publishMessage(
-                                      'change rotation', 'motor3');
+                                      'change_rotation', 'motor3');
                                 }
                                     : null,
                                 child: const Text('Change rotation'),

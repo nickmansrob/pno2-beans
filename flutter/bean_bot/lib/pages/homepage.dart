@@ -1026,7 +1026,8 @@ class _HomePageState extends State<HomePage> {
           'servo2',
           'servo3',
           'firstColorListener',
-          'secondColorListener'
+          'secondColorListener',
+          'override'
         ],
         identifier: "BeanBotDemo",
         state: currentAppState,

@@ -112,6 +112,7 @@ class MQTTManager with ChangeNotifier {
             if (pt == 'done') {
               _currentState.setFirstOrderReceivedDone('done');
               _currentState.setFirstOderDone('done');
+              publish(_currentState.getOrderMessage, 'order2');
             }
             break;
           case 'order2':

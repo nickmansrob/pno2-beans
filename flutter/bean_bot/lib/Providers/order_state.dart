@@ -9,9 +9,20 @@ class OrderState with ChangeNotifier {
   String _secondSiloNumber = '';
   String _firstOrder = '';
   String _secondOrder = '';
+  int _orderCount = 0;
 
   void setWeightOrder(String weight) {
     _weightOrder = weight;
+    notifyListeners();
+  }
+
+  void incementOrderCount() {
+    _orderCount++;
+    notifyListeners();
+  }
+
+  void decrementOrderCount() {
+    _orderCount--;
     notifyListeners();
   }
 
@@ -81,12 +92,27 @@ class OrderState with ChangeNotifier {
     _firstSiloNumber = '';
     _firstWeightOrder = '';
     _firstOrder = '';
+    notifyListeners();
   }
 
   void disposeSecondOrder() {
     _secondSiloNumber = '';
     _secondWeightOrder = '';
     _secondOrder = '';
+    notifyListeners();
+  }
+
+  void disposeOrderState() {
+    _firstSiloNumber = '';
+    _firstWeightOrder = '';
+    _firstOrder = '';
+    _secondSiloNumber = '';
+    _secondWeightOrder = '';
+    _secondOrder = '';
+    _orderCount = 0;
+    _siloChoiceNumber = '';
+    _weightOrder = '';
+    notifyListeners();
   }
 
   String get getSiloChoiceNumber => _siloChoiceNumber;
@@ -97,4 +123,5 @@ class OrderState with ChangeNotifier {
   String get getFirstWeightOrder => _firstWeightOrder;
   String get getSecondWeightOrder => _secondWeightOrder;
   String get getWeightOrder => _weightOrder;
+  int get getOrderCount => _orderCount;
 }

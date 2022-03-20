@@ -9,6 +9,8 @@ class MQTTAppState with ChangeNotifier {
   MQTTAppConnectionState _appConnectionState =
       MQTTAppConnectionState.disconnected;
   String _receivedText = '';
+  String _firstOrderReceivedDone = '';
+  String _secondOrderReceivedDone = '';
   String _firstOrderDone = '';
   String _secondOrderDone = '';
   String _firstOrderWeightText = '0';
@@ -25,7 +27,17 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void setFirstOrderDone(String done) {
+  void setFirstOrderReceivedDone(String done) {
+    _firstOrderReceivedDone = done;
+    notifyListeners();
+  }
+
+  void setSecondOrderReceivedDone(String done) {
+    _secondOrderReceivedDone = done;
+    notifyListeners();
+  }
+
+  void setFirstOderDone(String done) {
     _firstOrderDone = done;
     notifyListeners();
   }
@@ -81,18 +93,34 @@ class MQTTAppState with ChangeNotifier {
   }
 
   void disposeFirstOrderAppState() {
-    _firstOrderDone = '';
+    _firstOrderReceivedDone = '';
     _firstColor = 'not determined';
     _firstOrderWeightText = '';
+    notifyListeners();
   }
 
   void disposeSecondOrderAppState() {
-    _secondOrderDone = '';
+    _secondOrderReceivedDone = '';
     _secondColor = 'not determined';
     _secondOrderWeightText = '';
+    notifyListeners();
+  }
+
+  void disposeAppState() {
+    _firstOrderReceivedDone = '';
+    _firstColor = 'not determined';
+    _firstOrderWeightText = '0';
+    _secondOrderReceivedDone = '';
+    _secondColor = 'not determined';
+    _secondOrderWeightText = '0';
+    _firstOrderDone = '';
+    _secondOrderDone = '';
+    notifyListeners();
   }
 
   String get getReceivedText => _receivedText;
+  String get getFirstOrderReceivedDone => _firstOrderReceivedDone;
+  String get getSecondOrderReceivedDone => _secondOrderReceivedDone;
   String get getFirstOrderDone => _firstOrderDone;
   String get getSecondOrderDone => _secondOrderDone;
   String get getLogText => _logText;

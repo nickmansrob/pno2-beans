@@ -5,10 +5,10 @@ import 'package:provider/provider.dart';
 class LogPage extends StatefulWidget {
   const LogPage({Key? key}) : super(key: key);
   @override
-  _logPageState createState() => _logPageState();
+  _LogPageState createState() => _LogPageState();
 }
 
-class _logPageState extends State<LogPage> {
+class _LogPageState extends State<LogPage> {
   @override
   Widget build(BuildContext context) {
     final MQTTAppState appState =

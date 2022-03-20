@@ -8,7 +8,7 @@ import 'package:bean_bot/pages/debug.dart';
 import 'package:bean_bot/pages/logs.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:bean_bot/Providers/mqtt_app_state.dart';
-import 'package:bean_bot/Providers/OrderState.dart';
+import 'package:bean_bot/Providers/order_state.dart';
 import 'package:expansion_widget/expansion_widget.dart';
 
 import 'dart:math' as math;
@@ -76,8 +76,12 @@ class _HomePageState extends State<HomePage> {
               _buildOrderText(),
             if (currentOrderState.getFirstOrder != '')
               _buildFirstOrder(currentAppState, currentOrderState),
+            if (currentAppState.getFirstOrderDone == 'done')
+              _buildFirstOrderDone(currentOrderState),
             if (currentOrderState.getSecondOrder != '')
               _buildSecondOrder(currentAppState, currentOrderState),
+            if (currentAppState.getSecondOrderDone == 'done')
+              _buildSecondOrderDone(currentOrderState),
             _buildDivider(),
             _buildAdminInput(),
           ],
@@ -128,7 +132,8 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: TextFormField(
-              enabled: disableTextField(state),
+              enabled: (disableTextField(state) &&
+                  currentOrderState.getOrderCount < 2),
               controller: _weightController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
@@ -142,6 +147,9 @@ class _HomePageState extends State<HomePage> {
                 if (state == MQTTAppConnectionState.connected) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the weight';
+                  }
+                  if (currentOrderState.getSiloChoiceNumber == '') {
+                    return 'Please enter a silo number.';
                   }
                 }
                 return null;
@@ -174,7 +182,8 @@ class _HomePageState extends State<HomePage> {
               leading: Radio(
                 value: "Silo 1",
                 groupValue: currentOrderState.getSiloChoiceNumber,
-                onChanged: disableTextField(state)
+                onChanged: (disableTextField(state) &&
+                        currentOrderState.getOrderCount < 2)
                     ? (value) {
                         setState(
                           () {
@@ -196,7 +205,8 @@ class _HomePageState extends State<HomePage> {
               leading: Radio(
                 value: "Silo 2",
                 groupValue: currentOrderState.getSiloChoiceNumber,
-                onChanged: disableTextField(state)
+                onChanged: (disableTextField(state) &&
+                        currentOrderState.getOrderCount < 2)
                     ? (value) {
                         setState(
                           () {
@@ -218,7 +228,8 @@ class _HomePageState extends State<HomePage> {
               leading: Radio(
                 value: "Silo 3",
                 groupValue: currentOrderState.getSiloChoiceNumber,
-                onChanged: disableTextField(state)
+                onChanged: (disableTextField(state) &&
+                        currentOrderState.getOrderCount < 2)
                     ? (value) {
                         setState(
                           () {
@@ -247,7 +258,8 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
-              onPressed: disableTextField(state)
+              onPressed: (disableTextField(state) &&
+                      currentOrderState.getOrderCount < 2)
                   ? () {
                       // Dismisses keyboard
                       if (!disableTextField(state)) {
@@ -277,7 +289,8 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
-              onPressed: disableTextField(state)
+              onPressed: (disableTextField(state) &&
+                      currentOrderState.getOrderCount < 2)
                   ? () {
                       _weightController.clear();
                       currentOrderState.setSiloNumber('');
@@ -451,10 +464,10 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: [
           Row(
-            children: const [
+            children: [
               Text(
-                'Orders',
-                style: TextStyle(
+                'Orders (${currentOrderState.getOrderCount}/2)',
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -474,7 +487,7 @@ class _HomePageState extends State<HomePage> {
       Future.delayed(Duration.zero, () {
         setState(() {
           currentOrderState.setFirstOrder('');
-          currentAppState.setFirstOrderDone('');
+          currentAppState.setFirstOrderReceivedDone('');
           _showFirstEndOrderMessage();
         });
       });
@@ -493,7 +506,7 @@ class _HomePageState extends State<HomePage> {
               double.parse(currentOrderState.getFirstWeightOrder);
     }
 
-    if (currentAppState.getFirstOrderDone == 'done') {
+    if (currentAppState.getFirstOrderReceivedDone == 'done') {
       callBack();
     }
 
@@ -537,21 +550,10 @@ class _HomePageState extends State<HomePage> {
           content: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Padding(
-                          child: Text(
-                              'Your current order is: ${orderState.getFirstOrder}.',
-                              style: const TextStyle(fontSize: 15)),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 0, vertical: 2),
-                        )
-                      ],
-                    ),
                     Row(
                       children: [
                         Padding(
@@ -627,7 +629,9 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableFirstCancelOrder(appState)
                                   ? () {
+                                      _publishMessage('0000', 'order1');
                                       orderState.setFirstOrder('');
+                                      orderState.decrementOrderCount();
                                       firstWeightFraction = 0.0;
                                     }
                                   : null,
@@ -654,6 +658,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildFirstOrderDone(OrderState orderState) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Text(
+                'Order 1: done.',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Builds a widget which displays the second order.
   Widget _buildSecondOrder(MQTTAppState appState, OrderState orderState) {
     final int orderNumber;
@@ -662,7 +691,7 @@ class _HomePageState extends State<HomePage> {
       Future.delayed(Duration.zero, () {
         setState(() {
           currentOrderState.setSecondOrder('');
-          currentAppState.setSecondOrderDone('');
+          currentAppState.setSecondOrderReceivedDone('');
           _showSecondEndOrderMessage();
         });
       });
@@ -683,12 +712,13 @@ class _HomePageState extends State<HomePage> {
               double.parse(currentOrderState.getSecondWeightOrder);
     }
 
-    if (currentAppState.getSecondOrderDone == 'done') {
+    if (currentAppState.getSecondOrderReceivedDone == 'done') {
       callBack();
     }
 
     if (currentOrderState.getFirstOrder == '' &&
-        currentOrderState.getSecondOrder != '') {
+        currentOrderState.getSecondOrder != '' &&
+        currentAppState.getFirstOrderDone != 'done') {
       orderNumber = 1;
     } else {
       orderNumber = 2;
@@ -734,26 +764,10 @@ class _HomePageState extends State<HomePage> {
           content: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 0, vertical: 2),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Your current order is: ${orderState.getSecondOrder}.',
-                                style: const TextStyle(fontSize: 15),
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
                     Row(
                       children: [
                         Padding(
@@ -836,7 +850,9 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableSecondCancelOrder(appState)
                                   ? () {
+                                      _publishMessage('0000', 'order2');
                                       orderState.setSecondOrder('');
+                                      orderState.decrementOrderCount();
                                       secondWeightFraction = 0.0;
                                     }
                                   : null,
@@ -858,6 +874,31 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondOrderDone(OrderState orderState) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Text(
+                'Order 2: done.',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1014,7 +1055,8 @@ class _HomePageState extends State<HomePage> {
     manager = MQTTManager(
         host: currentAppState.getHostIP,
         topicList: [
-          "order",
+          "order1",
+          "order2",
           "logListener",
           "firstWeightListener",
           "secondWeightListener",
@@ -1094,10 +1136,18 @@ class _HomePageState extends State<HomePage> {
                       beanWeightIndex + currentOrderState.getWeightOrder;
                   String currentOrder =
                       '${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloChoiceNumber.toLowerCase()}';
+
+                  if (currentOrderState.getFirstOrder == '' &&
+                      currentOrderState.getSecondOrder == '') {
+                    _publishMessage(message, "order1");
+                  } else if (currentOrderState.getFirstOrder != '' &&
+                      currentOrderState.getSecondOrder == '') {
+                    _publishMessage(message, "order2");
+                  }
                   currentOrderState.setOrder(currentOrder);
-                  _publishMessage(message, "order");
                   currentOrderState
                       .setSiloNumber(currentOrderState.getSiloChoiceNumber);
+                  currentOrderState.incementOrderCount();
                   _showOrderMessage();
                 }
               },
@@ -1126,7 +1176,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "Your order of ${currentOrderState.getFirstWeightOrder}g from ${currentOrderState.getFirstSiloNumber.toLowerCase()} is ready."),
+                    "Your order of ${currentOrderState.getFirstWeightOrder}g beans from ${currentOrderState.getFirstSiloNumber.toLowerCase()} is ready."),
               ],
             ),
           ),
@@ -1156,7 +1206,7 @@ class _HomePageState extends State<HomePage> {
             child: ListBody(
               children: [
                 Text(
-                    "Your order of ${currentOrderState.getSecondWeightOrder}g from ${currentOrderState.getSecondSiloNumber.toLowerCase()} is ready."),
+                    "Your order of ${currentOrderState.getSecondWeightOrder}g beans from ${currentOrderState.getSecondSiloNumber.toLowerCase()} is ready."),
               ],
             ),
           ),

@@ -1132,17 +1132,15 @@ class _HomePageState extends State<HomePage> {
                       beanWeightIndex = '2';
                       break;
                   }
-                  String message =
-                      beanWeightIndex + currentOrderState.getWeightOrder;
+
+                  currentAppState.setOrderMessage(beanWeightIndex + currentOrderState.getWeightOrder);
+
                   String currentOrder =
                       '${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloChoiceNumber.toLowerCase()}';
 
                   if (currentOrderState.getFirstOrder == '' &&
                       currentOrderState.getSecondOrder == '') {
-                    _publishMessage(message, "order1");
-                  } else if (currentOrderState.getFirstOrder != '' &&
-                      currentOrderState.getSecondOrder == '') {
-                    _publishMessage(message, "order2");
+                    _publishMessage(currentAppState.getOrderMessage, "order1");
                   }
                   currentOrderState.setOrder(currentOrder);
                   currentOrderState

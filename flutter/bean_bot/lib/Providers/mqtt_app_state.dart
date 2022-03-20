@@ -20,6 +20,12 @@ class MQTTAppState with ChangeNotifier {
   bool _isSwitched = false;
   String _firstColor = 'not determined';
   String _secondColor = 'not determined';
+  String  _orderMessage = '';
+
+  void setOrderMessage(String orderMessage) {
+    _orderMessage = orderMessage;
+    notifyListeners();
+  }
 
   void setReceivedLogText(String text) {
     _receivedText = text;
@@ -129,6 +135,7 @@ class MQTTAppState with ChangeNotifier {
   String get getHostIP => _hostIp;
   String get getSecondColor => _secondColor;
   String get getFirstColor => _firstColor;
+  String get getOrderMessage => _orderMessage;
   bool get getIsSwitched => _isSwitched;
   MQTTAppConnectionState get getAppConnectionState => _appConnectionState;
   MQTTManager get getMQTTManager => _mqttManager;

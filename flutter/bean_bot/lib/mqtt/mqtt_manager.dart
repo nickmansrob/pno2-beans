@@ -110,15 +110,15 @@ class MQTTManager with ChangeNotifier {
             break;
           case 'order1':
             if (pt == 'done') {
-              _currentState.setFirstOrderReceivedDone('done');
-              _currentState.setFirstOderDone('done');
+              _currentState.setFirstOrderReceivedDone(pt);
+              _currentState.setFirstOderDone(pt);
               publish(_currentState.getOrderMessage, 'order2');
             }
             break;
           case 'order2':
             if (pt == 'done') {
-              _currentState.setSecondOrderReceivedDone('done');
-              _currentState.setSecondOrderDone('done');
+              _currentState.setSecondOrderReceivedDone(pt);
+              _currentState.setSecondOrderDone(pt);
             }
             break;
           case 'adminListener':

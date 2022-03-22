@@ -443,7 +443,7 @@ void manualFlow(String topic, String messageString) {
       logFlow("off");
       analogWrite(MOTOR1_PIN, 0);
       motorOneState = LOW;
-    } else if (topic == "change_rotation") {
+    } else if (messageString == "change_rotation") {
       turnMotor(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
     } else {
       logFlow("ERROR: motor1 :: no message match");
@@ -457,7 +457,7 @@ void manualFlow(String topic, String messageString) {
       logFlow("off");
       analogWrite(MOTOR2_PIN, 0);
       motorTwoState = LOW;
-    } else if (topic == "change_rotation") {
+    } else if (messageString == "change_rotation") {
       turnMotor(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
     } else {
       logFlow("ERROR: motor2 :: no message match");
@@ -471,44 +471,45 @@ void manualFlow(String topic, String messageString) {
       logFlow("off");
       analogWrite(MOTOR3_PIN, 0);
       motorThreeState = LOW;
+    } else if (messageString == "change_rotation") {
+      turnMotor(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
     } else {
       logFlow("ERROR: motor3 :: no message match");
     }
-  } else if (topic == "change_rotation") {
-    turnMotor(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
   }
+}
 
-  //Servos
-  else if (topic == "servo1") {
-    uint8_t angle = messageString.toInt();
-    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+//Servos
+else if (topic == "servo1") {
+  uint8_t angle = messageString.toInt();
+  // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
-    servoOne.write(angle);
-    servoOneState = angle;
-    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+  servoOne.write(angle);
+  servoOneState = angle;
+  // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
-  }
-  else if (topic == "servo2") {
-    uint8_t angle = messageString.toInt();
-    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+}
+else if (topic == "servo2") {
+  uint8_t angle = messageString.toInt();
+  // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
-    servoTwo.write(angle);
-    servoTwoState = angle;
-    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+  servoTwo.write(angle);
+  servoTwoState = angle;
+  // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
-  }
-  else  if (topic == "servo3") {
-    uint8_t angle = messageString.toInt();
-    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+}
+else  if (topic == "servo3") {
+  uint8_t angle = messageString.toInt();
+  // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
-    servoThree.write(angle);
-    servoThreeState = angle;
-    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+  servoThree.write(angle);
+  servoThreeState = angle;
+  // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
-  }
-  else {
-    logFlow("ERROR: manualFlow() :: no topic match");
-  }
+}
+else {
+  logFlow("ERROR: manualFlow() :: no topic match");
+}
 
 }
 

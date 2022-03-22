@@ -88,6 +88,7 @@ void(* resetFunc) (void) = 0;
 
 /************************* Miscellaneous ***********************/
 uint8_t orderState = 1;
+bool proceedNormalFlow = false;
 
 long lastReadingTimeWeight = 0;
 long lastReadingTimeDistance = 0;
@@ -272,7 +273,7 @@ void callback(char* topic, byte* message, unsigned int length) {
       logFlow("INFO: Incoming order: " + weight + " grams of silo " + siloNumber);
       readColor();
       normalFlow(weight, siloNumber);
-    } else if (topicString == "admin") {
+    } else if (topicString == "adminListener") {
       logFlow("ROUTE: From origin to adminFlow");
       adminFlow(messageString);
     } else {
@@ -296,7 +297,7 @@ void reconnect() {
       client.subscribe("servo2");
       client.subscribe("servo3");
       client.subscribe("order");
-      client.subscribe("admin");
+      client.subscribe("adminListener");
       client.subscribe("override");
     } else {
       Serial.print("failed, rc=");
@@ -408,6 +409,13 @@ void readUltrasonic() {
 /************************* Program flow *************************/
 void normalFlow(String weight, String siloNumber) {
   //Section 0: BAND2: Determine container location
+  if(sendSectionDone()) {
+    section2();
+  } else {
+    logFlow("WARNING: Normalflow is aborted.");
+  }
+}
+ void section2() {
   //Section 0: BAND1: Determine bean color
   //Section 1: BAND1: Choose silo
   //Section 2: BAND1: Lift into silo
@@ -427,8 +435,7 @@ void normalFlow(String weight, String siloNumber) {
   } else {
     logFlow("ERROR: normalFlow() :: orderState out of bounds.");
   }
-
-}
+ }
 
 void manualFlow(String topic, String messageString) {
   logFlow("Changing state of [" + topic + "] to ");
@@ -476,7 +483,8 @@ void manualFlow(String topic, String messageString) {
     } else {
       logFlow("ERROR: motor3 :: no message match");
     }
-  } //Servos
+  }
+  //Servos
   else if (topic == "servo1") {
     uint8_t angle = messageString.toInt();
     // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
@@ -507,16 +515,24 @@ void manualFlow(String topic, String messageString) {
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
-
 }
 
 void adminFlow(String messageString) {
   if (messageString == "reset") {
     logFlow("WARNING: Hard reset");
+    proceedNormalFlow = false;
     resetFunc();
   } else if (messageString == "restore") {
-    logFlow("WARNING: Beanbot reset");
+    logFlow("WARNING: Beanbot restore");
+    proceedNormalFlow = false;
     restoreFlow();
+  } else if (messageString == "proceed") {
+    logFlow("INFO: normalFlow will proceed");
+    proceedNormalFlow = true;
+  } else if (messageString == "override") {
+    logFlow("WARNING: Override is enabled");
+    proceedNormalFlow = false;
+    manualOverride = true;
   } else {
     logFlow("ERROR: adminFlow() :: no message match");
   }
@@ -529,4 +545,25 @@ void logFlow(String message) {
 
 void restoreFlow() {
   // TO DO: Restore beanbot to start state.
+  proceedNormalFlow = false;
+}
+
+bool sendSectionDone() {
+  String message = "section_done";
+  client.publish("adminListener", message.c_str());
+
+  uint8_t lastLoopTime = millis();
+  while (millis() - lastLoopTime < 500) {
+    client.loop();
+  }
+
+  delay(1000);
+
+  if (proceedNormalFlow) {
+    // Execute next section
+    return true;
+  } else {
+    // Abort flow
+    return false;
+  }
 }

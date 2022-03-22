@@ -154,7 +154,7 @@ void loop() {
 
 /************************* Helpers *************************/
 uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
-  return map(motorVoltage, 0, 5, 0, 255);
+  return map(motorVoltage, 0, 12, 0, 255);
 }
 
 // Method for calibrating the weight sensor.
@@ -194,25 +194,40 @@ void turnMotor(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t moto
     if (motorState == 'HIGH') {
       // Stops the motor when the motor is spinning.
       analogWrite(motorPin, 0);
+      // Wait for the motor to stop.
+      delay(500);
+      // Switch the relay.
+      digitalWrite(motorRelayPin, HIGH);
       motorClockwise = false;
+      // Wait for the relay to switch.
+      delay(500);
       // Spins the motor in the other direction.
-      analogWrite(motorRelayPin, getMotorVoltage());
-
+      analogWrite(motorPin, getMotorVoltage());
     } else if (motorState == 'LOW') {
+      digitalWrite(motorRelayPin, HIGH));
       motorClockwise = false;
+      delay(500);
     }
 
   }
   else {
     if (motorState == 'HIGH') {
       // Stops the motor when the motor is spinning.
-      analogWrite(motorRelayPin, 0);
+      analogWrite(motorPin, 0);
+      // Wait for the motor to stop.
+      delay(500);
+      // Switch the relay.
+      digitalWrite(motorRelayPin, HIGH);
       motorClockwise = true;
+      // Wait for the relay to switch.
+      delay(500);
       // Spins the motor in the other direction.
       analogWrite(motorPin, getMotorVoltage());
 
     } else if (motorState == 'LOW') {
+      digitalWrite(motorRelayPin, HIGH));
       motorClockwise = true;
+      delay(500);
     }
   }
 
@@ -338,7 +353,7 @@ void readColor() {
   String green = "0";
   String blue = "0";
 
-  digitalWrite(KS2_PIN, LOW); 
+  digitalWrite(KS2_PIN, LOW);
   digitalWrite(KS3_PIN, LOW);
   red = String(pulseIn(KOUT_PIN, LOW));
 
@@ -421,25 +436,13 @@ void manualFlow(String topic, String messageString) {
   // Motors
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
-      if (motorOneClockwise) {
-        logFlow("on");
-        analogWrite(MOTOR1_PIN, getMotorVoltage());
-        motorOneState = HIGH;
-      } else {
-        logFlow("on");
-        analogWrite(MOTOR1_RELAY_PIN, getMotorVoltage());
-        motorOneState = HIGH;
-      }
+      logFlow("on");
+      analogWrite(MOTOR1_PIN, getMotorVoltage());
+      motorOneState = HIGH;
     } else if (messageString == "toggle" && motorOneState == HIGH) {
-      if (motorOneClockwise) {
-        logFlow("off");
-        analogWrite(MOTOR1_PIN, 0);
-        motorOneState = LOW;
-      } else {
-        logFlow("off");
-        analogWrite(MOTOR1_RELAY_PIN, 0);
-        motorOneState = LOW;
-      }
+      logFlow("off");
+      analogWrite(MOTOR1_PIN, 0);
+      motorOneState = LOW;
     } else if (topic == "change_rotation") {
       turnMotor(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
     } else {
@@ -447,25 +450,13 @@ void manualFlow(String topic, String messageString) {
     }
   } else if (topic == "motor2") {
     if (messageString == "toggle" && motorTwoState == LOW) {
-      if (motorTwoClockwise) {
-        logFlow("on");
-        analogWrite(MOTOR2_PIN, getMotorVoltage());
-        motorTwoState = HIGH;
-      } else {
-        logFlow("on");
-        analogWrite(MOTOR2_RELAY_PIN, getMotorVoltage());
-        motorTwoState = HIGH;
-      }
+      logFlow("on");
+      analogWrite(MOTOR2_PIN, getMotorVoltage());
+      motorTwoState = HIGH;
     } else if (messageString == "toggle" && motorTwoState == HIGH) {
-      if (motorTwoClockwise) {
-        logFlow("off");
-        analogWrite(MOTOR2_PIN, 0);
-        motorTwoState = LOW;
-      } else {
-        logFlow("off");
-        analogWrite(MOTOR2_RELAY_PIN, 0);
-        motorTwoState = LOW;
-      }
+      logFlow("off");
+      analogWrite(MOTOR2_PIN, 0);
+      motorTwoState = LOW;
     } else if (topic == "change_rotation") {
       turnMotor(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
     } else {
@@ -473,64 +464,53 @@ void manualFlow(String topic, String messageString) {
     }
   } else if (topic == "motor3") {
     if (messageString == "toggle" && motorThreeState == LOW) {
-      if (motorThreeClockwise) {
-        logFlow("on");
-        analogWrite(MOTOR3_PIN, getMotorVoltage());
-        motorThreeState = HIGH;
-      } else {
-        logFlow("on");
-        analogWrite(MOTOR3_RELAY_PIN, getMotorVoltage());
-        motorThreeState = HIGH;
-      }
+      logFlow("on");
+      analogWrite(MOTOR3_PIN, getMotorVoltage());
+      motorThreeState = HIGH;
     } else if (messageString == "toggle" && motorThreeState == HIGH) {
-      if (motorThreeClockwise) {
-        logFlow("off");
-        analogWrite(MOTOR3_PIN, 0);
-        motorThreeState = LOW;
-      } else {
-        logFlow("off");
-        analogWrite(MOTOR3_RELAY_PIN, 0);
-        motorThreeState = LOW;
-      }
-    } else if (topic == "change_rotation") {
-      turnMotor(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
-    } else {
-      logFlow("ERROR: motor3 :: no message match");
+      logFlow("off");
+      analogWrite(MOTOR3_PIN, 0);
+      motorThreeState = LOW;
     }
+  } else if (topic == "change_rotation") {
+    turnMotor(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
   } else {
-
-    //Servos
-    if (topic == "servo1") {
-      uint8_t angle = messageString.toInt();
-      // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
-
-      servoOne.write(angle);
-      servoOneState = angle;
-      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
-    }
-    else if (topic == "servo2") {
-      uint8_t angle = messageString.toInt();
-      // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
-
-      servoTwo.write(angle);
-      servoTwoState = angle;
-      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
-    }
-    else  if (topic == "servo3") {
-      uint8_t angle = messageString.toInt();
-      // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
-
-      servoThree.write(angle);
-      servoThreeState = angle;
-      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
-    }
-    else {
-      logFlow("ERROR: manualFlow() :: no topic match");
-    }
+    logFlow("ERROR: motor3 :: no message match");
   }
+} else {
+
+  //Servos
+  if (topic == "servo1") {
+    uint8_t angle = messageString.toInt();
+    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+
+    servoOne.write(angle);
+    servoOneState = angle;
+    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+
+  }
+  else if (topic == "servo2") {
+    uint8_t angle = messageString.toInt();
+    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+
+    servoTwo.write(angle);
+    servoTwoState = angle;
+    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+
+  }
+  else  if (topic == "servo3") {
+    uint8_t angle = messageString.toInt();
+    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+
+    servoThree.write(angle);
+    servoThreeState = angle;
+    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+
+  }
+  else {
+    logFlow("ERROR: manualFlow() :: no topic match");
+  }
+}
 }
 
 void adminFlow(String messageString) {

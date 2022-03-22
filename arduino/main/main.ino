@@ -458,11 +458,11 @@ void manualFlow(String topic, String messageString) {
       }
     } else if (messageString == "toggle" && motorTwoState == HIGH) {
       if (motorTwoClockwise) {
-        logFlow("motor2: off");
+        logFlow("off");
         analogWrite(MOTOR2_PIN, 0);
         motorTwoState = LOW;
       } else {
-        logFlow("motor2: off");
+        logFlow("off");
         analogWrite(MOTOR2_RELAY_PIN, 0);
         motorTwoState = LOW;
       }

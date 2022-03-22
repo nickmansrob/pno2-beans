@@ -48,12 +48,16 @@ const uint8_t SERVO3_PIN = 0; // Not known yet
 uint8_t servoThreeState = 90;
 
 /************************* LCD *************************/
+
 const uint8_t LCDRS_PIN = 48;
 const uint8_t LCDE_PIN = 49;
 const uint8_t LCDDB4_PIN = 50;
 const uint8_t LCDDB5_PIN = 51;
 const uint8_t LCDDB6_PIN = 52;
 const uint8_t LCDDB7_PIN = 53;
+
+LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
+
 
 /************************* Sensors *************************/
 const uint8_t UTRIG_PIN = 8;
@@ -154,12 +158,11 @@ uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
 }
 
 // Method for calibrating the weight sensor.
-void calibrate_scale() {
+void calibrateScale() {
   const uint8_t calibrationWeight = 100;
   // Used as disposable variable for calibrating the weight sensor.
   uint8_t count = 0;
 
-  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
   HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
 
 
@@ -187,6 +190,34 @@ void calibrate_scale() {
   lcd.clear();
 }
 
+void turnMotor(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
+  if (motorClockwise) {
+    if (motorState == 'HIGH') {
+      // Stops the motor when the motor is spinning.
+      analogWrite(motorPin, 0);
+      motorClockwise = false;
+      // Spins the motor in the other direction.
+      analogWrite(motorRelayPin, getMotorVoltage());
+
+    } else if (motorState == 'LOW') {
+      motorClockwise = false;
+    }
+
+  }
+  else {
+    if (motorState == 'HIGH') {
+      // Stops the motor when the motor is spinning.
+      analogWrite(motorRelayPin, 0);
+      motorClockwise = true;
+      // Spins the motor in the other direction.
+      analogWrite(motorPin, getMotorVoltage());
+
+    } else if (motorState == 'LOW') {
+      motorClockwise = true;
+    }
+  }
+
+}
 /************************* MQTT Handlers *************************/
 void callback(char* topic, byte* message, unsigned int length) {
   String messageString;
@@ -275,7 +306,7 @@ void readWeight() {
   HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
   LoadCell.begin(); // Starts  connection to the weight sensor.
   LoadCell.start(2000); // Sets the time the sensor gets to configure
-  calibrate_scale();
+  calibrateScale();
   LoadCell.setCalFactor(calibrationFactor); // Calibaration
 
   LoadCell.update(); // gets data from load cell
@@ -397,37 +428,79 @@ void manualFlow(String topic, String messageString) {
   // Motors
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
-      logFlow("motor 1: on");
-      analogWrite(MOTOR1_PIN, getMotorVoltage());
-      motorOneState = HIGH;
+      if (motorOneClockwise) {
+        logFlow("on");
+        analogWrite(MOTOR1_PIN, getMotorVoltage());
+        motorOneState = HIGH;
+      } else {
+        logFlow("on");
+        analogWrite(MOTOR1_RELAY_PIN, getMotorVoltage());
+        motorOneState = HIGH;
+      }
     } else if (messageString == "toggle" && motorOneState == HIGH) {
-      logFlow("motor1: off");
-      analogWrite(MOTOR1_PIN, 0);
-      motorOneState = LOW;
+      if (motorOneClockwise) {
+        logFlow("off");
+        analogWrite(MOTOR1_PIN, 0);
+        motorOneState = LOW;
+      } else {
+        logFlow("off");
+        analogWrite(MOTOR1_RELAY_PIN, 0);
+        motorOneState = LOW;
+      }
+    } else if (topic == "change_rotation") {
+      turnMotor(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
     } else {
       logFlow("ERROR: motor1 :: no message match");
     }
   } else if (topic == "motor2") {
     if (messageString == "toggle" && motorTwoState == LOW) {
-      logFlow("motor2: on");
-      analogWrite(MOTOR2_PIN, getMotorVoltage());
-      motorTwoState = HIGH;
+      if (motorTwoClockwise) {
+        logFlow("on");
+        analogWrite(MOTOR2_PIN, getMotorVoltage());
+        motorTwoState = HIGH;
+      } else {
+        logFlow("on");
+        analogWrite(MOTOR2_RELAY_PIN, getMotorVoltage());
+        motorTwoState = HIGH;
+      }
     } else if (messageString == "toggle" && motorTwoState == HIGH) {
-      logFlow("motor2: off");
-      analogWrite(MOTOR2_PIN, 0);
-      motorTwoState = LOW;
+      if (motorTwoClockwise) {
+        logFlow("motor2: off");
+        analogWrite(MOTOR2_PIN, 0);
+        motorTwoState = LOW;
+      } else {
+        logFlow("motor2: off");
+        analogWrite(MOTOR2_RELAY_PIN, 0);
+        motorTwoState = LOW;
+      }
+    } else if (topic == "change_rotation") {
+      turnMotor(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
     } else {
       logFlow("ERROR: motor2 :: no message match");
     }
   } else if (topic == "motor3") {
     if (messageString == "toggle" && motorThreeState == LOW) {
-      logFlow("motor3: on");
-      analogWrite(MOTOR3_PIN, getMotorVoltage());
-      motorThreeState = HIGH;
+      if (motorThreeClockwise) {
+        logFlow("on");
+        analogWrite(MOTOR3_PIN, getMotorVoltage());
+        motorThreeState = HIGH;
+      } else {
+        logFlow("on");
+        analogWrite(MOTOR3_RELAY_PIN, getMotorVoltage());
+        motorThreeState = HIGH;
+      }
     } else if (messageString == "toggle" && motorThreeState == HIGH) {
-      logFlow("motor3: off");
-      analogWrite(MOTOR3_PIN, 0);
-      motorThreeState = LOW;
+      if (motorThreeClockwise) {
+        logFlow("off");
+        analogWrite(MOTOR3_PIN, 0);
+        motorThreeState = LOW;
+      } else {
+        logFlow("off");
+        analogWrite(MOTOR3_RELAY_PIN, 0);
+        motorThreeState = LOW;
+      }
+    } else if (topic == "change_rotation") {
+      turnMotor(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
     } else {
       logFlow("ERROR: motor3 :: no message match");
     }
@@ -440,6 +513,24 @@ void manualFlow(String topic, String messageString) {
 
       servoOne.write(angle);
       servoOneState = angle;
+      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+
+    }
+    else if (topic == "servo2") {
+      uint8_t angle = messageString.toInt();
+      // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+
+      servoTwo.write(angle);
+      servoTwoState = angle;
+      // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+
+    }
+    else  if (topic == "servo3") {
+      uint8_t angle = messageString.toInt();
+      // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+
+      servoThree.write(angle);
+      servoThreeState = angle;
       // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
     }

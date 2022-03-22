@@ -28,6 +28,7 @@ class _DebugPageState extends State<DebugPage> {
   @override
   Widget build(BuildContext context) {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
+    currentAppState = appState;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Debug Menu'),
@@ -101,10 +102,6 @@ class _DebugPageState extends State<DebugPage> {
                         _firstServoController.text = '';
                         _secondServoController.text = '';
                         _thirdServoController.text = '';
-                        _publishMessage('0', 'override');
-                      }
-                      else  {
-                        _publishMessage('1', 'override');
                       }
                     },
                   ),
@@ -338,9 +335,13 @@ class _DebugPageState extends State<DebugPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Text('Motor 1', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)
-                      ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Motor 1',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15),
+                          )),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -392,7 +393,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -400,9 +401,13 @@ class _DebugPageState extends State<DebugPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Text('Motor 2', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)
-                      ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Motor 2',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15),
+                          )),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -412,8 +417,8 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                  _publishMessage('toggle', 'motor2');
-                                }
+                                        _publishMessage('toggle', 'motor2');
+                                      }
                                     : null,
                                 child: const Text('Toggle'),
                               ),
@@ -425,9 +430,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                  _publishMessage(
-                                      'change_rotation', 'motor2');
-                                }
+                                        _publishMessage(
+                                            'change_rotation', 'motor2');
+                                      }
                                     : null,
                                 child: const Text('Change rotation'),
                               ),
@@ -454,7 +459,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -462,9 +467,13 @@ class _DebugPageState extends State<DebugPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Text('Motor 3', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)
-                      ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Motor 3',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15),
+                          )),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -474,8 +483,8 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                  _publishMessage('toggle', 'motor3');
-                                }
+                                        _publishMessage('toggle', 'motor3');
+                                      }
                                     : null,
                                 child: const Text('Toggle'),
                               ),
@@ -487,9 +496,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                  _publishMessage(
-                                      'change_rotation', 'motor3');
-                                }
+                                        _publishMessage(
+                                            'change_rotation', 'motor3');
+                                      }
                                     : null,
                                 child: const Text('Change rotation'),
                               ),
@@ -537,7 +546,7 @@ class _DebugPageState extends State<DebugPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               child: ElevatedButton(
                 onPressed: () {
-                  _showRestoreConfirmMessage();
+                  _showRestoreConfirmMessage(currentAppState);
                   // Respond to button press
                 },
                 child: const Text('Restore'),
@@ -554,7 +563,7 @@ class _DebugPageState extends State<DebugPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               child: ElevatedButton(
                 onPressed: () {
-                  _showResetConfirmMessage();
+                  _showResetConfirmMessage(currentAppState);
                   // Respond to button press
                 },
                 child: const Text('Reset'),
@@ -610,7 +619,7 @@ class _DebugPageState extends State<DebugPage> {
     super.initState();
   }
 
-  void _showResetConfirmMessage() {
+  void _showResetConfirmMessage(MQTTAppState currentAppState) {
     showDialog(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -629,7 +638,7 @@ class _DebugPageState extends State<DebugPage> {
               child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _publishMessage('reset', 'adminListener');
+                currentAppState.setResetPressed(true);
               },
             ),
             TextButton(
@@ -644,7 +653,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
-  void _showRestoreConfirmMessage() {
+  void _showRestoreConfirmMessage(MQTTAppState currentAppState) {
     showDialog(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -663,7 +672,7 @@ class _DebugPageState extends State<DebugPage> {
               child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _publishMessage('restore', 'adminListener');
+                currentAppState.setRestorePressed(true);
               },
             ),
             TextButton(

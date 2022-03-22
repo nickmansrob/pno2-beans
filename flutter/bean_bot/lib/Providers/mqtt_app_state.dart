@@ -23,7 +23,6 @@ class MQTTAppState with ChangeNotifier {
   String  _orderMessage = '';
   bool _resetPressed = false;
   bool _restorePressed = false;
-  bool _overridePressed = false;
 
   void setOrderMessage(String orderMessage) {
     _orderMessage = orderMessage;
@@ -137,11 +136,6 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void setOverridePressed(bool pressed) {
-    _overridePressed = pressed;
-    notifyListeners();
-  }
-
   String get getReceivedText => _receivedText;
   String get getFirstOrderReceivedDone => _firstOrderReceivedDone;
   String get getSecondOrderReceivedDone => _secondOrderReceivedDone;
@@ -155,8 +149,7 @@ class MQTTAppState with ChangeNotifier {
   String get getFirstColor => _firstColor;
   String get getOrderMessage => _orderMessage;
   bool get getIsSwitched => _isSwitched;
-  bool get getRestorePressed => _resetPressed;
-  bool get getOverridePressed => _overridePressed;
+  bool get getRestorePressed => _restorePressed;
   bool get getResetPressed => _resetPressed;
   MQTTAppConnectionState get getAppConnectionState => _appConnectionState;
   MQTTManager get getMQTTManager => _mqttManager;

@@ -165,7 +165,6 @@ void calibrateScale() {
 
   HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
 
-
   lcd.clear();
   lcd.print("Please put " + String(calibrationWeight) + "g on the sensor.");
 
@@ -319,9 +318,6 @@ void readWeight() {
   lcd.setCursor(0, 1);
   lcd.print(weight);
 
-  // TO DO: Implement LCD output
-  // https://docs.arduino.cc/learn/electronics/lcd-displays
-
   // If one second has passed, weight is updated.
   if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
     if (orderState == 1) {
@@ -341,17 +337,14 @@ void readColor() {
   String red = "0";
   String green = "0";
   String blue = "0";
-  // TO DO: Implement sensor readings
-  // https://create.arduino.cc/projecthub/SurtrTech/color-detection-using-tcs3200-230-84a663
 
-  digitalWrite(KS2_PIN, LOW); // S2/S3 levels define which set of photodiodes we are using LOW/LOW is for RED LOW/HIGH is for Blue and HIGH/HIGH is for green
+  digitalWrite(KS2_PIN, LOW); 
   digitalWrite(KS3_PIN, LOW);
   red = String(pulseIn(KOUT_PIN, LOW));
 
   digitalWrite(KS2_PIN, LOW);
   digitalWrite(KS3_PIN, HIGH);
   blue = String(pulseIn(KOUT_PIN, LOW));
-
 
   digitalWrite(KS2_PIN, HIGH);
   digitalWrite(KS3_PIN, HIGH);

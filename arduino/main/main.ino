@@ -408,16 +408,26 @@ void readUltrasonic() {
 
 /************************* Program flow *************************/
 void normalFlow(String weight, String siloNumber) {
+  logFlow("INFO: First section executed.");
   //Section 0: BAND2: Determine container location
-  if(sendSectionDone()) {
+  if (sendSectionDone()) {
     section2();
   } else {
     logFlow("WARNING: Normalflow is aborted.");
   }
 }
- void section2() {
-  //Section 0: BAND1: Determine bean color
+void section2() {
   //Section 1: BAND1: Choose silo
+  logFlow("INFO: Second section executed.");
+
+  if (sendSectionDone()) {
+    section2();
+  } else {
+    logFlow("WARNING: Normalflow is aborted.");
+  }
+}
+
+void sectionX() {
   //Section 2: BAND1: Lift into silo
   //Section 3: BAND1: Start rotation
   //Section 4: BAND1: Stop rotation
@@ -435,7 +445,7 @@ void normalFlow(String weight, String siloNumber) {
   } else {
     logFlow("ERROR: normalFlow() :: orderState out of bounds.");
   }
- }
+}
 
 void manualFlow(String topic, String messageString) {
   logFlow("Changing state of [" + topic + "] to ");
@@ -557,7 +567,7 @@ bool sendSectionDone() {
     client.loop();
   }
 
-  delay(1000);
+  delay(1000); // Change if proceedNormalFlow isn't set to true fast enough
 
   if (proceedNormalFlow) {
     // Execute next section

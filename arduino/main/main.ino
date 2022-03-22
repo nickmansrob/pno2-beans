@@ -89,7 +89,6 @@ void(* resetFunc) (void) = 0;
 /************************* Miscellaneous ***********************/
 uint8_t orderState = 1;
 bool proceedNormalFlow = false;
-bool abortNormalFlow = false;
 
 long lastReadingTimeWeight = 0;
 long lastReadingTimeDistance = 0;
@@ -247,8 +246,6 @@ void callback(char* topic, byte* message, unsigned int length) {
   Serial.println();
 
   logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);
-
-  abortNormalFlow = false;
 
   if (topicString == "override") {
     if (messageString == "1") {
@@ -523,18 +520,18 @@ void manualFlow(String topic, String messageString) {
 void adminFlow(String messageString) {
   if (messageString == "reset") {
     logFlow("WARNING: Hard reset");
-    abortNormalFlow = true;
+    proceedNormalFlow = false;
     resetFunc();
   } else if (messageString == "restore") {
     logFlow("WARNING: Beanbot restore");
-    abortNormalFlow = true;
+    proceedNormalFlow = false;
     restoreFlow();
   } else if (messageString == "proceed") {
     logFlow("INFO: normalFlow will proceed");
     proceedNormalFlow = true;
   } else if (messageString == "override") {
     logFlow("WARNING: Override is enabled");
-    abortNormalFlow = true;
+    proceedNormalFlow = false;
     manualOverride = true;
   } else {
     logFlow("ERROR: adminFlow() :: no message match");
@@ -548,7 +545,6 @@ void logFlow(String message) {
 
 void restoreFlow() {
   // TO DO: Restore beanbot to start state.
-  abortNormalFlow = false;
   proceedNormalFlow = false;
 }
 
@@ -566,7 +562,7 @@ bool sendSectionDone() {
   if (proceedNormalFlow) {
     // Execute next section
     return true;
-  } else if (abortNormalFlow) {
+  } else {
     // Abort flow
     return false;
   }

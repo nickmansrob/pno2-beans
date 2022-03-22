@@ -476,40 +476,37 @@ void manualFlow(String topic, String messageString) {
     } else {
       logFlow("ERROR: motor3 :: no message match");
     }
+  } //Servos
+  else if (topic == "servo1") {
+    uint8_t angle = messageString.toInt();
+    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+
+    servoOne.write(angle);
+    servoOneState = angle;
+    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+
   }
-}
+  else if (topic == "servo2") {
+    uint8_t angle = messageString.toInt();
+    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
-//Servos
-else if (topic == "servo1") {
-  uint8_t angle = messageString.toInt();
-  // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+    servoTwo.write(angle);
+    servoTwoState = angle;
+    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
-  servoOne.write(angle);
-  servoOneState = angle;
-  // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
+  }
+  else  if (topic == "servo3") {
+    uint8_t angle = messageString.toInt();
+    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
-}
-else if (topic == "servo2") {
-  uint8_t angle = messageString.toInt();
-  // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
+    servoThree.write(angle);
+    servoThreeState = angle;
+    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
-  servoTwo.write(angle);
-  servoTwoState = angle;
-  // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
-}
-else  if (topic == "servo3") {
-  uint8_t angle = messageString.toInt();
-  // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
-
-  servoThree.write(angle);
-  servoThreeState = angle;
-  // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
-}
-else {
-  logFlow("ERROR: manualFlow() :: no topic match");
-}
+  }
+  else {
+    logFlow("ERROR: manualFlow() :: no topic match");
+  }
 
 }
 

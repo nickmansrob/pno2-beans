@@ -126,6 +126,9 @@ class MQTTManager with ChangeNotifier {
               _currentOrderState.disposeOrderState();
               _currentState.disposeAppState();
             }
+            else if (pt == 'section_done') {
+
+            }
         }
       },
     );

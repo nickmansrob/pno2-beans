@@ -415,7 +415,7 @@ void normalFlow(String weight, String siloNumber) {
   if(sendSectionDone()) {
     section2();
   } else {
-    logFlow("WARNING: Normalflow is aborted.")
+    logFlow("WARNING: Normalflow is aborted.");
   }
 }
  void section2() {

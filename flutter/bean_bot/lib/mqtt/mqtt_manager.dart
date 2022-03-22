@@ -126,6 +126,19 @@ class MQTTManager with ChangeNotifier {
               _currentOrderState.disposeOrderState();
               _currentState.disposeAppState();
             }
+            else if (pt == 'section_done') {
+              if (_currentState.getIsSwitched == true) {
+                publish('override', 'adminListener');
+              } else if (_currentState.getResetPressed == true) {
+                publish('reset', 'adminListener');
+                _currentState.setResetPressed(false);
+              } else if (_currentState.getRestorePressed == true) {
+                publish('restore', 'adminListener');
+                _currentState.setRestorePressed(false);
+              } else {
+                publish('proceed', 'adminListener');
+              }
+            }
         }
       },
     );

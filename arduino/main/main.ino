@@ -204,7 +204,7 @@ void turnMotor(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t moto
       // Spins the motor in the other direction.
       analogWrite(motorPin, getMotorVoltage());
     } else if (motorState == 'LOW') {
-      digitalWrite(motorRelayPin, HIGH));
+      digitalWrite(motorRelayPin, HIGH);
       motorClockwise = false;
       delay(500);
     }
@@ -225,7 +225,7 @@ void turnMotor(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t moto
       analogWrite(motorPin, getMotorVoltage());
 
     } else if (motorState == 'LOW') {
-      digitalWrite(motorRelayPin, HIGH));
+      digitalWrite(motorRelayPin, HIGH);
       motorClockwise = true;
       delay(500);
     }
@@ -471,16 +471,15 @@ void manualFlow(String topic, String messageString) {
       logFlow("off");
       analogWrite(MOTOR3_PIN, 0);
       motorThreeState = LOW;
+    } else {
+      logFlow("ERROR: motor3 :: no message match");
     }
   } else if (topic == "change_rotation") {
     turnMotor(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
-  } else {
-    logFlow("ERROR: motor3 :: no message match");
   }
-} else {
 
   //Servos
-  if (topic == "servo1") {
+  else if (topic == "servo1") {
     uint8_t angle = messageString.toInt();
     // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
@@ -510,7 +509,7 @@ void manualFlow(String topic, String messageString) {
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
-}
+
 }
 
 void adminFlow(String messageString) {

@@ -1141,6 +1141,8 @@ class _HomePageState extends State<HomePage> {
                   if (currentOrderState.getFirstOrder == '' &&
                       currentOrderState.getSecondOrder == '') {
                     _publishMessage(currentAppState.getOrderMessage, "order1");
+                  } else  if (currentOrderState.getFirstOrder != '' && currentOrderState.getSecondOrder == '') {
+                    _publishMessage(currentAppState.getOrderMessage, "order2");
                   }
                   currentOrderState.setOrder(currentOrder);
                   currentOrderState

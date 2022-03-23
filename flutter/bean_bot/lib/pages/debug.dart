@@ -34,7 +34,7 @@ class _DebugPageState extends State<DebugPage> {
         title: const Text('Debug Menu'),
       ),
       body: ListView(children: [
-        // Creates the connection indicator on top of the screen. \
+        // Creates the connection indicator on top of the screen.
         _buildConnectionStateText(
           _prepareStateMessageFrom(appState.getAppConnectionState),
           setColor(appState.getAppConnectionState),

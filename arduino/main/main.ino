@@ -2,21 +2,22 @@
 #if defined(__AVR__)
 #include <WiFi.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>*****************/
+
+const char * ssid = "ENVYROB113004";
+const char * password = "0j085693";
+const char * mqtt_server = "192.168.137.1";
+
 #endif
 #include <SoftwareSerial.h>
 #include <Wire.h>
 
 #include <Servo.h>
+
 #include <HX711_ADC.h> // Library for operating the scales.
 #include <LiquidCrystal.h> // Library for operating the LCD display.
 #include <PubSubClient.h>
 
-/************************* WiFi *************************/
-
-const char * ssid = "ENVYROB113004";
-const char * password = "0j085693";
-const char * mqtt_server = "192.168.137.1";
 
 /************************* DC-motors *************************/
 const uint8_t MOTOR_VOLTAGE = 2;

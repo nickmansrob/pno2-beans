@@ -322,7 +322,7 @@ void readUltrasonic() {
 
 /************************* Program flow *************************/
 void manualFlow(String topic, String messageString) {
-  sendMessage = "log_" + topic + ":";
+  sendMessage = "log_";
 
   // Motors
   if (topic == "motor1") {
@@ -441,5 +441,11 @@ void receiveEvent(int howMany) {
 
 
 void sendText(int numBytes) {
+  if (sendMessage != "") {
+  while (sendMessage.length() != 32) {
+    sendMessage = sendMessage + "@";
+    }
   Wire.write(sendMessage.c_str());
+  }
+  sendMessage = "";
 }

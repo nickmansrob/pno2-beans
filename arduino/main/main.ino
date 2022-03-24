@@ -112,11 +112,6 @@ void setup() {
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
   pinMode(MOTOR3_RELAY_PIN, OUTPUT);
 
-
-  digitalWrite(MOTOR1_RELAY_PIN, HIGH);
-  
-  
-
   /************************* Servos *************************/
   servoOne.attach(SERVO1_PIN);
   servoTwo.attach(SERVO2_PIN);
@@ -132,17 +127,23 @@ void setup() {
   pinMode(UECHO_PIN, INPUT);
 
   /************************* Node MCU  *************************/
-    Wire.begin(8);
-    Wire.onReceive(receiveEvent);
-    Wire.onRequest(sendText);
-    Serial.begin(115200);
+  Wire.begin(8);
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(sendText);
+  Serial.begin(115200);
 
-    digitalWrite(MOTOR1_PIN, LOW);
+  digitalWrite(MOTOR1_PIN, LOW);
 
 }
 
 void loop() {
   delay(100);
+  if (topic != "" && messageString != "") {
+    manualFlow(topic, messageString);
+    message = "";
+    topic = "";
+    messageString = "";
+  }
 }
 
 /************************* Helpers *************************/
@@ -183,47 +184,42 @@ void calibrateScale() {
 }
 
 void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
-  if (motorClockwise) {
-    if (motorState == 'HIGH') {
+  if (motorClockwise == true) {
+    if (motorState == HIGH) {
       // Stops the motor when the motor is spinning.
       analogWrite(motorPin, 0);
       // Wait for the motor to stop.
-      delay(500);
+      delay(1000);
       // Switch the relay.
       digitalWrite(motorRelayPin, HIGH);
-      motorClockwise = false;
       // Wait for the relay to switch.
-      delay(500);
+      delay(2000);
       // Spins the motor in the other direction.
       analogWrite(motorPin, getMotorVoltage());
-    } else if (motorState == 'LOW') {
+    } else if (motorState == LOW) {
+      // Switch the relay.
       digitalWrite(motorRelayPin, HIGH);
-      motorClockwise = false;
       delay(500);
     }
-
   }
-  else {
-    if (motorState == 'HIGH') {
+  else if (motorClockwise == false) {
+    if (motorState == HIGH) {
       // Stops the motor when the motor is spinning.
       analogWrite(motorPin, 0);
       // Wait for the motor to stop.
-      delay(500);
+      delay(1000);
       // Switch the relay.
-      digitalWrite(motorRelayPin, HIGH);
-      motorClockwise = true;
+      digitalWrite(motorRelayPin, LOW);
       // Wait for the relay to switch.
-      delay(500);
+      delay(2000);
       // Spins the motor in the other direction.
       analogWrite(motorPin, getMotorVoltage());
-
-    } else if (motorState == 'LOW') {
-      digitalWrite(motorRelayPin, HIGH);
-      motorClockwise = true;
+    } else if (motorState == LOW) {
+      // Switch the relay.
+      digitalWrite(motorRelayPin, LOW);
       delay(500);
     }
   }
-
 }
 
 
@@ -338,9 +334,15 @@ void manualFlow(String topic, String messageString) {
       sendMessage = sendMessage + "off";
       analogWrite(MOTOR1_PIN, 0);
       motorOneState = LOW;
-    } else if (messageString == "change_rotation") {
-      changeMotorRotation(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
-      sendMessage = sendMessage + "change rotation";
+    } else if (messageString == "turn") {
+      if (motorOneClockwise == true) {
+        changeMotorRotation(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
+        motorOneClockwise = false;
+      } else {
+        changeMotorRotation(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
+        motorOneClockwise = true;
+      }
+      sendMessage = sendMessage + "turn";
     } else {
       sendMessage = sendMessage + "topic error";
     }
@@ -353,9 +355,9 @@ void manualFlow(String topic, String messageString) {
       sendMessage = sendMessage + "off";
       analogWrite(MOTOR2_PIN, 0);
       motorTwoState = LOW;
-    } else if (messageString == "change_rotation") {
+    } else if (messageString == "turn") {
       changeMotorRotation(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
-      sendMessage = sendMessage + "change rotation";
+      sendMessage = sendMessage + "turn";
     } else {
       sendMessage = sendMessage + "message error";
     }
@@ -376,9 +378,7 @@ void manualFlow(String topic, String messageString) {
       sendMessage = sendMessage + "message error";
     }
 
-    message = "";
-    topic = "";
-    messageString = "";
+
   }
   //Servos
   else if (topic == "servo1") {
@@ -425,18 +425,21 @@ void receiveEvent(int howMany) {
   }
   else {
     topic = message.substring(0, indexDelimiter);
-    messageString = message.substring(indexDelimiter+1, message.length());
+    messageString = message.substring(indexDelimiter + 1, message.length());
 
     delay(100);
 
   }
+
   Serial.println(message);
+  Serial.println(topic);
+  Serial.println(messageString);
 
 }
 
 // function that executes whenever data is requested from master
 
 
-void sendText(String sendMessage) {
+void sendText(int numBytes) {
   Wire.write(sendMessage.c_str());
 }

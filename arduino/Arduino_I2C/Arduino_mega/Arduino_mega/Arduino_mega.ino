@@ -39,7 +39,7 @@ bool motorThreeClockwise = true;
 
 /************************* Servos *************************/
 Servo servoOne;
-const uint8_t SERVO1_PIN = 0; // Not known yet
+const uint8_t SERVO1_PIN = 9; // Not known yet
 uint8_t servoOneState = 90;
 
 Servo servoTwo;
@@ -116,6 +116,8 @@ void setup() {
   servoOne.attach(SERVO1_PIN);
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
+
+  servoOne.write(servoOneState);  
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
@@ -387,6 +389,7 @@ void manualFlow(String topic, String messageString) {
 
     servoOne.write(angle);
     servoOneState = angle;
+    sendMessage = sendMessage + angle;
     // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
   }

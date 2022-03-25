@@ -96,6 +96,11 @@ class _DebugPageState extends State<DebugPage> {
                       } else {
                         setState(() {
                           appState.setIsSwitched(value);
+                          if (value == false) {
+                            _publishMessage('0', 'override');
+                          } else {
+                            _publishMessage('1', 'override');
+                          }
                         });
                       }
                       if (value == false) {

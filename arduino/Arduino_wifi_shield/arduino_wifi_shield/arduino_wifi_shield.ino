@@ -2,22 +2,19 @@
 #if defined(__AVR__)
 #include <WiFi.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>*****************/
-
-const char * ssid = "ENVYROB113004";
-const char * password = "0j085693";
-const char * mqtt_server = "192.168.137.1";
-
+#include <ESP8266WiFi.h>
 #endif
-#include <SoftwareSerial.h>
-#include <Wire.h>
 
 #include <Servo.h>
-
 #include <HX711_ADC.h> // Library for operating the scales.
 #include <LiquidCrystal.h> // Library for operating the LCD display.
 #include <PubSubClient.h>
 
+/************************* WiFi *************************/
+
+const char * ssid = "ENVYROB113004";
+const char * password = "0j085693";
+const char * mqtt_server = "192.168.137.1";
 
 /************************* DC-motors *************************/
 const uint8_t MOTOR_VOLTAGE = 2;
@@ -77,7 +74,14 @@ const uint8_t KOUT_PIN = 19;
 const uint8_t WSDA_PIN = 20;
 const uint8_t WSCL_PIN = 21;
 
+/************************* MQTT *************************/
+WiFiClient espClient;
+PubSubClient client(espClient);
+long lastMsg = 0;
+char msg[50];
+int value = 0;
 
+bool manualOverride = false;
 
 /************************* Reset function *************************/
 void(* resetFunc) (void) = 0;
@@ -91,31 +95,38 @@ long lastReadingTimeDistance = 0;
 
 uint8_t calibrationFactor = 1;
 
-String message = "";
-String topic;
-String messageString;
-
-String sendMessage = "";
-
-char rdata;
-String incomingSerial;
 
 /*****************************************************************/
 
 void setup() {
+  /************************* Initializaton *************************/
+  Serial.begin(115200);
+  delay(10);
+
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+
   /************************* DC-motors *************************/
   pinMode(MOTOR1_PIN, OUTPUT);
   pinMode(MOTOR2_PIN, OUTPUT);
   pinMode(MOTOR3_PIN, OUTPUT);
-
-  pinMode(MOTOR1_RELAY_PIN, OUTPUT);
-  pinMode(MOTOR2_RELAY_PIN, OUTPUT);
-  pinMode(MOTOR3_RELAY_PIN, OUTPUT);
-
-
-  digitalWrite(MOTOR1_RELAY_PIN, HIGH);
-  
-  
 
   /************************* Servos *************************/
   servoOne.attach(SERVO1_PIN);
@@ -131,18 +142,15 @@ void setup() {
   pinMode(UTRIG_PIN, OUTPUT);
   pinMode(UECHO_PIN, INPUT);
 
-  /************************* Node MCU  *************************/
-    Wire.begin(8);
-    Wire.onReceive(receiveEvent);
-    Wire.onRequest(sendText);
-    Serial.begin(115200);
-
-    digitalWrite(MOTOR1_PIN, LOW);
-
 }
 
 void loop() {
-  delay(100);
+  /************************* MQTT *************************/
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
 }
 
 /************************* Helpers *************************/
@@ -182,7 +190,7 @@ void calibrateScale() {
   lcd.clear();
 }
 
-void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
+void turnMotor(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
   if (motorClockwise) {
     if (motorState == 'HIGH') {
       // Stops the motor when the motor is spinning.
@@ -225,7 +233,81 @@ void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, ui
   }
 
 }
+/************************* MQTT Handlers *************************/
+void callback(char* topic, byte* message, unsigned int length) {
+  String messageString;
+  String topicString = String(topic);
 
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+    messageString += (char)message[i];
+  }
+
+  Serial.println();
+
+  logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);
+
+  if (topicString == "override") {
+    if (messageString == "1") {
+      logFlow("WARNING: Override enabled");
+      // TO DO: Add logFlow to each Serial println as above
+      manualOverride = true;
+    } else if (messageString == "0") {
+      logFlow("WARNING: Override disabled");
+      manualOverride = false;
+    }
+  }
+
+  if (topicString != "override") {
+    // Check if override is active
+    if (manualOverride) {
+      logFlow("ROUTE: From origin to manualFlow");
+      manualFlow(topicString, messageString);
+    } else if (topicString == "order") {
+      // Incoming order example: 1200, stands for 200gr of the first kind
+      String weight = messageString.substring(1);
+      String siloNumber = messageString.substring(0, 1);
+
+      // Sends order to flow
+      logFlow("ROUTE: From origin to normalFlow");
+      logFlow("INFO: Incoming order: " + weight + " grams of silo " + siloNumber);
+      readColor();
+      normalFlow(weight, siloNumber);
+    } else if (topicString == "adminListener") {
+      logFlow("ROUTE: From origin to adminFlow");
+      adminFlow(messageString);
+    } else {
+      logFlow("ERROR: callback() :: no matching topic or override not enabled.");
+    }
+  }
+}
+
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect("ArduinoBeanBot")) {
+      Serial.println("connected");
+      // Subscribe
+      client.subscribe("motor1");
+      client.subscribe("motor2");
+      client.subscribe("motor3");
+      client.subscribe("servo1");
+      client.subscribe("servo2");
+      client.subscribe("servo3");
+      client.subscribe("order");
+      client.subscribe("adminListener");
+      client.subscribe("override");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
 
 /************************* Read weight sensor and publish *************************/
 void readWeight() {
@@ -256,12 +338,12 @@ void readWeight() {
   if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
     if (orderState == 1) {
       lastReadingTimeWeight = millis();
-      sendMessage = "weight1_" + weight;
+      client.publish("firstWeightListener", weight.c_str());
     } else if (orderState == 2) {
       lastReadingTimeWeight = millis();
-      sendMessage = "weight2_" + weight;
+      client.publish("secondWeightListener", weight.c_str());
     } else {
-      sendMessage = "weight_error";
+      logFlow("ERROR: readWeight() :: orderState out of bounds.");
     }
   }
 }
@@ -284,15 +366,15 @@ void readColor() {
   digitalWrite(KS3_PIN, HIGH);
   green = String(pulseIn(KOUT_PIN, LOW));
 
-  // nodemcu.print("log_Red: " + String(red) + "; green: " + String(green) + "; blue: " + String(blue) + ".");
+  logFlow("Red: " + String(red) + "; green: " + String(green) + "; blue: " + String(blue) + ".");
   String color = red + green + blue;
 
   if (orderState == 1) {
-    sendMessage = "color1_" + color;
+    client.publish("firstColorListener", color.c_str());
   } else if (orderState == 2) {
-    sendMessage = "color2_" + color;
+    client.publish("secondColorListener", color.c_str());
   } else {
-    sendMessage = "color_error";
+    logFlow("ERROR: readColor() :: orderState out of bounds.");
   }
 }
 
@@ -319,66 +401,98 @@ void readUltrasonic() {
 
   if (distance > 0 && (millis() - lastReadingTimeDistance) > 500) {
     lastReadingTimeDistance = millis();
-    // nodemcu.print("log_Distance to truck: " + String(distance) + "cm.");
+    logFlow("Distance to truck: " + String(distance) + "cm.");
   }
 
 }
 
 /************************* Program flow *************************/
+void normalFlow(String weight, String siloNumber) {
+  logFlow("INFO: First section executed.");
+  //Section 0: BAND2: Determine container location
+  if (sendSectionDone()) {
+    section2();
+  } else {
+    logFlow("WARNING: Normalflow is aborted.");
+  }
+}
+void section2() {
+  //Section 1: BAND1: Choose silo
+  logFlow("INFO: Second section executed.");
+
+  if (sendSectionDone()) {
+    section2();
+  } else {
+    logFlow("WARNING: Normalflow is aborted.");
+  }
+}
+
+void sectionX() {
+  //Section 2: BAND1: Lift into silo
+  //Section 3: BAND1: Start rotation
+  //Section 4: BAND1: Stop rotation
+  //Section 5: BAND2: Set position
+  //Section 6: BAND2: Start rotation
+  //Section 7: BAND1: Reposition
+  //Section 8: BAND2: Stop rotation
+  //Section 9: BAND1: Change to other silo
+  //Section 10: Repeat
+  //Section X: Done
+  if (orderState == 1) {
+    client.publish("firstOrderListener", "done");
+  } else if (orderState == 2) {
+    client.publish("secondOrderListener", "done");
+  } else {
+    logFlow("ERROR: normalFlow() :: orderState out of bounds.");
+  }
+}
+
 void manualFlow(String topic, String messageString) {
-  sendMessage = "log_" + topic + ":";
+  logFlow("Changing state of [" + topic + "] to ");
 
   // Motors
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
-      sendMessage = sendMessage + "on";
+      logFlow("on");
       analogWrite(MOTOR1_PIN, getMotorVoltage());
       motorOneState = HIGH;
     } else if (messageString == "toggle" && motorOneState == HIGH) {
-      sendMessage = sendMessage + "off";
+      logFlow("off");
       analogWrite(MOTOR1_PIN, 0);
       motorOneState = LOW;
     } else if (messageString == "change_rotation") {
-      changeMotorRotation(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
-      sendMessage = sendMessage + "change rotation";
+      turnMotor(MOTOR1_PIN, MOTOR1_RELAY_PIN, motorOneState, motorOneClockwise);
     } else {
-      sendMessage = sendMessage + "topic error";
+      logFlow("ERROR: motor1 :: no message match");
     }
   } else if (topic == "motor2") {
     if (messageString == "toggle" && motorTwoState == LOW) {
-      sendMessage = sendMessage + "on";
+      logFlow("on");
       analogWrite(MOTOR2_PIN, getMotorVoltage());
       motorTwoState = HIGH;
     } else if (messageString == "toggle" && motorTwoState == HIGH) {
-      sendMessage = sendMessage + "off";
+      logFlow("off");
       analogWrite(MOTOR2_PIN, 0);
       motorTwoState = LOW;
     } else if (messageString == "change_rotation") {
-      changeMotorRotation(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
-      sendMessage = sendMessage + "change rotation";
+      turnMotor(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
     } else {
-      sendMessage = sendMessage + "message error";
+      logFlow("ERROR: motor2 :: no message match");
     }
   } else if (topic == "motor3") {
     if (messageString == "toggle" && motorThreeState == LOW) {
-      sendMessage = sendMessage + "on";
+      logFlow("on");
       analogWrite(MOTOR3_PIN, getMotorVoltage());
       motorThreeState = HIGH;
     } else if (messageString == "toggle" && motorThreeState == HIGH) {
-      sendMessage = sendMessage + "off";
+      logFlow("off");
       analogWrite(MOTOR3_PIN, 0);
       motorThreeState = LOW;
     } else if (messageString == "change_rotation") {
-      changeMotorRotation(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
-      sendMessage = sendMessage + "change rotation";
-
+      turnMotor(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
     } else {
-      sendMessage = sendMessage + "message error";
+      logFlow("ERROR: motor3 :: no message match");
     }
-
-    message = "";
-    topic = "";
-    messageString = "";
   }
   //Servos
   else if (topic == "servo1") {
@@ -409,34 +523,57 @@ void manualFlow(String topic, String messageString) {
 
   }
   else {
-    sendMessage = "topic error";
+    logFlow("ERROR: manualFlow() :: no topic match");
   }
 }
 
-void receiveEvent(int howMany) {
-  while (0 < Wire.available()) {
-    char c = Wire.read();
-    message = message + c;
+void adminFlow(String messageString) {
+  if (messageString == "reset") {
+    logFlow("WARNING: Hard reset");
+    proceedNormalFlow = false;
+    resetFunc();
+  } else if (messageString == "restore") {
+    logFlow("WARNING: Beanbot restore");
+    proceedNormalFlow = false;
+    restoreFlow();
+  } else if (messageString == "proceed") {
+    logFlow("INFO: normalFlow will proceed");
+    proceedNormalFlow = true;
+  } else if (messageString == "override") {
+    logFlow("WARNING: Override is enabled");
+    proceedNormalFlow = false;
+    manualOverride = true;
+  } else {
+    logFlow("ERROR: adminFlow() :: no message match");
   }
-  int indexDelimiter = message.indexOf('_');
+}
 
-  if (indexDelimiter == -1) {
-    Serial.println(message);
-  }
-  else {
-    topic = message.substring(0, indexDelimiter);
-    messageString = message.substring(indexDelimiter+1, message.length());
-
-    delay(100);
-
-  }
+void logFlow(String message) {
   Serial.println(message);
-
+  client.publish("logListener", message.c_str());
 }
 
-// function that executes whenever data is requested from master
+void restoreFlow() {
+  // TO DO: Restore beanbot to start state.
+  proceedNormalFlow = false;
+}
 
+bool sendSectionDone() {
+  String message = "section_done";
+  client.publish("adminListener", message.c_str());
 
-void sendText(String sendMessage) {
-  Wire.write(sendMessage.c_str());
+  uint8_t lastLoopTime = millis();
+  while (millis() - lastLoopTime < 500) {
+    client.loop();
+  }
+
+  delay(1000); // Change if proceedNormalFlow isn't set to true fast enough
+
+  if (proceedNormalFlow) {
+    // Execute next section
+    return true;
+  } else {
+    // Abort flow
+    return false;
+  }
 }

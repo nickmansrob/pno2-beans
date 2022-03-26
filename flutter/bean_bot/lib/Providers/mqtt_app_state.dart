@@ -23,6 +23,7 @@ class MQTTAppState with ChangeNotifier {
   String  _orderMessage = '';
   bool _resetPressed = false;
   bool _restorePressed = false;
+  String _appId = "";
 
   void setOrderMessage(String orderMessage) {
     _orderMessage = orderMessage;
@@ -104,6 +105,7 @@ class MQTTAppState with ChangeNotifier {
     _firstOrderReceivedDone = '';
     _firstColor = 'not determined';
     _firstOrderWeightText = '';
+    _firstOrderDone = "";
     notifyListeners();
   }
 
@@ -111,6 +113,7 @@ class MQTTAppState with ChangeNotifier {
     _secondOrderReceivedDone = '';
     _secondColor = 'not determined';
     _secondOrderWeightText = '';
+    _secondOrderDone = "";
     notifyListeners();
   }
 
@@ -136,6 +139,11 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
+  void setAppId(String appId) {
+    _appId = appId;
+    notifyListeners();
+  }
+
   String get getReceivedText => _receivedText;
   String get getFirstOrderReceivedDone => _firstOrderReceivedDone;
   String get getSecondOrderReceivedDone => _secondOrderReceivedDone;
@@ -151,6 +159,7 @@ class MQTTAppState with ChangeNotifier {
   bool get getIsSwitched => _isSwitched;
   bool get getRestorePressed => _restorePressed;
   bool get getResetPressed => _resetPressed;
+  String get getAppId => _appId;
   MQTTAppConnectionState get getAppConnectionState => _appConnectionState;
   MQTTManager get getMQTTManager => _mqttManager;
 }

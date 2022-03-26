@@ -12,7 +12,7 @@ class _LogPageState extends State<LogPage> {
   @override
   Widget build(BuildContext context) {
     final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+    Provider.of<MQTTAppState>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -88,9 +88,9 @@ class _LogPageState extends State<LogPage> {
           child: InputDecorator(
             decoration: InputDecoration(
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
               border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+              OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
             ),
             child: _buildScrollableTextWith(context, text),
           ),
@@ -117,16 +117,21 @@ class _LogPageState extends State<LogPage> {
     return Row(
       children: [
         Expanded(
-            child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ElevatedButton(
-            onPressed: disableTextField(connectionState) ? () {
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: ElevatedButton(
+              onPressed:  () {
                 appState.deleteLogText();
-            }: null,
-            child: const Text('Delete logs'),
+              },
+              child: const Text('Delete logs'),
+              style: TextButton.styleFrom(
+                primary: Colors.white,
+                backgroundColor: Colors.red,
+                onSurface: Colors.redAccent,
+              ),
 
-          ),
-        ),),
+            ),
+          ),),
       ],
     );
   }

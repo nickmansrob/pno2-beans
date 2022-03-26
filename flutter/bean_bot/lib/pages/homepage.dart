@@ -26,9 +26,11 @@ class _HomePageState extends State<HomePage> {
 
   final _weightForm = GlobalKey<FormState>();
   final _adminForm = GlobalKey<FormState>();
+  final _idForm = GlobalKey<FormState>();
 
   final TextEditingController _ipTextController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _idTextController = TextEditingController();
 
   late MQTTManager manager;
   late MQTTAppState currentAppState;
@@ -58,7 +60,7 @@ class _HomePageState extends State<HomePage> {
             PopupMenuButton<MenuItem>(
               onSelected: (item) => onSelected(context, item),
               itemBuilder: (context) =>
-                  [...MenuItems.items.map(buildItem).toList()],
+              [...MenuItems.items.map(buildItem).toList()],
             ),
           ],
         ),
@@ -171,7 +173,7 @@ class _HomePageState extends State<HomePage> {
     return InputDecorator(
       decoration: InputDecoration(
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
+        const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
       child: Column(
@@ -183,17 +185,17 @@ class _HomePageState extends State<HomePage> {
                 value: "Silo 1",
                 groupValue: currentOrderState.getSiloChoiceNumber,
                 onChanged: (disableTextField(state) &&
-                        currentOrderState.getOrderCount < 2)
+                    currentOrderState.getOrderCount < 2)
                     ? (value) {
-                        setState(
-                          () {
-                            currentOrderState
-                                .setSiloChoiceNumber(value.toString());
-                            currentOrderState.setSiloChoiceNumber(
-                                currentOrderState.getSiloChoiceNumber);
-                          },
-                        );
-                      }
+                  setState(
+                        () {
+                      currentOrderState
+                          .setSiloChoiceNumber(value.toString());
+                      currentOrderState.setSiloChoiceNumber(
+                          currentOrderState.getSiloChoiceNumber);
+                    },
+                  );
+                }
                     : null,
               ),
             ),
@@ -206,17 +208,17 @@ class _HomePageState extends State<HomePage> {
                 value: "Silo 2",
                 groupValue: currentOrderState.getSiloChoiceNumber,
                 onChanged: (disableTextField(state) &&
-                        currentOrderState.getOrderCount < 2)
+                    currentOrderState.getOrderCount < 2)
                     ? (value) {
-                        setState(
-                          () {
-                            currentOrderState
-                                .setSiloChoiceNumber(value.toString());
-                            currentOrderState.setSiloChoiceNumber(
-                                currentOrderState.getSiloChoiceNumber);
-                          },
-                        );
-                      }
+                  setState(
+                        () {
+                      currentOrderState
+                          .setSiloChoiceNumber(value.toString());
+                      currentOrderState.setSiloChoiceNumber(
+                          currentOrderState.getSiloChoiceNumber);
+                    },
+                  );
+                }
                     : null,
               ),
             ),
@@ -229,17 +231,17 @@ class _HomePageState extends State<HomePage> {
                 value: "Silo 3",
                 groupValue: currentOrderState.getSiloChoiceNumber,
                 onChanged: (disableTextField(state) &&
-                        currentOrderState.getOrderCount < 2)
+                    currentOrderState.getOrderCount < 2)
                     ? (value) {
-                        setState(
-                          () {
-                            currentOrderState
-                                .setSiloChoiceNumber(value.toString());
-                            currentOrderState.setSiloChoiceNumber(
-                                currentOrderState.getSiloChoiceNumber);
-                          },
-                        );
-                      }
+                  setState(
+                        () {
+                      currentOrderState
+                          .setSiloChoiceNumber(value.toString());
+                      currentOrderState.setSiloChoiceNumber(
+                          currentOrderState.getSiloChoiceNumber);
+                    },
+                  );
+                }
                     : null,
               ),
             ),
@@ -259,27 +261,27 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
               onPressed: (disableTextField(state) &&
-                      currentOrderState.getOrderCount < 2)
+                  currentOrderState.getOrderCount < 2)
                   ? () {
-                      // Dismisses keyboard
-                      if (!disableTextField(state)) {
-                        null;
-                      } else {
-                        FocusScopeNode currentFocus = FocusScope.of(context);
-                        if (!currentFocus.hasPrimaryFocus) {
-                          currentFocus.unfocus();
-                        }
-                        // Validate returns true if the form is valid, or false otherwise.
-                        if (_weightForm.currentState!.validate()) {
-                          currentOrderState
-                              .setBothWeightOrder(_weightController.text);
-                          currentOrderState
-                              .setWeightOrder(_weightController.text);
-                          _showConfirmMessage(
-                              currentAppState.getAppConnectionState);
-                        }
-                      }
-                    }
+                // Dismisses keyboard
+                if (!disableTextField(state)) {
+                  null;
+                } else {
+                  FocusScopeNode currentFocus = FocusScope.of(context);
+                  if (!currentFocus.hasPrimaryFocus) {
+                    currentFocus.unfocus();
+                  }
+                  // Validate returns true if the form is valid, or false otherwise.
+                  if (_weightForm.currentState!.validate()) {
+                    currentOrderState
+                        .setBothWeightOrder(_weightController.text);
+                    currentOrderState
+                        .setWeightOrder(_weightController.text);
+                    _showConfirmMessage(
+                        currentAppState.getAppConnectionState);
+                  }
+                }
+              }
                   : null,
               child: const Text('Submit'),
             ),
@@ -290,11 +292,11 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
               onPressed: (disableTextField(state) &&
-                      currentOrderState.getOrderCount < 2)
+                  currentOrderState.getOrderCount < 2)
                   ? () {
-                      _weightController.clear();
-                      currentOrderState.setSiloNumber('');
-                    }
+                _weightController.clear();
+                currentOrderState.setSiloNumber('');
+              }
                   : null,
               child: const Text('Cancel'),
             ),
@@ -314,12 +316,14 @@ class _HomePageState extends State<HomePage> {
 
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
+    _idTextController.text = 'BeanBotApp';
+
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 8),
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -350,107 +354,148 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ));
           },
-          content: Form(
-            key: _adminForm,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          content: Column(
+            children: [
+              Form(
+                key: _idForm,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 0),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'Broker IP-address',
-                            isDense: true,
-                            contentPadding: EdgeInsets.all(10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 8, top: 0, right: 8, bottom: 8),
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'App MQTT id',
+                                isDense: true,
+                                contentPadding: EdgeInsets.all(10),
+                              ),
+                              controller: _idTextController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter the ID for the app.';
+                                }
+                                return null;
+                              },
+                            ),
                           ),
-                          keyboardType: TextInputType.phone,
-                          controller: _ipTextController,
-                          maxLength: 13,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter the IP address';
-                            } else {
-                              // Checks if a valid IP address is entered.
-                              if (validateIp(value) == false) {
-                                return 'Please enter a valid IP address';
-                              }
-                            }
-                            return null;
-                          },
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
-                Row(
+              ),
+              Form(
+                key: _adminForm,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_adminForm.currentState!.validate()) {
-                              if (currentAppState.getAppConnectionState ==
-                                  MQTTAppConnectionState.disconnected) {
-                                currentAppState
-                                    .setHostIp(_ipTextController.text);
-                                _configureAndConnect();
-                              }
-                              currentAppState.setHostIp(_ipTextController.text);
-                              if (currentAppState.getAppConnectionState ==
-                                  MQTTAppConnectionState.connected) {
-                                currentAppState.setAppConnectionState(
-                                    MQTTAppConnectionState.connected);
-                              }
-                            }
-                          },
-                          child: const Text('Connect'),
-                          style: TextButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            primary: Colors.white,
-                            onSurface: Colors.greenAccent,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 0),
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Broker IP-address',
+                                isDense: true,
+                                contentPadding: EdgeInsets.all(10),
+                              ),
+                              keyboardType: TextInputType.phone,
+                              controller: _ipTextController,
+                              maxLength: 13,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter the IP address';
+                                } else {
+                                  // Checks if a valid IP address is entered.
+                                  if (validateIp(value) == false) {
+                                    return 'Please enter a valid IP address';
+                                  }
+                                }
+                                return null;
+                              },
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // currentAppState.setHostIp(_ipTextController.text);
-                            if (currentAppState.getAppConnectionState ==
-                                MQTTAppConnectionState.connected) {
-                              _disconnect();
-                            }
-                            if (currentAppState.getAppConnectionState ==
-                                MQTTAppConnectionState.disconnected) {
-                              currentAppState.setAppConnectionState(
-                                  MQTTAppConnectionState.disconnected);
-                              currentAppState.setHostIp(_ipTextController.text);
-                            }
-                          },
-                          child: const Text('Disconnect'),
-                          style: TextButton.styleFrom(
-                            primary: Colors.white,
-                            backgroundColor: Colors.red,
-                            onSurface: Colors.redAccent,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_adminForm.currentState!.validate() &&
+                                    _idForm.currentState!.validate()) {
+                                  if (currentAppState.getAppConnectionState ==
+                                      MQTTAppConnectionState.disconnected) {
+                                    currentAppState
+                                        .setHostIp(_ipTextController.text);
+                                    _configureAndConnect();
+                                    currentAppState
+                                        .setAppId(_idTextController.text);
+                                  }
+                                  if (currentAppState.getAppConnectionState ==
+                                      MQTTAppConnectionState.connected) {
+                                    currentAppState.setAppConnectionState(
+                                        MQTTAppConnectionState.connected);
+                                  }
+                                }
+                              },
+                              child: const Text('Connect'),
+                              style: TextButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                primary: Colors.white,
+                                onSurface: Colors.greenAccent,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // currentAppState.setHostIp(_ipTextController.text);
+                                if (currentAppState.getAppConnectionState ==
+                                    MQTTAppConnectionState.connected) {
+                                  _disconnect();
+                                }
+                                if (currentAppState.getAppConnectionState ==
+                                    MQTTAppConnectionState.disconnected) {
+                                  currentAppState.setAppConnectionState(
+                                      MQTTAppConnectionState.disconnected);
+                                  currentAppState
+                                      .setHostIp(_ipTextController.text);
+                                }
+                              },
+                              child: const Text('Disconnect'),
+                              style: TextButton.styleFrom(
+                                primary: Colors.white,
+                                backgroundColor: Colors.red,
+                                onSurface: Colors.redAccent,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -515,7 +560,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -588,7 +633,7 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                           color: Colors.green,
                                           borderRadius:
-                                              BorderRadius.circular(4.0)),
+                                          BorderRadius.circular(4.0)),
                                       width: firstWeightFraction * (width - 32),
                                       height: 28,
                                     ),
@@ -596,7 +641,7 @@ class _HomePageState extends State<HomePage> {
                                   Container(
                                     decoration: BoxDecoration(
                                         borderRadius:
-                                            BorderRadius.circular(5.0),
+                                        BorderRadius.circular(5.0),
                                         border: Border.all(
                                           width: 1,
                                           color: Colors.black,
@@ -629,19 +674,19 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableFirstCancelOrder(appState)
                                   ? () {
-                                      _publishMessage('0000', 'order1');
-                                      orderState.setFirstOrder('');
-                                      orderState.decrementOrderCount();
-                                      firstWeightFraction = 0.0;
-                                    }
+                                _publishMessage('0000', 'order1');
+                                orderState.setFirstOrder('');
+                                orderState.decrementOrderCount();
+                                firstWeightFraction = 0.0;
+                              }
                                   : null,
                               child: const Text('Cancel order'),
                               style: TextButton.styleFrom(
                                 primary: Colors.white,
                                 backgroundColor:
-                                    colorFirstOrderCancelButton(appState),
+                                colorFirstOrderCancelButton(appState),
                                 onSurface:
-                                    colorFirstOrderCancelButton(appState),
+                                colorFirstOrderCancelButton(appState),
                               ),
                             ),
                           ),
@@ -664,7 +709,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: Column(
@@ -705,7 +750,7 @@ class _HomePageState extends State<HomePage> {
             double.parse(currentAppState.getSecondOrderWeightText)) {
       secondWeightFraction = 1.0;
     } else if (double.tryParse(currentOrderState.getSecondWeightOrder) !=
-            null &&
+        null &&
         double.parse(currentOrderState.getSecondWeightOrder) > 0.0) {
       secondWeightFraction =
           double.parse(currentAppState.getSecondOrderWeightText) /
@@ -729,7 +774,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -740,7 +785,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => toggleFunction(animated: true),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -808,9 +853,9 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                           color: Colors.green,
                                           borderRadius:
-                                              BorderRadius.circular(4.0)),
+                                          BorderRadius.circular(4.0)),
                                       width:
-                                          secondWeightFraction * (width - 32),
+                                      secondWeightFraction * (width - 32),
                                       height: 28,
                                     ),
                                   ),
@@ -850,19 +895,19 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableSecondCancelOrder(appState)
                                   ? () {
-                                      _publishMessage('0000', 'order2');
-                                      orderState.setSecondOrder('');
-                                      orderState.decrementOrderCount();
-                                      secondWeightFraction = 0.0;
-                                    }
+                                _publishMessage('0000', 'order2');
+                                orderState.setSecondOrder('');
+                                orderState.decrementOrderCount();
+                                secondWeightFraction = 0.0;
+                              }
                                   : null,
                               child: const Text('Cancel order'),
                               style: TextButton.styleFrom(
                                 primary: Colors.white,
                                 backgroundColor:
-                                    colorSecondOrderCancelButton(appState),
+                                colorSecondOrderCancelButton(appState),
                                 onSurface:
-                                    colorSecondOrderCancelButton(appState),
+                                colorSecondOrderCancelButton(appState),
                               ),
                             ),
                           ),
@@ -885,7 +930,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: Column(
@@ -960,9 +1005,9 @@ class _HomePageState extends State<HomePage> {
 
   // Creates the navigation menu.
   PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-        value: item,
-        child: Text(item.text),
-      );
+    value: item,
+    child: Text(item.text),
+  );
 
   // Returns false when the first order has started.
   bool disableFirstCancelOrder(MQTTAppState appState) {
@@ -1063,7 +1108,7 @@ class _HomePageState extends State<HomePage> {
           'adminListener',
           "motor1",
           'motor2',
-          'motor3',
+          'servo4',
           'servo1',
           'servo2',
           'servo3',
@@ -1071,7 +1116,7 @@ class _HomePageState extends State<HomePage> {
           'secondColorListener',
           'override'
         ],
-        identifier: "BeanBotDemo",
+        identifier: currentAppState.getAppId,
         state: currentAppState,
         orderState: currentOrderState);
     manager.initializeMQTTClient();
@@ -1082,8 +1127,9 @@ class _HomePageState extends State<HomePage> {
   // Disconnects the app from the broker.
   void _disconnect() {
     manager.disconnect();
-    currentAppState.setFirstOrderReceivedWeightText('0');
-    currentOrderState.setFirstOrder('');
+    currentAppState.disposeSecondOrderAppState();
+    currentOrderState.disposeSecondOrder();
+    _showDisconnectionMessage();
   }
 
   // Handles the navigation of the popupmenu.
@@ -1133,7 +1179,8 @@ class _HomePageState extends State<HomePage> {
                       break;
                   }
 
-                  currentAppState.setOrderMessage(beanWeightIndex + currentOrderState.getWeightOrder);
+                  currentAppState.setOrderMessage(
+                      beanWeightIndex + currentOrderState.getWeightOrder);
 
                   String currentOrder =
                       '${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloChoiceNumber.toLowerCase()}';
@@ -1141,7 +1188,8 @@ class _HomePageState extends State<HomePage> {
                   if (currentOrderState.getFirstOrder == '' &&
                       currentOrderState.getSecondOrder == '') {
                     _publishMessage(currentAppState.getOrderMessage, "order1");
-                  } else  if (currentOrderState.getFirstOrder != '' && currentOrderState.getSecondOrder == '') {
+                  } else if (currentOrderState.getFirstOrder != '' &&
+                      currentOrderState.getSecondOrder == '') {
                     _publishMessage(currentAppState.getOrderMessage, "order2");
                   }
                   currentOrderState.setOrder(currentOrder);
@@ -1237,6 +1285,34 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                     "You've ordered ${currentOrderState.getWeightOrder}g of ${currentOrderState.getSiloChoiceNumber.toLowerCase()}."),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDisconnectionMessage() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Disconnection'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const [
+                Text(
+                    "The app disconnected from the broker. If the Bean Bot is processing an order, it will finish."),
               ],
             ),
           ),

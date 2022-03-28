@@ -1,17 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'dart:math' as math;
 
-import 'package:bean_bot/data/menu_items.dart';
-import 'package:bean_bot/model/menu_item.dart';
-
-import 'package:bean_bot/pages/debug.dart';
-import 'package:bean_bot/pages/logs.dart';
-import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
+import 'package:bean_bot/data/menu_items.dart';
+import 'package:bean_bot/model/menu_item.dart';
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
+import 'package:bean_bot/pages/debug.dart';
+import 'package:bean_bot/pages/logs.dart';
 import 'package:expansion_widget/expansion_widget.dart';
-
-import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -1112,6 +1110,9 @@ class _HomePageState extends State<HomePage> {
           'servo1',
           'servo2',
           'servo3',
+          'servo4',
+          'readUltrasonic',
+          'readColor',
           'firstColorListener',
           'secondColorListener',
           'override'

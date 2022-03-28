@@ -1,9 +1,8 @@
+import 'package:bean_bot/Providers/mqtt_app_state.dart';
+import 'package:bean_bot/Providers/order_state.dart';
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bean_bot/Providers/order_state.dart';
-
-import 'package:bean_bot/mqtt/mqtt_manager.dart';
-import 'package:bean_bot/Providers/mqtt_app_state.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({Key? key}) : super(key: key);
@@ -16,6 +15,7 @@ class _DebugPageState extends State<DebugPage> {
   final _servoForm1 = GlobalKey<FormState>();
   final _servoForm2 = GlobalKey<FormState>();
   final _servoForm3 = GlobalKey<FormState>();
+  final _servoForm4 = GlobalKey<FormState>();
 
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
@@ -24,6 +24,7 @@ class _DebugPageState extends State<DebugPage> {
   final TextEditingController _firstServoController = TextEditingController();
   final TextEditingController _secondServoController = TextEditingController();
   final TextEditingController _thirdServoController = TextEditingController();
+  final TextEditingController _fourthServoController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,7 @@ class _DebugPageState extends State<DebugPage> {
         _buildManualOverrideState(appState.getAppConnectionState),
         _buildServoInput(),
         _buildMotorToggle(),
+        _buildSensors(),
         _buildArduinoToggle(),
       ]),
     );
@@ -300,6 +302,57 @@ class _DebugPageState extends State<DebugPage> {
             ],
           ),
         ),
+        Form(
+          key: _servoForm4,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: TextFormField(
+                    enabled: appState.getIsSwitched,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Degrees servo 4',
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(10),
+                    ),
+                    keyboardType: TextInputType.phone,
+                    controller: _thirdServoController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the number of degrees';
+                      }
+                      if (int.parse(value) > 180 || int.parse(value) < 0) {
+                        return 'Between 0 and 180!';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched
+                        ? () {
+                            if (_servoForm3.currentState!.validate()) {
+                              _publishMessage(
+                                  _thirdServoController.text, 'servo4');
+                            }
+                          }
+                        : null,
+                    child: const Text('Apply'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -456,74 +509,106 @@ class _DebugPageState extends State<DebugPage> {
           indent: 8,
           endIndent: 8,
         ),
-        Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5.0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Text(
-                            'Motor 3',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
-                          )),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                onPressed: appState.getIsSwitched
-                                    ? () {
-                                        _publishMessage('toggle', 'motor3');
-                                      }
-                                    : null,
-                                child: const Text('Toggle'),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                onPressed: appState.getIsSwitched
-                                    ? () {
-                                        _publishMessage(
-                                            'change_rotation', 'motor3');
-                                      }
-                                    : null,
-                                child: const Text('Change rotation'),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const Divider(
-          indent: 8,
-          endIndent: 8,
-        ),
       ],
     );
+  }
+
+  Widget _buildSensors() {
+    return Column(children: [
+      Row(
+        mainAxisSize: MainAxisSize.max,
+        children: const <Widget>[
+          Padding(
+            padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
+            child: Text(
+              'Ultrasonic Sensor',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _publishMessage('read', 'readUltrasonic');
+                  // Respond to button press
+                },
+                child: const Text('Start Reading'),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _publishMessage('stop', 'readUltrasonic');
+                  // Respond to button press
+                },
+                child: const Text('Stop reading'),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const Divider(
+        indent: 8,
+        endIndent: 8,
+      ),
+      Row(
+        mainAxisSize: MainAxisSize.max,
+        children: const <Widget>[
+          Padding(
+            padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
+            child: Text(
+              'Color sensor',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _publishMessage('read_color', 'readColor');
+                  // Respond to button press
+                },
+                child: const Text('Start color'),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _publishMessage('stop_color', 'readColor');
+                  // Respond to button press
+                },
+                child: const Text('Stop color'),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const Divider(indent: 8, endIndent: 9),
+    ]);
   }
 
   Widget _buildArduinoToggle() {

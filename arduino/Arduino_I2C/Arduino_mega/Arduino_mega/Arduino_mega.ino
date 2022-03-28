@@ -147,7 +147,9 @@ void loop() {
   delay(100);
   if (topic != "" && messageString != "") {
     manualFlow(topic, messageString);
-
+    message = "";
+    messageString = "";
+    topic = ""; 
   }
 }
 

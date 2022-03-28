@@ -2,7 +2,7 @@
 #if defined(__AVR__)
 #include <WiFi.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>*****************/
+#include <ESP8266WiFi.h>
 
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
@@ -69,9 +69,9 @@ const uint8_t LEDR_PIN = 9;
 const uint8_t LEDG_PIN = 10;
 const uint8_t LEDB_PIN = 11;
 
-const uint8_t KS2_PIN = 17;
-const uint8_t KS3_PIN = 18;
-const uint8_t KOUT_PIN = 19;
+const uint8_t KS2_PIN = 14;
+const uint8_t KS3_PIN = 19;
+const uint8_t KOUT_PIN = 38;
 
 const uint8_t WSDA_PIN = 20;
 const uint8_t WSCL_PIN = 21;
@@ -88,6 +88,7 @@ bool proceedNormalFlow = false;
 
 long lastReadingTimeWeight = 0;
 long lastReadingTimeDistance = 0;
+long lastReadingTimeColor = 0;
 
 uint8_t calibrationFactor = 1;
 
@@ -146,11 +147,8 @@ void loop() {
   delay(100);
   if (topic != "" && messageString != "") {
     manualFlow(topic, messageString);
-  }
 
-  message = "";
-  topic = "";
-  messageString = "";
+  }
 }
 
 /************************* Helpers *************************/
@@ -263,31 +261,50 @@ void readWeight() {
 
 /************************* Read color sensor and publish *************************/
 void readColor() {
-  String red = "0";
-  String green = "0";
-  String blue = "0";
+  uint8_t red = "0";
+  uint8_t green = "0";
+  uint8_t blue = "0";
+
+  String redString;
+  String greenString;
+  String blueString;
 
   digitalWrite(KS2_PIN, LOW);
   digitalWrite(KS3_PIN, LOW);
-  red = String(pulseIn(KOUT_PIN, LOW));
-
-  digitalWrite(KS2_PIN, LOW);
-  digitalWrite(KS3_PIN, HIGH);
-  blue = String(pulseIn(KOUT_PIN, LOW));
+  red = pulseIn(KOUT_PIN, LOW);
+  redString = String(red);
+  if (redString.length() == 1) {
+    redString = "00" + redString;
+  } else if (redString.length() == 2) {
+    redString = "0" + redString;
+  }
 
   digitalWrite(KS2_PIN, HIGH);
   digitalWrite(KS3_PIN, HIGH);
-  green = String(pulseIn(KOUT_PIN, LOW));
+  green = pulseIn(KOUT_PIN, LOW);
+  greenString = String(green);
+  if (greenString.length() == 1) {
+    greenString = "00" + greenString;
+  } else if (greenString.length() == 2) {
+    greenString = "0" + greenString;
+  }
 
-  // nodemcu.print("log_Red: " + String(red) + "; green: " + String(green) + "; blue: " + String(blue) + ".");
-  String color = red + green + blue;
+  digitalWrite(KS2_PIN, LOW);
+  digitalWrite(KS3_PIN, HIGH);
+  blue = pulseIn(KOUT_PIN, LOW);
+  blueString = String(blue);
+  if (blueString .length() == 1) {
+    blueString  = "00" + blueString ;
+  } else if (blueString.length() == 2) {
+    blueString  = "0" + blueString ;
+  }
 
-  if (orderState == 1) {
-    sendMessage = "color1_" + color;
-  } else if (orderState == 2) {
-    sendMessage = "color2_" + color;
-  } else {
-    sendMessage = "color_error";
+  String color = redString + greenString + blueString;
+  
+  if ((millis() - lastReadingTimeColor) > 500) {
+    lastReadingTimeColor = millis();
+    sendMessage = sendMessage + color;
+    Serial.println(color);
   }
 }
 
@@ -317,7 +334,6 @@ void readUltrasonic() {
     lastReadingTimeDistance = millis();
     sendMessage = sendMessage + String(distance);
     Serial.println(distance);
-    // nodemcu.print("log_Distance to truck: " + String(distance) + "cm.");
   }
 }
 
@@ -421,12 +437,14 @@ void manualFlow(String topic, String messageString) {
     lcd.print(messageString);
   }
 
-  else if (topic == "ultra") {
-    while (messageString == "read") {
-      readUltrasonic();
-      delay(1000);
-    }
+  else if (topic == "ultra" && messageString == "read") {
+    readUltrasonic();
   }
+
+  else if (topic == "readColor" && messageString == "read_color") {
+    readColor();
+  }
+
   else {
     sendMessage = "topic error";
   }

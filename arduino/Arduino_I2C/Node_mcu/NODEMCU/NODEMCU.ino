@@ -105,7 +105,10 @@ void callback(char* topic, byte* message, unsigned int length) {
     } else if (topicString == "readUltrasonic") {
       logFlow("ROUTE: From origin to ultranosicFlow");
       wireFlow("ultra_" + messageString);
-      }
+    } else if (topicString == "readColor") {
+      logFlow("ROUTE: From origin to colorFlow");
+      wireFlow("readColor_" + messageString);
+    }
     else {
       logFlow("ERROR: callback() :: no matching topic or override not enabled.");
     }
@@ -130,8 +133,9 @@ void reconnect() {
       client.subscribe("firstWeightListener");
       client.subscribe("secondWeightListener");
       client.subscribe("readUltrasonic");
+      client.subscribe("readColor");
       client.subscribe("override");
-      
+
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -210,7 +214,6 @@ void pollWire() {
     char c = Wire.read();
     message = message + c;
 
-    // Serial.print(c);
   }
 
   while (message.indexOf("@") != -1) {

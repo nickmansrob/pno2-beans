@@ -52,19 +52,18 @@ uint8_t servoThreeState = 90;
 
 /************************* LCD *************************/
 
-const uint8_t LCDRS_PIN = 48;
+const uint8_t LCDRS_PIN = 50;
 const uint8_t LCDE_PIN = 49;
-const uint8_t LCDDB4_PIN = 50;
-const uint8_t LCDDB5_PIN = 51;
-const uint8_t LCDDB6_PIN = 52;
-const uint8_t LCDDB7_PIN = 53;
+const uint8_t LCDDB4_PIN = 46;
+const uint8_t LCDDB5_PIN = 52;
+const uint8_t LCDDB6_PIN = 47;
+const uint8_t LCDDB7_PIN = 45;
 
-LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
 
 /************************* Sensors *************************/
-const uint8_t UTRIG_PIN = 8;
-const uint8_t UECHO_PIN = 14;
+const uint8_t UTRIG_PIN = 10;
+const uint8_t UECHO_PIN = 8;
 
 const uint8_t LEDR_PIN = 9;
 const uint8_t LEDG_PIN = 10;
@@ -77,6 +76,7 @@ const uint8_t KOUT_PIN = 19;
 const uint8_t WSDA_PIN = 20;
 const uint8_t WSCL_PIN = 21;
 
+LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
 
 /************************* Reset function *************************/
@@ -117,7 +117,7 @@ void setup() {
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
 
-  servoOne.write(servoOneState);  
+  servoOne.write(servoOneState);
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
@@ -136,16 +136,21 @@ void setup() {
 
   digitalWrite(MOTOR1_PIN, LOW);
 
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.print("Weight [g]:");
+
 }
 
 void loop() {
   delay(100);
   if (topic != "" && messageString != "") {
     manualFlow(topic, messageString);
-    message = "";
-    topic = "";
-    messageString = "";
   }
+
+  message = "";
+  topic = "";
+  messageString = "";
 }
 
 /************************* Helpers *************************/
@@ -230,10 +235,6 @@ void readWeight() {
   String weight = "0";
   float weightInt = 0.0;
 
-  // Initializing LCD
-  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
-  lcd.begin(16, 2); // starts connection to the LCD
-
   HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
   LoadCell.begin(); // Starts  connection to the weight sensor.
   LoadCell.start(2000); // Sets the time the sensor gets to configure
@@ -245,10 +246,6 @@ void readWeight() {
   weight = String(weightInt);
 
   // Printing the weight to the LCD screen.
-  lcd.setCursor(0, 0);
-  lcd.print("Weight [g]:");
-  lcd.setCursor(0, 1);
-  lcd.print(weight);
 
   // If one second has passed, weight is updated.
   if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
@@ -296,11 +293,12 @@ void readColor() {
 
 /************************* Read ultrasonic sensor *************************/
 void readUltrasonic() {
+  sendMessage = "ultra_";
   uint8_t theta = servoOneState;
   uint16_t radius = 0;
   const uint8_t cilinderOffset = 2;
-  uint8_t duration;
-  uint8_t distance;
+  double duration;
+  double distance;
 
   // Clears the condition on the trig pin.
   digitalWrite(UTRIG_PIN, LOW);
@@ -317,9 +315,10 @@ void readUltrasonic() {
 
   if (distance > 0 && (millis() - lastReadingTimeDistance) > 500) {
     lastReadingTimeDistance = millis();
+    sendMessage = sendMessage + String(distance);
+    Serial.println(distance);
     // nodemcu.print("log_Distance to truck: " + String(distance) + "cm.");
   }
-
 }
 
 /************************* Program flow *************************/
@@ -402,7 +401,7 @@ void manualFlow(String topic, String messageString) {
     // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
   }
-  else  if (topic == "servo3") {
+  else if (topic == "servo3") {
     uint8_t angle = messageString.toInt();
     // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
@@ -411,12 +410,30 @@ void manualFlow(String topic, String messageString) {
     // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
   }
+  // Weight data
+  else if (topic == "weight1") {
+    lcd.setCursor(0, 1);
+    lcd.print(messageString);
+  }
+
+  else if (topic == "weight2") {
+    lcd.setCursor(0, 1);
+    lcd.print(messageString);
+  }
+
+  else if (topic == "ultra") {
+    while (messageString == "read") {
+      readUltrasonic();
+      delay(1000);
+    }
+  }
   else {
     sendMessage = "topic error";
   }
 }
 
 void receiveEvent(int howMany) {
+
   while (0 < Wire.available()) {
     char c = Wire.read();
     message = message + c;
@@ -434,21 +451,16 @@ void receiveEvent(int howMany) {
 
   }
 
-  Serial.println(message);
-  Serial.println(topic);
-  Serial.println(messageString);
-
 }
 
 // function that executes whenever data is requested from master
 
-
 void sendText(int numBytes) {
   if (sendMessage != "") {
-  while (sendMessage.length() != 32) {
-    sendMessage = sendMessage + "@";
+    while (sendMessage.length() != 32) {
+      sendMessage = sendMessage + "@";
     }
-  Wire.write(sendMessage.c_str());
+    Wire.write(sendMessage.c_str());
   }
   sendMessage = "";
 }

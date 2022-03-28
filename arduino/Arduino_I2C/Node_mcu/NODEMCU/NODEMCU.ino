@@ -1,5 +1,5 @@
 /************************* Libraries *************************/
-#if defined(__AVR__)
+#if defined(_AVR_)
 #include <WiFi.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -11,7 +11,7 @@
 /************************* WiFi *************************/
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "192.168.9.124";
+const char * mqtt_server = "10.45.66.58";
 
 /************************* MQTT *************************/
 WiFiClient espClient;
@@ -96,7 +96,17 @@ void callback(char* topic, byte* message, unsigned int length) {
     } else if (topicString == "adminListener") {
       logFlow("ROUTE: From origin to adminFlow");
       adminFlow(messageString);
-    } else {
+    } else if (topicString == "firstWeightListener") {
+      logFlow("ROUTE: From origin to weightFlow");
+      wireFlow("weight1_" + messageString);
+    } else if (topicString == "secondWeightListener") {
+      logFlow("ROUTE: From origin to weightFlow");
+      wireFlow("weight2_" + messageString);
+    } else if (topicString == "readUltrasonic") {
+      logFlow("ROUTE: From origin to ultranosicFlow");
+      wireFlow("ultra_" + messageString);
+      }
+    else {
       logFlow("ERROR: callback() :: no matching topic or override not enabled.");
     }
   }
@@ -117,7 +127,11 @@ void reconnect() {
       client.subscribe("servo3");
       client.subscribe("order");
       client.subscribe("adminListener");
+      client.subscribe("firstWeightListener");
+      client.subscribe("secondWeightListener");
+      client.subscribe("readUltrasonic");
       client.subscribe("override");
+      
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -203,21 +217,21 @@ void pollWire() {
     int questionmarkIndex = message.indexOf("@");
     message.remove(questionmarkIndex, 1);
   }
-  
-    int indexDelimiter = message.indexOf('_');
 
-    if (indexDelimiter == -1) {
-       // logFlow(message);
-    }
-    else {
-      topic = message.substring(0, indexDelimiter);
-      messageString = message.substring(indexDelimiter + 1, message.length());
-    }
-    
-    if (message != "" and messageString != "") {
-      logFlow(messageString);
-    }
-  
+  int indexDelimiter = message.indexOf('_');
+
+  if (indexDelimiter == -1) {
+    // logFlow(message);
+  }
+  else {
+    topic = message.substring(0, indexDelimiter);
+    messageString = message.substring(indexDelimiter + 1, message.length());
+  }
+
+  if (message != "" and messageString != "") {
+    logFlow(messageString);
+  }
+
 }
 
 void wireFlow(String message) {

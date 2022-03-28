@@ -1106,7 +1106,6 @@ class _HomePageState extends State<HomePage> {
           'adminListener',
           "motor1",
           'motor2',
-          'servo4',
           'servo1',
           'servo2',
           'servo3',

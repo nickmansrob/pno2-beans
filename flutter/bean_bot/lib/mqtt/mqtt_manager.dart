@@ -59,8 +59,8 @@ class MQTTManager with ChangeNotifier {
   void disconnect() {
     _client!.disconnect();
     _currentState.setIsSwitched(false);
-    _currentOrderState.setSiloNumber('');
-    _currentOrderState.setFirstOrder('no order');
+    _currentState.disposeSecondOrderAppState();
+    _currentOrderState.disposeSecondOrder();
   }
 
   void publish(String message, String topic) {

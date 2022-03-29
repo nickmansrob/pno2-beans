@@ -259,55 +259,55 @@ void readWeight() {
 void readColor() {
 
   while (colorState == HIGH) {
-    //if ((millis() - lastReadingTimeColor) > 500 && colorState == HIGH) {
-    lastReadingTimeColor = millis();
-    //sendMessage = "color_";
+    if ((millis() - lastReadingTimeColor) > 500 && colorState == HIGH) {
+      lastReadingTimeColor = millis();
+      //sendMessage = "color_";
 
 
-    uint8_t red = "0";
-    uint8_t green = "0";
-    uint8_t blue = "0";
+      uint8_t red = "0";
+      uint8_t green = "0";
+      uint8_t blue = "0";
 
-    String redString;
-    String greenString;
-    String blueString;
+      String redString;
+      String greenString;
+      String blueString;
 
-    digitalWrite(KS2_PIN, LOW);
-    digitalWrite(KS3_PIN, LOW);
-    red = pulseIn(KOUT_PIN, LOW);
-    redString = String(red);
-    if (redString.length() == 1) {
-      redString = "00" + redString;
-    } else if (redString.length() == 2) {
-      redString = "0" + redString;
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, LOW);
+      red = pulseIn(KOUT_PIN, LOW);
+      redString = String(red);
+      if (redString.length() == 1) {
+        redString = "00" + redString;
+      } else if (redString.length() == 2) {
+        redString = "0" + redString;
+      }
+
+      digitalWrite(KS2_PIN, HIGH);
+      digitalWrite(KS3_PIN, HIGH);
+      green = pulseIn(KOUT_PIN, LOW);
+      greenString = String(green);
+      if (greenString.length() == 1) {
+        greenString = "00" + greenString;
+      } else if (greenString.length() == 2) {
+        greenString = "0" + greenString;
+      }
+
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, HIGH);
+      blue = pulseIn(KOUT_PIN, LOW);
+      blueString = String(blue);
+      if (blueString .length() == 1) {
+        blueString  = "00" + blueString ;
+      } else if (blueString.length() == 2) {
+        blueString  = "0" + blueString ;
+      }
+
+      String color = redString + greenString + blueString;
+
+      sendMessage = sendMessage + color;
+      Serial.println(color);
     }
-
-    digitalWrite(KS2_PIN, HIGH);
-    digitalWrite(KS3_PIN, HIGH);
-    green = pulseIn(KOUT_PIN, LOW);
-    greenString = String(green);
-    if (greenString.length() == 1) {
-      greenString = "00" + greenString;
-    } else if (greenString.length() == 2) {
-      greenString = "0" + greenString;
-    }
-
-    digitalWrite(KS2_PIN, LOW);
-    digitalWrite(KS3_PIN, HIGH);
-    blue = pulseIn(KOUT_PIN, LOW);
-    blueString = String(blue);
-    if (blueString .length() == 1) {
-      blueString  = "00" + blueString ;
-    } else if (blueString.length() == 2) {
-      blueString  = "0" + blueString ;
-    }
-
-    String color = redString + greenString + blueString;
-
-    //sendMessage = sendMessage + color;
-    Serial.println(color);
   }
-  //}
 }
 
 /************************* Read ultrasonic sensor *************************/
@@ -452,6 +452,7 @@ void manualFlow(String topic, String messageString) {
   }
 
   else if (topic == "color") {
+    Serial.print("color");
     if (messageString == "readColor" && colorState == LOW) {
       colorState = HIGH;
       readColor();
@@ -466,7 +467,6 @@ void manualFlow(String topic, String messageString) {
 }
 
 void receiveEvent(int howMany) {
-  String message;
   while (0 < Wire.available()) {
     char c = Wire.read();
     message = message + c;
@@ -478,12 +478,13 @@ void receiveEvent(int howMany) {
     Serial.println(message);
   }
   else {
-    String topic = message.substring(0, indexDelimiter);
-    String messageString = message.substring(indexDelimiter + 1, message.length());
-
+    topic = message.substring(0, indexDelimiter);
+    messageString = message.substring(indexDelimiter + 1, message.length());
     delay(100);
   }
   Serial.println(message);
+  Serial.println(topic);
+  Serial.println(messageString);
 
 }
 

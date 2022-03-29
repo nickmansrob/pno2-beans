@@ -147,9 +147,6 @@ void loop() {
   delay(100);
   if (topic != "" && messageString != "") {
     manualFlow(topic, messageString);
-    message = "";
-    messageString = "";
-    topic = ""; 
   }
 }
 
@@ -262,81 +259,85 @@ void readWeight() {
 }
 
 /************************* Read color sensor and publish *************************/
-void readColor() {
-  uint8_t red = "0";
-  uint8_t green = "0";
-  uint8_t blue = "0";
+void readColor(String messageString) {
+  //while (messageString == "read") {
+    uint8_t red = "0";
+    uint8_t green = "0";
+    uint8_t blue = "0";
 
-  String redString;
-  String greenString;
-  String blueString;
+    String redString;
+    String greenString;
+    String blueString;
 
-  digitalWrite(KS2_PIN, LOW);
-  digitalWrite(KS3_PIN, LOW);
-  red = pulseIn(KOUT_PIN, LOW);
-  redString = String(red);
-  if (redString.length() == 1) {
-    redString = "00" + redString;
-  } else if (redString.length() == 2) {
-    redString = "0" + redString;
-  }
+    digitalWrite(KS2_PIN, LOW);
+    digitalWrite(KS3_PIN, LOW);
+    red = pulseIn(KOUT_PIN, LOW);
+    redString = String(red);
+    if (redString.length() == 1) {
+      redString = "00" + redString;
+    } else if (redString.length() == 2) {
+      redString = "0" + redString;
+    }
 
-  digitalWrite(KS2_PIN, HIGH);
-  digitalWrite(KS3_PIN, HIGH);
-  green = pulseIn(KOUT_PIN, LOW);
-  greenString = String(green);
-  if (greenString.length() == 1) {
-    greenString = "00" + greenString;
-  } else if (greenString.length() == 2) {
-    greenString = "0" + greenString;
-  }
+    digitalWrite(KS2_PIN, HIGH);
+    digitalWrite(KS3_PIN, HIGH);
+    green = pulseIn(KOUT_PIN, LOW);
+    greenString = String(green);
+    if (greenString.length() == 1) {
+      greenString = "00" + greenString;
+    } else if (greenString.length() == 2) {
+      greenString = "0" + greenString;
+    }
 
-  digitalWrite(KS2_PIN, LOW);
-  digitalWrite(KS3_PIN, HIGH);
-  blue = pulseIn(KOUT_PIN, LOW);
-  blueString = String(blue);
-  if (blueString .length() == 1) {
-    blueString  = "00" + blueString ;
-  } else if (blueString.length() == 2) {
-    blueString  = "0" + blueString ;
-  }
+    digitalWrite(KS2_PIN, LOW);
+    digitalWrite(KS3_PIN, HIGH);
+    blue = pulseIn(KOUT_PIN, LOW);
+    blueString = String(blue);
+    if (blueString .length() == 1) {
+      blueString  = "00" + blueString ;
+    } else if (blueString.length() == 2) {
+      blueString  = "0" + blueString ;
+    }
 
-  String color = redString + greenString + blueString;
-  
-  if ((millis() - lastReadingTimeColor) > 500) {
-    lastReadingTimeColor = millis();
-    sendMessage = sendMessage + color;
-    Serial.println(color);
-  }
+    String color = redString + greenString + blueString;
+
+    if ((millis() - lastReadingTimeColor) > 500) {
+      lastReadingTimeColor = millis();
+      sendMessage = sendMessage + color;
+      Serial.println(color);
+    }
+  //}
 }
 
 /************************* Read ultrasonic sensor *************************/
-void readUltrasonic() {
-  sendMessage = "ultra_";
-  uint8_t theta = servoOneState;
-  uint16_t radius = 0;
-  const uint8_t cilinderOffset = 2;
-  double duration;
-  double distance;
+void readUltrasonic(String messageString) {
+  //while (messageString == "read") {
+    sendMessage = "ultra_";
+    uint8_t theta = servoOneState;
+    uint16_t radius = 0;
+    const uint8_t cilinderOffset = 2;
+    double duration;
+    double distance;
 
-  // Clears the condition on the trig pin.
-  digitalWrite(UTRIG_PIN, LOW);
-  delayMicroseconds(2);
+    // Clears the condition on the trig pin.
+    digitalWrite(UTRIG_PIN, LOW);
+    delayMicroseconds(2);
 
-  // Sets the trig pin active for 10 microseconds.
-  digitalWrite(UTRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  // Mesures the time the sound wave traveled.
-  duration = pulseIn(UECHO_PIN, HIGH);
-  // Gives the distance in cm.
-  distance = duration * 0.034 / 2;
-  distance = distance + cilinderOffset;
+    // Sets the trig pin active for 10 microseconds.
+    digitalWrite(UTRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    // Mesures the time the sound wave traveled.
+    duration = pulseIn(UECHO_PIN, HIGH);
+    // Gives the distance in cm.
+    distance = duration * 0.034 / 2;
+    distance = distance + cilinderOffset;
 
-  if (distance > 0 && (millis() - lastReadingTimeDistance) > 500) {
-    lastReadingTimeDistance = millis();
-    sendMessage = sendMessage + String(distance);
-    Serial.println(distance);
-  }
+    if (distance > 0 && (millis() - lastReadingTimeDistance) > 500) {
+      lastReadingTimeDistance = millis();
+      sendMessage = sendMessage + String(distance);
+      Serial.println(distance);
+    }
+  //}
 }
 
 /************************* Program flow *************************/
@@ -439,12 +440,12 @@ void manualFlow(String topic, String messageString) {
     lcd.print(messageString);
   }
 
-  else if (topic == "ultra" && messageString == "read") {
-    readUltrasonic();
+  else if (topic == "ultra") {
+    readUltrasonic(messageString);
   }
 
-  else if (topic == "readColor" && messageString == "read_color") {
-    readColor();
+  else if (topic == "readColor") {
+    readColor(messageString);
   }
 
   else {
@@ -470,6 +471,8 @@ void receiveEvent(int howMany) {
     delay(100);
 
   }
+  Serial.println(message);
+  Serial.println(messageString);
 
 }
 

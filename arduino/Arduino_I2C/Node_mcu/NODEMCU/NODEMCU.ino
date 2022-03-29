@@ -11,7 +11,7 @@
 /************************* WiFi *************************/
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "10.45.66.58";
+const char * mqtt_server = "192.168.9.124";
 
 /************************* MQTT *************************/
 WiFiClient espClient;
@@ -92,7 +92,7 @@ void callback(char* topic, byte* message, unsigned int length) {
     // Check if override is active
     if (manualOverride) {
       logFlow("ROUTE: From origin to manualFlow");
-      manualFlow(topicString, messageString);
+      // manualFlow(topicString, messageString);
     } else if (topicString == "adminListener") {
       logFlow("ROUTE: From origin to adminFlow");
       adminFlow(messageString);
@@ -105,8 +105,11 @@ void callback(char* topic, byte* message, unsigned int length) {
     } else if (topicString == "readUltrasonic") {
       logFlow("ROUTE: From origin to ultranosicFlow");
       wireFlow("ultra_" + messageString);
+      Serial.println(messageString);
+
     } else if (topicString == "readColor") {
       logFlow("ROUTE: From origin to colorFlow");
+      Serial.println(messageString);
       wireFlow("readColor_" + messageString);
     }
     else {
@@ -209,7 +212,7 @@ void pollWire() {
   String topic = "";
   String messageString = "";
 
-  Wire.requestFrom(8, 32); /* request & read data of size 13 from slave */
+  Wire.requestFrom(8, 32);
   while (Wire.available()) {
     char c = Wire.read();
     message = message + c;

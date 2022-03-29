@@ -249,10 +249,12 @@ void readWeight() {
 
 /************************* Read color sensor and publish *************************/
 void readColor() {
-  if ((millis() - lastReadingTimeColor) > 500 && colorState == HIGH) {
-    while (colorState == HIGH) {
-      sendMessage = "color_";
+
+  while (colorState == HIGH) {
+    //if ((millis() - lastReadingTimeColor) > 500 && colorState == HIGH) {
       lastReadingTimeColor = millis();
+      //sendMessage = "color_";
+
 
       uint8_t red = "0";
       uint8_t green = "0";
@@ -294,10 +296,10 @@ void readColor() {
 
       String color = redString + greenString + blueString;
 
-      sendMessage = sendMessage + color;
+      //sendMessage = sendMessage + color;
       Serial.println(color);
     }
-  }
+  //}
 }
 
 /************************* Read ultrasonic sensor *************************/
@@ -443,8 +445,8 @@ void manualFlow(String topic, String messageString) {
 
   else if (topic == "color") {
     if (messageString == "readColor" && colorState == LOW) {
-      readColor();
       colorState = HIGH;
+      readColor();
     } else if (messageString == "readColor" && colorState == HIGH) {
       colorState = LOW;
     }
@@ -471,9 +473,6 @@ void receiveEvent(int howMany) {
     String topic = message.substring(0, indexDelimiter);
     String messageString = message.substring(indexDelimiter + 1, message.length());
     manualFlow(topic, messageString);
-
-    Serial.println(message);
-    Serial.println(messageString);
 
     delay(100);
   }

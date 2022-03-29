@@ -11,7 +11,7 @@
 /************************* WiFi *************************/
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "192.168.9.124";
+const char * mqtt_server = "192.168.137.1";
 
 /************************* MQTT *************************/
 WiFiClient espClient;
@@ -238,7 +238,6 @@ void pollWire() {
   if (message != "" and messageString != "") {
     logFlow(messageString);
   }
-
 }
 
 void wireFlow(String message) {

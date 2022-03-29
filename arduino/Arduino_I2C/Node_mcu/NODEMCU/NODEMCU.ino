@@ -131,6 +131,7 @@ void reconnect() {
       client.subscribe("servo1");
       client.subscribe("servo2");
       client.subscribe("servo3");
+      client.subscribe("servo4");
       client.subscribe("order");
       client.subscribe("adminListener");
       client.subscribe("firstWeightListener");

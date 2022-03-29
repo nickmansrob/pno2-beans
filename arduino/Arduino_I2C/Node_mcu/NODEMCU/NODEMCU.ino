@@ -110,7 +110,7 @@ void callback(char* topic, byte* message, unsigned int length) {
     } else if (topicString == "readColor") {
       logFlow("ROUTE: From origin to colorFlow");
       Serial.println(messageString);
-      wireFlow("readColor_" + messageString);
+      wireFlow("color_" + messageString);
     }
     else {
       logFlow("ERROR: callback() :: no matching topic or override not enabled.");

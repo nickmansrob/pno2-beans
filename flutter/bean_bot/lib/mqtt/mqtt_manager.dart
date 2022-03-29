@@ -122,6 +122,10 @@ class MQTTManager with ChangeNotifier {
               _currentState.setSecondOrderDone(pt);
             }
             break;
+          case 'distanceListener':
+              _currentState.setDistance(pt);
+
+            break;
           case 'adminListener':
             if (pt == 'done_all') {
               _currentOrderState.disposeOrderState();

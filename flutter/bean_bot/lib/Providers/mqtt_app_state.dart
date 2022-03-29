@@ -22,10 +22,16 @@ class MQTTAppState with ChangeNotifier {
   String _secondColor = 'not determined';
   String _firstColorInt = '000000000';
   String _secondColorInt = '000000000';
+  String _distance = "";
   String  _orderMessage = '';
   bool _resetPressed = false;
   bool _restorePressed = false;
   String _appId = "BeanBotApp";
+
+  void setDistance(String distance) {
+    _distance = distance;
+    notifyListeners();
+  }
 
   void setOrderMessage(String orderMessage) {
     _orderMessage = orderMessage;
@@ -174,6 +180,7 @@ class MQTTAppState with ChangeNotifier {
   bool get getRestorePressed => _restorePressed;
   bool get getResetPressed => _resetPressed;
   String get getAppId => _appId;
+  String get getDistance => _distance;
   MQTTAppConnectionState get getAppConnectionState => _appConnectionState;
   MQTTManager get getMQTTManager => _mqttManager;
 }

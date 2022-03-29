@@ -1114,7 +1114,8 @@ class _HomePageState extends State<HomePage> {
           'readColor',
           'firstColorListener',
           'secondColorListener',
-          'override'
+          'override',
+          'distanceListener'
         ],
         identifier: currentAppState.getAppId,
         state: currentAppState,

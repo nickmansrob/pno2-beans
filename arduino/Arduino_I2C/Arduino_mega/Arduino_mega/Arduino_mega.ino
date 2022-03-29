@@ -259,9 +259,9 @@ void readWeight() {
 void readColor() {
 
   while (colorState == HIGH) {
-    if ((millis() - lastReadingTimeColor) > 500 && colorState == HIGH) {
+    if ((millis() - lastReadingTimeColor) > 1000 && colorState == HIGH) {
       lastReadingTimeColor = millis();
-      //sendMessage = "color_";
+      sendMessage = "color_";
 
 
       uint8_t red = "0";
@@ -482,9 +482,9 @@ void receiveEvent(int howMany) {
     messageString = message.substring(indexDelimiter + 1, message.length());
     delay(100);
   }
-  Serial.println(message);
-  Serial.println(topic);
-  Serial.println(messageString);
+  //Serial.println(message);
+  //Serial.println(topic);
+  //Serial.println(messageString);
 
 }
 

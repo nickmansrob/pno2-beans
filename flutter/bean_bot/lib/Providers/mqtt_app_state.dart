@@ -1,6 +1,7 @@
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
 
+
 enum MQTTAppConnectionState { connected, disconnected, connecting }
 
 class MQTTAppState with ChangeNotifier {
@@ -20,12 +21,16 @@ class MQTTAppState with ChangeNotifier {
   bool _isSwitched = false;
   String _firstColor = 'not determined';
   String _secondColor = 'not determined';
-  String _firstColorInt = '000000000';
-  String _secondColorInt = '000000000';
+  Color _beanColor = const Color.fromRGBO(0, 0, 0, 1);
   String  _orderMessage = '';
   bool _resetPressed = false;
   bool _restorePressed = false;
   String _appId = "BeanBotApp";
+
+  void setBeanColor(Color color) {
+    _beanColor = color;
+    notifyListeners();
+  }
 
   void setOrderMessage(String orderMessage) {
     _orderMessage = orderMessage;
@@ -103,16 +108,6 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void setFirstColorInt(String colorInt) {
-    _firstColorInt = colorInt;
-    notifyListeners();
-  }
-
-  void setSecondOrder(String colorInt) {
-    _firstColorInt = colorInt;
-    notifyListeners();
-  }
-
   void disposeFirstOrderAppState() {
     _firstOrderReceivedDone = '';
     _firstColor = 'not determined';
@@ -167,8 +162,7 @@ class MQTTAppState with ChangeNotifier {
   String get getHostIP => _hostIp;
   String get getSecondColor => _secondColor;
   String get getFirstColor => _firstColor;
-  String get getFirstColorInt => _firstColorInt;
-  String get getSecondColorInt => _secondColorInt;
+  Color get getBeanColor => _beanColor;
   String get getOrderMessage => _orderMessage;
   bool get getIsSwitched => _isSwitched;
   bool get getRestorePressed => _restorePressed;

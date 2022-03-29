@@ -43,7 +43,7 @@ class _DebugPageState extends State<DebugPage> {
         _buildManualOverrideState(appState.getAppConnectionState),
         _buildServoInput(),
         _buildMotorToggle(),
-        _buildSensors(appState.getFirstColorInt),
+        _buildSensors(appState.getBeanColor),
         _buildArduinoToggle(),
       ]),
     );
@@ -513,7 +513,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
-  Widget _buildSensors(String colorInt) {
+  Widget _buildSensors(Color beanColor) {
     double width = MediaQuery.of(context).size.width;
 
     return Column(
@@ -659,7 +659,7 @@ class _DebugPageState extends State<DebugPage> {
                                     left: 8, top: 0, right: 8, bottom: 8),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                      color: convertRGBtoColor(colorInt),
+                                      color: beanColor,
                                       borderRadius: BorderRadius.circular(4.0)),
                                   width: width - 32,
                                   height: 30,
@@ -778,9 +778,9 @@ class _DebugPageState extends State<DebugPage> {
       int.parse(colorInt.substring(3, 6)),
       int.parse(colorInt.substring(6, 9))
     ];
-    print(intList[0]);
-    print(intList[1]);
-    print(intList[2]);
+    print(intList[0].toString());
+    print(intList[1].toString());
+    print(intList[2].toString());
 
     return Color.fromRGBO(intList[0], intList[1], intList[2], 0);
   }

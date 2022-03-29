@@ -104,7 +104,7 @@ class MQTTManager with ChangeNotifier {
             break;
           case 'firstColorListener':
             _currentState.setFirstColor(convertIntToColor(pt));
-            _currentState.setFirstColorInt(pt);
+            _currentState.setBeanColor(convertRGBtoColor(pt));
             break;
           case 'secondColorListener':
             _currentState.setSecondColor(convertIntToColor(pt));
@@ -162,5 +162,17 @@ class MQTTManager with ChangeNotifier {
     }
   }
 
+  Color convertRGBtoColor(String colorInt) {
+    List intList = [
+      int.parse(colorInt.substring(0, 3)),
+      int.parse(colorInt.substring(3, 6)),
+      int.parse(colorInt.substring(6, 9))
+    ];
+    print(intList[0].toString());
+    print(intList[1].toString());
+    print(intList[2].toString());
+
+    return Color.fromRGBO(intList[0], intList[1], intList[2], 1);
+  }
 
 }

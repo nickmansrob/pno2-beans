@@ -1,9 +1,8 @@
+import 'package:bean_bot/Providers/mqtt_app_state.dart';
+import 'package:bean_bot/Providers/order_state.dart';
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bean_bot/Providers/order_state.dart';
-
-import 'package:bean_bot/mqtt/mqtt_manager.dart';
-import 'package:bean_bot/Providers/mqtt_app_state.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({Key? key}) : super(key: key);
@@ -16,6 +15,7 @@ class _DebugPageState extends State<DebugPage> {
   final _servoForm1 = GlobalKey<FormState>();
   final _servoForm2 = GlobalKey<FormState>();
   final _servoForm3 = GlobalKey<FormState>();
+  final _servoForm4 = GlobalKey<FormState>();
 
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
@@ -24,6 +24,7 @@ class _DebugPageState extends State<DebugPage> {
   final TextEditingController _firstServoController = TextEditingController();
   final TextEditingController _secondServoController = TextEditingController();
   final TextEditingController _thirdServoController = TextEditingController();
+  final TextEditingController _fourthServoController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,7 @@ class _DebugPageState extends State<DebugPage> {
         _buildManualOverrideState(appState.getAppConnectionState),
         _buildServoInput(),
         _buildMotorToggle(),
+        _buildSensors(appState.getFirstColorInt),
         _buildArduinoToggle(),
       ]),
     );
@@ -300,6 +302,57 @@ class _DebugPageState extends State<DebugPage> {
             ],
           ),
         ),
+        Form(
+          key: _servoForm4,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: TextFormField(
+                    enabled: appState.getIsSwitched,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Degrees servo 4',
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(10),
+                    ),
+                    keyboardType: TextInputType.phone,
+                    controller: _thirdServoController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the number of degrees';
+                      }
+                      if (int.parse(value) > 180 || int.parse(value) < 0) {
+                        return 'Between 0 and 180!';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  child: ElevatedButton(
+                    onPressed: appState.getIsSwitched
+                        ? () {
+                            if (_servoForm3.currentState!.validate()) {
+                              _publishMessage(
+                                  _thirdServoController.text, 'servo4');
+                            }
+                          }
+                        : null,
+                    child: const Text('Apply'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -456,7 +509,32 @@ class _DebugPageState extends State<DebugPage> {
           indent: 8,
           endIndent: 8,
         ),
+      ],
+    );
+  }
+
+  Widget _buildSensors(String colorInt) {
+    double width = MediaQuery.of(context).size.width;
+
+    return Column(
+      children: [
         Row(
+          mainAxisSize: MainAxisSize.max,
+          children: const <Widget>[
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+              child: Text(
+                'Sensors',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
           children: [
             Expanded(
               child: Padding(
@@ -475,7 +553,7 @@ class _DebugPageState extends State<DebugPage> {
                           padding:
                               EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
-                            'Motor 3',
+                            'Ultrasonic sensor',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15),
                           )),
@@ -486,12 +564,11 @@ class _DebugPageState extends State<DebugPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: ElevatedButton(
-                                onPressed: appState.getIsSwitched
-                                    ? () {
-                                        _publishMessage('toggle', 'motor3');
-                                      }
-                                    : null,
-                                child: const Text('Toggle'),
+                                onPressed: () {
+                                  _publishMessage(
+                                      'readUltra', 'readUltrasonic');
+                                },
+                                child: const Text('Start reading'),
                               ),
                             ),
                           ),
@@ -499,13 +576,11 @@ class _DebugPageState extends State<DebugPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: ElevatedButton(
-                                onPressed: appState.getIsSwitched
-                                    ? () {
-                                        _publishMessage(
-                                            'change_rotation', 'motor3');
-                                      }
-                                    : null,
-                                child: const Text('Change rotation'),
+                                onPressed: () {
+                                  _publishMessage(
+                                      'stopUltra', 'readUltrasonic');
+                                },
+                                child: const Text('Stop reading'),
                               ),
                             ),
                           ),
@@ -521,6 +596,85 @@ class _DebugPageState extends State<DebugPage> {
         const Divider(
           indent: 8,
           endIndent: 8,
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Text(
+                          'Color sensor',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _publishMessage('readColor', 'readColor');
+                                    },
+                                    child: const Text('Start reading'),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _publishMessage('stopColor', 'readColor');
+                                    },
+                                    child: const Text('Stop reading'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 8, top: 0, right: 8, bottom: 8),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: convertRGBtoColor(colorInt),
+                                      borderRadius: BorderRadius.circular(4.0)),
+                                  width: width - 32,
+                                  height: 30,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -616,6 +770,19 @@ class _DebugPageState extends State<DebugPage> {
     } else {
       return true;
     }
+  }
+
+  Color convertRGBtoColor(String colorInt) {
+    List intList = [
+      int.parse(colorInt.substring(0, 3)),
+      int.parse(colorInt.substring(3, 6)),
+      int.parse(colorInt.substring(6, 9))
+    ];
+    print(intList[0]);
+    print(intList[1]);
+    print(intList[2]);
+
+    return Color.fromRGBO(intList[0], intList[1], intList[2], 0);
   }
 
   /////////////////////////// Voids ///////////////////////////

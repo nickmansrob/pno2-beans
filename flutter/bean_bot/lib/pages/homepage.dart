@@ -1,17 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'dart:math' as math;
 
-import 'package:bean_bot/data/menu_items.dart';
-import 'package:bean_bot/model/menu_item.dart';
-
-import 'package:bean_bot/pages/debug.dart';
-import 'package:bean_bot/pages/logs.dart';
-import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
+import 'package:bean_bot/data/menu_items.dart';
+import 'package:bean_bot/model/menu_item.dart';
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
+import 'package:bean_bot/pages/debug.dart';
+import 'package:bean_bot/pages/logs.dart';
 import 'package:expansion_widget/expansion_widget.dart';
-
-import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -316,7 +314,7 @@ class _HomePageState extends State<HomePage> {
 
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
-    _idTextController.text = 'BeanBotApp';
+    _idTextController.text = currentAppState.getAppId;
 
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 8),
@@ -441,10 +439,10 @@ class _HomePageState extends State<HomePage> {
                                   if (currentAppState.getAppConnectionState ==
                                       MQTTAppConnectionState.disconnected) {
                                     currentAppState
+                                        .setAppId(_idTextController.text);
+                                    currentAppState
                                         .setHostIp(_ipTextController.text);
                                     _configureAndConnect();
-                                    currentAppState
-                                        .setAppId(_idTextController.text);
                                   }
                                   if (currentAppState.getAppConnectionState ==
                                       MQTTAppConnectionState.connected) {
@@ -1108,10 +1106,12 @@ class _HomePageState extends State<HomePage> {
           'adminListener',
           "motor1",
           'motor2',
-          'servo4',
           'servo1',
           'servo2',
           'servo3',
+          'servo4',
+          'readUltrasonic',
+          'readColor',
           'firstColorListener',
           'secondColorListener',
           'override'

@@ -59,8 +59,8 @@ class MQTTManager with ChangeNotifier {
   void disconnect() {
     _client!.disconnect();
     _currentState.setIsSwitched(false);
-    _currentOrderState.setSiloNumber('');
-    _currentOrderState.setFirstOrder('no order');
+    _currentState.disposeSecondOrderAppState();
+    _currentOrderState.disposeSecondOrder();
   }
 
   void publish(String message, String topic) {
@@ -104,6 +104,7 @@ class MQTTManager with ChangeNotifier {
             break;
           case 'firstColorListener':
             _currentState.setFirstColor(convertIntToColor(pt));
+            _currentState.setFirstColorInt(pt);
             break;
           case 'secondColorListener':
             _currentState.setSecondColor(convertIntToColor(pt));
@@ -160,4 +161,6 @@ class MQTTManager with ChangeNotifier {
       return 'not determined';
     }
   }
+
+
 }

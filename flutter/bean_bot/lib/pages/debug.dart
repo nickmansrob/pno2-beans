@@ -43,7 +43,7 @@ class _DebugPageState extends State<DebugPage> {
         _buildManualOverrideState(appState.getAppConnectionState),
         _buildServoInput(),
         _buildMotorToggle(),
-        _buildSensors(),
+        _buildSensors(appState.getFirstColorInt),
         _buildArduinoToggle(),
       ]),
     );
@@ -513,102 +513,171 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
-  Widget _buildSensors() {
-    return Column(children: [
-      Row(
-        mainAxisSize: MainAxisSize.max,
-        children: const <Widget>[
-          Padding(
-            padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
-            child: Text(
-              'Ultrasonic Sensor',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+  Widget _buildSensors(String colorInt) {
+    double width = MediaQuery.of(context).size.width;
+
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: const <Widget>[
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+              child: Text(
+                'Sensors',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  _publishMessage('read', 'readUltrasonic');
-                  // Respond to button press
-                },
-                child: const Text('Start Reading'),
+          ],
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Ultrasonic sensor',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15),
+                          )),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _publishMessage(
+                                      'readUltra', 'readUltrasonic');
+                                },
+                                child: const Text('Start reading'),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _publishMessage(
+                                      'stopUltra', 'readUltrasonic');
+                                },
+                                child: const Text('Stop reading'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  _publishMessage('stop', 'readUltrasonic');
-                  // Respond to button press
-                },
-                child: const Text('Stop reading'),
+          ],
+        ),
+        const Divider(
+          indent: 8,
+          endIndent: 8,
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Text(
+                          'Color sensor',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _publishMessage('readColor', 'readColor');
+                                    },
+                                    child: const Text('Start reading'),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _publishMessage('stopColor', 'readColor');
+                                    },
+                                    child: const Text('Stop reading'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 8, top: 0, right: 8, bottom: 8),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: convertRGBtoColor(colorInt),
+                                      borderRadius: BorderRadius.circular(4.0)),
+                                  width: width - 32,
+                                  height: 30,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      const Divider(
-        indent: 8,
-        endIndent: 8,
-      ),
-      Row(
-        mainAxisSize: MainAxisSize.max,
-        children: const <Widget>[
-          Padding(
-            padding: EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
-            child: Text(
-              'Color sensor',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  _publishMessage('read_color', 'readColor');
-                  // Respond to button press
-                },
-                child: const Text('Start color'),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  _publishMessage('stop_color', 'readColor');
-                  // Respond to button press
-                },
-                child: const Text('Stop color'),
-              ),
-            ),
-          ),
-        ],
-      ),
-      const Divider(indent: 8, endIndent: 9),
-    ]);
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _buildArduinoToggle() {
@@ -701,6 +770,19 @@ class _DebugPageState extends State<DebugPage> {
     } else {
       return true;
     }
+  }
+
+  Color convertRGBtoColor(String colorInt) {
+    List intList = [
+      int.parse(colorInt.substring(0, 3)),
+      int.parse(colorInt.substring(3, 6)),
+      int.parse(colorInt.substring(6, 9))
+    ];
+    print(intList[0]);
+    print(intList[1]);
+    print(intList[2]);
+
+    return Color.fromRGBO(intList[0], intList[1], intList[2], 0);
   }
 
   /////////////////////////// Voids ///////////////////////////

@@ -104,6 +104,7 @@ class MQTTManager with ChangeNotifier {
             break;
           case 'firstColorListener':
             _currentState.setFirstColor(convertIntToColor(pt));
+            _currentState.setFirstColorInt(pt);
             break;
           case 'secondColorListener':
             _currentState.setSecondColor(convertIntToColor(pt));
@@ -160,4 +161,6 @@ class MQTTManager with ChangeNotifier {
       return 'not determined';
     }
   }
+
+
 }

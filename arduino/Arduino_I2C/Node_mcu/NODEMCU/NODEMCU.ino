@@ -11,7 +11,7 @@
 /************************* WiFi *************************/
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "192.168.137.1";
+const char * mqtt_server = "192.168.9.124";
 
 /************************* MQTT *************************/
 WiFiClient espClient;
@@ -64,6 +64,7 @@ void loop() {
   pollWire();
   delay(100);
 
+
 }
 
 /************************* MQTT Handlers *************************/
@@ -92,29 +93,11 @@ void callback(char* topic, byte* message, unsigned int length) {
     // Check if override is active
     if (manualOverride) {
       logFlow("ROUTE: From origin to manualFlow");
-      // manualFlow(topicString, messageString);
-    } else if (topicString == "adminListener") {
-      logFlow("ROUTE: From origin to adminFlow");
-      adminFlow(messageString);
-    } else if (topicString == "firstWeightListener") {
-      logFlow("ROUTE: From origin to weightFlow");
-      wireFlow("weight1_" + messageString);
-    } else if (topicString == "secondWeightListener") {
-      logFlow("ROUTE: From origin to weightFlow");
-      wireFlow("weight2_" + messageString);
-    } else if (topicString == "readUltrasonic") {
-      logFlow("ROUTE: From origin to ultranosicFlow");
-      wireFlow("ultra_" + messageString);
-      Serial.println(messageString);
-
-    } else if (topicString == "readColor") {
-      logFlow("ROUTE: From origin to colorFlow");
-      Serial.println(messageString);
-      wireFlow("color_" + messageString);
-    }
-    else {
+      manualFlow(topicString, messageString);
+    }  else {
       logFlow("ERROR: callback() :: no matching topic or override not enabled.");
     }
+
   }
 }
 
@@ -185,6 +168,25 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "servo4") {
     wireFlow("servo4_" + messageString);
   }
+  else if (topic == "adminListener") {
+    logFlow("ROUTE: From origin to adminFlow");
+    adminFlow(messageString);
+  } else if (topic == "firstWeightListener") {
+    logFlow("ROUTE: From origin to weightFlow");
+    wireFlow("weight1_" + messageString);
+  } else if (topic == "secondWeightListener") {
+    logFlow("ROUTE: From origin to weightFlow");
+    wireFlow("weight2_" + messageString);
+  } else if (topic == "readUltrasonic") {
+    logFlow("ROUTE: From origin to ultranosicFlow");
+    wireFlow("ultra_" + messageString);
+    Serial.println(messageString);
+
+  } else if (topic == "readColor") {
+    logFlow("ROUTE: From origin to colorFlow");
+    Serial.println(messageString);
+    wireFlow("color_" + messageString);
+  }
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
@@ -239,7 +241,7 @@ void pollWire() {
     logFlow(messageString);
     if (topic == "color")  {
       client.publish("firstColorListener", messageString.c_str());
-      }
+    }
   }
 }
 

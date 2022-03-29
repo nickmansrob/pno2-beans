@@ -6,7 +6,7 @@
 
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "192.168.137.1";
+const char * mqtt_server = "10.45.66.58";
 
 #endif
 #include <SoftwareSerial.h>
@@ -145,6 +145,10 @@ void loop() {
   if (message != "" and topic != "") {
     manualFlow(topic, messageString);
   }
+
+  message = "";
+  messageString = "";
+  topic = "";
 }
 
 /************************* Helpers *************************/
@@ -257,12 +261,10 @@ void readWeight() {
 
 /************************* Read color sensor and publish *************************/
 void readColor() {
-
   while (colorState == HIGH) {
     if ((millis() - lastReadingTimeColor) > 1000 && colorState == HIGH) {
       lastReadingTimeColor = millis();
       sendMessage = "color_";
-
 
       uint8_t red = "0";
       uint8_t green = "0";
@@ -312,8 +314,12 @@ void readColor() {
 
 /************************* Read ultrasonic sensor *************************/
 void readUltrasonic() {
-  if ((millis() - lastReadingTimeDistance) > 500 && ultrasonicState == HIGH) {
-    while (ultrasonicState == HIGH) {
+  while (ultrasonicState == HIGH) {
+    if ((millis() - lastReadingTimeDistance) > 500 && ultrasonicState == HIGH) {
+      message = "";
+      messageString = "";
+      topic = "";
+      Serial.println("started reading");
       lastReadingTimeDistance = millis();
       sendMessage = "ultra_";
 
@@ -339,6 +345,7 @@ void readUltrasonic() {
       sendMessage = sendMessage + String(distance);
       Serial.println(distance);
     }
+    delay(100);
   }
 }
 
@@ -444,9 +451,9 @@ void manualFlow(String topic, String messageString) {
 
   else if (topic == "ultra") {
     if (messageString == "readUltra" && ultrasonicState == LOW) {
-      readUltrasonic();
       ultrasonicState = HIGH;
-    } else if (messageString == "readUltra" && ultrasonicState == HIGH) {
+      readUltrasonic();
+    } else if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
       ultrasonicState = LOW;
     }
   }
@@ -464,6 +471,7 @@ void manualFlow(String topic, String messageString) {
   else {
     sendMessage = "topic error";
   }
+
 }
 
 void receiveEvent(int howMany) {
@@ -482,10 +490,15 @@ void receiveEvent(int howMany) {
     messageString = message.substring(indexDelimiter + 1, message.length());
     delay(100);
   }
-  //Serial.println(message);
-  //Serial.println(topic);
-  //Serial.println(messageString);
 
+  if (topic == "ultra") {
+    if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
+      ultrasonicState = LOW;
+    }
+  }
+  Serial.println(message);
+  Serial.println(messageString);
+  Serial.println(topic);
 }
 
 // function that executes whenever data is requested from master

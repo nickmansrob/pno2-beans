@@ -64,7 +64,7 @@ LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB
 /************************* Sensors *************************/
 const uint8_t UTRIG_PIN = 10;
 const uint8_t UECHO_PIN = 8;
-uint8_t ultrasoneState = LOW;
+uint8_t ultrasonicState = LOW;
 
 const uint8_t LEDR_PIN = 9;
 const uint8_t LEDG_PIN = 10;
@@ -251,6 +251,7 @@ void readWeight() {
 void readColor() {
   if ((millis() - lastReadingTimeColor) > 500 && colorState == HIGH) {
     while (colorState == HIGH) {
+      sendMessage = "color_";
       lastReadingTimeColor = millis();
 
       uint8_t red = "0";
@@ -300,31 +301,34 @@ void readColor() {
 }
 
 /************************* Read ultrasonic sensor *************************/
-void readUltrasonic(String messageString) {
-  sendMessage = "ultra_";
-  uint8_t theta = servoOneState;
-  uint16_t radius = 0;
-  const uint8_t cilinderOffset = 2;
-  double duration;
-  double distance;
+void readUltrasonic() {
+  if ((millis() - lastReadingTimeDistance) > 500 && ultrasonicState == HIGH) {
+    while (ultrasonicState == HIGH) {
+      lastReadingTimeDistance = millis();
+      sendMessage = "ultra_";
 
-  // Clears the condition on the trig pin.
-  digitalWrite(UTRIG_PIN, LOW);
-  delayMicroseconds(2);
+      uint8_t theta = servoOneState;
+      uint16_t radius = 0;
+      const uint8_t cilinderOffset = 2;
+      double duration;
+      double distance;
 
-  // Sets the trig pin active for 10 microseconds.
-  digitalWrite(UTRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  // Mesures the time the sound wave traveled.
-  duration = pulseIn(UECHO_PIN, HIGH);
-  // Gives the distance in cm.
-  distance = duration * 0.034 / 2;
-  distance = distance + cilinderOffset;
+      // Clears the condition on the trig pin.
+      digitalWrite(UTRIG_PIN, LOW);
+      delayMicroseconds(2);
 
-  if (distance > 0 && (millis() - lastReadingTimeDistance) > 500) {
-    lastReadingTimeDistance = millis();
-    sendMessage = sendMessage + String(distance);
-    Serial.println(distance);
+      // Sets the trig pin active for 10 microseconds.
+      digitalWrite(UTRIG_PIN, HIGH);
+      delayMicroseconds(10);
+      // Mesures the time the sound wave traveled.
+      duration = pulseIn(UECHO_PIN, HIGH);
+      // Gives the distance in cm.
+      distance = duration * 0.034 / 2;
+      distance = distance + cilinderOffset;
+
+      sendMessage = sendMessage + String(distance);
+      Serial.println(distance);
+    }
   }
 }
 
@@ -429,17 +433,21 @@ void manualFlow(String topic, String messageString) {
   }
 
   else if (topic == "ultra") {
-    readUltrasonic(messageString);
+    if (messageString == "readUltra" && ultrasonicState == LOW) {
+      readUltrasonic();
+      ultrasonicState = HIGH;
+    } else if (messageString == "readUltra" && ultrasonicState == HIGH) {
+      ultrasonicState = LOW;
+    }
   }
 
-  else if (topic == "readColor") {
+  else if (topic == "color") {
     if (messageString == "readColor" && colorState == LOW) {
       readColor();
       colorState = HIGH;
     } else if (messageString == "readColor" && colorState == HIGH) {
       colorState = LOW;
     }
-
   }
 
   else {

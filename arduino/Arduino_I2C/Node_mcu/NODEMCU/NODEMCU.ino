@@ -237,6 +237,9 @@ void pollWire() {
 
   if (message != "" and messageString != "") {
     logFlow(messageString);
+    if (topic == "color")  {
+      client.publish("firstColorListener", messageString.c_str());
+      }
   }
 }
 

@@ -1,5 +1,5 @@
 /************************* Libraries *************************/
-#if defined(__AVR__)
+#if defined(_AVR_)
 #include <WiFi.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -64,6 +64,7 @@ void loop() {
   pollWire();
   delay(100);
 
+
 }
 
 /************************* MQTT Handlers *************************/
@@ -93,12 +94,10 @@ void callback(char* topic, byte* message, unsigned int length) {
     if (manualOverride) {
       logFlow("ROUTE: From origin to manualFlow");
       manualFlow(topicString, messageString);
-    } else if (topicString == "adminListener") {
-      logFlow("ROUTE: From origin to adminFlow");
-      adminFlow(messageString);
-    } else {
+    }  else {
       logFlow("ERROR: callback() :: no matching topic or override not enabled.");
     }
+
   }
 }
 
@@ -115,9 +114,15 @@ void reconnect() {
       client.subscribe("servo1");
       client.subscribe("servo2");
       client.subscribe("servo3");
+      client.subscribe("servo4");
       client.subscribe("order");
       client.subscribe("adminListener");
+      client.subscribe("firstWeightListener");
+      client.subscribe("secondWeightListener");
+      client.subscribe("readUltrasonic");
+      client.subscribe("readColor");
       client.subscribe("override");
+
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -163,6 +168,25 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "servo4") {
     wireFlow("servo4_" + messageString);
   }
+  else if (topic == "adminListener") {
+    logFlow("ROUTE: From origin to adminFlow");
+    adminFlow(messageString);
+  } else if (topic == "firstWeightListener") {
+    logFlow("ROUTE: From origin to weightFlow");
+    wireFlow("weight1_" + messageString);
+  } else if (topic == "secondWeightListener") {
+    logFlow("ROUTE: From origin to weightFlow");
+    wireFlow("weight2_" + messageString);
+  } else if (topic == "readUltrasonic") {
+    logFlow("ROUTE: From origin to ultranosicFlow");
+    wireFlow("ultra_" + messageString);
+    Serial.println(messageString);
+
+  } else if (topic == "readColor") {
+    logFlow("ROUTE: From origin to colorFlow");
+    Serial.println(messageString);
+    wireFlow("color_" + messageString);
+  }
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
@@ -191,33 +215,34 @@ void pollWire() {
   String topic = "";
   String messageString = "";
 
-  Wire.requestFrom(8, 32); /* request & read data of size 13 from slave */
+  Wire.requestFrom(8, 32);
   while (Wire.available()) {
     char c = Wire.read();
     message = message + c;
 
-    // Serial.print(c);
   }
 
   while (message.indexOf("@") != -1) {
     int questionmarkIndex = message.indexOf("@");
     message.remove(questionmarkIndex, 1);
   }
-  
-    int indexDelimiter = message.indexOf('_');
 
-    if (indexDelimiter == -1) {
-       // logFlow(message);
+  int indexDelimiter = message.indexOf('_');
+
+  if (indexDelimiter == -1) {
+    // logFlow(message);
+  }
+  else {
+    topic = message.substring(0, indexDelimiter);
+    messageString = message.substring(indexDelimiter + 1, message.length());
+  }
+
+  if (message != "" and messageString != "") {
+    logFlow(messageString);
+    if (topic == "color")  {
+      client.publish("firstColorListener", messageString.c_str());
     }
-    else {
-      topic = message.substring(0, indexDelimiter);
-      messageString = message.substring(indexDelimiter + 1, message.length());
-    }
-    
-    if (message != "" and messageString != "") {
-      logFlow(messageString);
-    }
-  
+  }
 }
 
 void wireFlow(String message) {

@@ -2,11 +2,11 @@
 #if defined(__AVR__)
 #include <WiFi.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>*****************/
+#include <ESP8266WiFi.h>
 
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "192.168.137.1";
+const char * mqtt_server = "10.45.66.58";
 
 #endif
 #include <SoftwareSerial.h>
@@ -52,32 +52,31 @@ uint8_t servoThreeState = 90;
 
 /************************* LCD *************************/
 
-const uint8_t LCDRS_PIN = 48;
+const uint8_t LCDRS_PIN = 50;
 const uint8_t LCDE_PIN = 49;
-const uint8_t LCDDB4_PIN = 50;
-const uint8_t LCDDB5_PIN = 51;
-const uint8_t LCDDB6_PIN = 52;
-const uint8_t LCDDB7_PIN = 53;
+const uint8_t LCDDB4_PIN = 46;
+const uint8_t LCDDB5_PIN = 52;
+const uint8_t LCDDB6_PIN = 47;
+const uint8_t LCDDB7_PIN = 45;
 
 LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
-
 /************************* Sensors *************************/
-const uint8_t UTRIG_PIN = 8;
-const uint8_t UECHO_PIN = 14;
+const uint8_t UTRIG_PIN = 10;
+const uint8_t UECHO_PIN = 8;
+uint8_t ultrasonicState = LOW;
 
 const uint8_t LEDR_PIN = 9;
 const uint8_t LEDG_PIN = 10;
 const uint8_t LEDB_PIN = 11;
 
-const uint8_t KS2_PIN = 17;
-const uint8_t KS3_PIN = 18;
-const uint8_t KOUT_PIN = 19;
+const uint8_t KS2_PIN = 14;
+const uint8_t KS3_PIN = 19;
+const uint8_t KOUT_PIN = 38;
+uint8_t colorState = LOW;
 
 const uint8_t WSDA_PIN = 20;
 const uint8_t WSCL_PIN = 21;
-
-
 
 /************************* Reset function *************************/
 void(* resetFunc) (void) = 0;
@@ -88,17 +87,15 @@ bool proceedNormalFlow = false;
 
 long lastReadingTimeWeight = 0;
 long lastReadingTimeDistance = 0;
+long lastReadingTimeColor = 0;
 
 uint8_t calibrationFactor = 1;
+
+String sendMessage = "";
 
 String message = "";
 String topic;
 String messageString;
-
-String sendMessage = "";
-
-char rdata;
-String incomingSerial;
 
 /*****************************************************************/
 
@@ -117,7 +114,7 @@ void setup() {
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
 
-  servoOne.write(servoOneState);  
+  servoOne.write(servoOneState);
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
@@ -136,16 +133,22 @@ void setup() {
 
   digitalWrite(MOTOR1_PIN, LOW);
 
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.print("Weight [g]:");
+
 }
 
 void loop() {
   delay(100);
-  if (topic != "" && messageString != "") {
+
+  if (message != "" and topic != "") {
     manualFlow(topic, messageString);
-    message = "";
-    topic = "";
-    messageString = "";
   }
+
+  message = "";
+  messageString = "";
+  topic = "";
 }
 
 /************************* Helpers *************************/
@@ -230,10 +233,6 @@ void readWeight() {
   String weight = "0";
   float weightInt = 0.0;
 
-  // Initializing LCD
-  LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
-  lcd.begin(16, 2); // starts connection to the LCD
-
   HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
   LoadCell.begin(); // Starts  connection to the weight sensor.
   LoadCell.start(2000); // Sets the time the sensor gets to configure
@@ -245,10 +244,6 @@ void readWeight() {
   weight = String(weightInt);
 
   // Printing the weight to the LCD screen.
-  lcd.setCursor(0, 0);
-  lcd.print("Weight [g]:");
-  lcd.setCursor(0, 1);
-  lcd.print(weight);
 
   // If one second has passed, weight is updated.
   if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
@@ -266,60 +261,92 @@ void readWeight() {
 
 /************************* Read color sensor and publish *************************/
 void readColor() {
-  String red = "0";
-  String green = "0";
-  String blue = "0";
+  while (colorState == HIGH) {
+    if ((millis() - lastReadingTimeColor) > 1000 && colorState == HIGH) {
+      lastReadingTimeColor = millis();
+      sendMessage = "color_";
 
-  digitalWrite(KS2_PIN, LOW);
-  digitalWrite(KS3_PIN, LOW);
-  red = String(pulseIn(KOUT_PIN, LOW));
+      uint8_t red = "0";
+      uint8_t green = "0";
+      uint8_t blue = "0";
 
-  digitalWrite(KS2_PIN, LOW);
-  digitalWrite(KS3_PIN, HIGH);
-  blue = String(pulseIn(KOUT_PIN, LOW));
+      String redString;
+      String greenString;
+      String blueString;
 
-  digitalWrite(KS2_PIN, HIGH);
-  digitalWrite(KS3_PIN, HIGH);
-  green = String(pulseIn(KOUT_PIN, LOW));
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, LOW);
+      red = pulseIn(KOUT_PIN, LOW);
+      redString = String(red);
+      if (redString.length() == 1) {
+        redString = "00" + redString;
+      } else if (redString.length() == 2) {
+        redString = "0" + redString;
+      }
 
-  // nodemcu.print("log_Red: " + String(red) + "; green: " + String(green) + "; blue: " + String(blue) + ".");
-  String color = red + green + blue;
+      digitalWrite(KS2_PIN, HIGH);
+      digitalWrite(KS3_PIN, HIGH);
+      green = pulseIn(KOUT_PIN, LOW);
+      greenString = String(green);
+      if (greenString.length() == 1) {
+        greenString = "00" + greenString;
+      } else if (greenString.length() == 2) {
+        greenString = "0" + greenString;
+      }
 
-  if (orderState == 1) {
-    sendMessage = "color1_" + color;
-  } else if (orderState == 2) {
-    sendMessage = "color2_" + color;
-  } else {
-    sendMessage = "color_error";
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, HIGH);
+      blue = pulseIn(KOUT_PIN, LOW);
+      blueString = String(blue);
+      if (blueString .length() == 1) {
+        blueString  = "00" + blueString ;
+      } else if (blueString.length() == 2) {
+        blueString  = "0" + blueString ;
+      }
+
+      String color = redString + greenString + blueString;
+
+      sendMessage = sendMessage + color;
+      Serial.println(color);
+    }
   }
 }
 
 /************************* Read ultrasonic sensor *************************/
 void readUltrasonic() {
-  uint8_t theta = servoOneState;
-  uint16_t radius = 0;
-  const uint8_t cilinderOffset = 2;
-  uint8_t duration;
-  uint8_t distance;
+  while (ultrasonicState == HIGH) {
+    if ((millis() - lastReadingTimeDistance) > 500 && ultrasonicState == HIGH) {
+      message = "";
+      messageString = "";
+      topic = "";
+      Serial.println("started reading");
+      lastReadingTimeDistance = millis();
+      sendMessage = "ultra_";
 
-  // Clears the condition on the trig pin.
-  digitalWrite(UTRIG_PIN, LOW);
-  delayMicroseconds(2);
+      uint8_t theta = servoOneState;
+      uint16_t radius = 0;
+      const uint8_t cilinderOffset = 2;
+      double duration;
+      double distance;
 
-  // Sets the trig pin active for 10 microseconds.
-  digitalWrite(UTRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  // Mesures the time the sound wave traveled.
-  duration = pulseIn(UECHO_PIN, HIGH);
-  // Gives the distance in cm.
-  distance = duration * 0.034 / 2;
-  distance = distance + cilinderOffset;
+      // Clears the condition on the trig pin.
+      digitalWrite(UTRIG_PIN, LOW);
+      delayMicroseconds(2);
 
-  if (distance > 0 && (millis() - lastReadingTimeDistance) > 500) {
-    lastReadingTimeDistance = millis();
-    // nodemcu.print("log_Distance to truck: " + String(distance) + "cm.");
+      // Sets the trig pin active for 10 microseconds.
+      digitalWrite(UTRIG_PIN, HIGH);
+      delayMicroseconds(10);
+      // Mesures the time the sound wave traveled.
+      duration = pulseIn(UECHO_PIN, HIGH);
+      // Gives the distance in cm.
+      distance = duration * 0.034 / 2;
+      distance = distance + cilinderOffset;
+
+      sendMessage = sendMessage + String(distance);
+      Serial.println(distance);
+    }
+    delay(100);
   }
-
 }
 
 /************************* Program flow *************************/
@@ -402,7 +429,7 @@ void manualFlow(String topic, String messageString) {
     // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
   }
-  else  if (topic == "servo3") {
+  else if (topic == "servo3") {
     uint8_t angle = messageString.toInt();
     // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
@@ -411,9 +438,40 @@ void manualFlow(String topic, String messageString) {
     // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
 
   }
+  // Weight data
+  else if (topic == "weight1") {
+    lcd.setCursor(0, 1);
+    lcd.print(messageString);
+  }
+
+  else if (topic == "weight2") {
+    lcd.setCursor(0, 1);
+    lcd.print(messageString);
+  }
+
+  else if (topic == "ultra") {
+    if (messageString == "readUltra" && ultrasonicState == LOW) {
+      ultrasonicState = HIGH;
+      readUltrasonic();
+    } else if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
+      ultrasonicState = LOW;
+    }
+  }
+
+  else if (topic == "color") {
+    Serial.print("color");
+    if (messageString == "readColor" && colorState == LOW) {
+      colorState = HIGH;
+      readColor();
+    } else if (messageString == "readColor" && colorState == HIGH) {
+      colorState = LOW;
+    }
+  }
+
   else {
     sendMessage = "topic error";
   }
+
 }
 
 void receiveEvent(int howMany) {
@@ -421,6 +479,7 @@ void receiveEvent(int howMany) {
     char c = Wire.read();
     message = message + c;
   }
+
   int indexDelimiter = message.indexOf('_');
 
   if (indexDelimiter == -1) {
@@ -429,26 +488,26 @@ void receiveEvent(int howMany) {
   else {
     topic = message.substring(0, indexDelimiter);
     messageString = message.substring(indexDelimiter + 1, message.length());
-
     delay(100);
-
   }
 
+  if (topic == "ultra") {
+    if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
+      ultrasonicState = LOW;
+    }
+  }
   Serial.println(message);
-  Serial.println(topic);
   Serial.println(messageString);
-
+  Serial.println(topic);
 }
 
 // function that executes whenever data is requested from master
-
-
 void sendText(int numBytes) {
   if (sendMessage != "") {
-  while (sendMessage.length() != 32) {
-    sendMessage = sendMessage + "@";
+    while (sendMessage.length() != 32) {
+      sendMessage = sendMessage + "@";
     }
-  Wire.write(sendMessage.c_str());
+    Wire.write(sendMessage.c_str());
   }
   sendMessage = "";
 }

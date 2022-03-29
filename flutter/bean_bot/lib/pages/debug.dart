@@ -3,6 +3,7 @@ import 'package:bean_bot/Providers/order_state.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
 import 'package:provider/provider.dart';
 
 class DebugPage extends StatefulWidget {
@@ -45,6 +46,7 @@ class _DebugPageState extends State<DebugPage> {
         _buildServoInput(),
         _buildMotorToggle(),
         _buildSensors(appState.getFirstColorInt, appState),
+        _buildSensors(appState.getBeanColor),
         _buildArduinoToggle(),
       ]),
     );
@@ -514,7 +516,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
-  Widget _buildSensors(String colorInt, MQTTAppState appState) {
+  Widget _buildSensors(MQTTAppState appState) {
     double width = MediaQuery.of(context).size.width;
 
     return Column(
@@ -571,6 +573,7 @@ class _DebugPageState extends State<DebugPage> {
                                             'readUltra', 'readUltrasonic');
                                       }
                                     : null,
+
                                 child: const Text('Start reading'),
                               ),
                             ),
@@ -579,6 +582,7 @@ class _DebugPageState extends State<DebugPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: ElevatedButton(
+
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                         _publishMessage(
@@ -667,6 +671,7 @@ class _DebugPageState extends State<DebugPage> {
                                                 'stopColor', 'readColor');
                                           }
                                         : null,
+
                                     child: const Text('Stop reading'),
                                   ),
                                 ),
@@ -681,7 +686,7 @@ class _DebugPageState extends State<DebugPage> {
                                     left: 8, top: 0, right: 8, bottom: 8),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                      color: convertRGBtoColor(colorInt),
+                                      color: appState.getBeanColor,
                                       borderRadius: BorderRadius.circular(4.0)),
                                   width: width - 32,
                                   height: 30,
@@ -800,8 +805,8 @@ class _DebugPageState extends State<DebugPage> {
       int.parse(colorInt.substring(3, 6)),
       int.parse(colorInt.substring(6, 9))
     ];
-
     return Color.fromRGBO(intList[0], intList[1], intList[2], 1);
+    
   }
 
   /////////////////////////// Voids ///////////////////////////

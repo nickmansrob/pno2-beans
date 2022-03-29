@@ -314,7 +314,7 @@ class _HomePageState extends State<HomePage> {
 
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
-    _idTextController.text = 'BeanBotApp';
+    _idTextController.text = currentAppState.getAppId;
 
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 8),
@@ -439,10 +439,10 @@ class _HomePageState extends State<HomePage> {
                                   if (currentAppState.getAppConnectionState ==
                                       MQTTAppConnectionState.disconnected) {
                                     currentAppState
+                                        .setAppId(_idTextController.text);
+                                    currentAppState
                                         .setHostIp(_ipTextController.text);
                                     _configureAndConnect();
-                                    currentAppState
-                                        .setAppId(_idTextController.text);
                                   }
                                   if (currentAppState.getAppConnectionState ==
                                       MQTTAppConnectionState.connected) {

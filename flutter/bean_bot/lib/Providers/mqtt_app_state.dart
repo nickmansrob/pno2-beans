@@ -23,7 +23,7 @@ class MQTTAppState with ChangeNotifier {
   String  _orderMessage = '';
   bool _resetPressed = false;
   bool _restorePressed = false;
-  String _appId = "";
+  String _appId = "BeanBotApp";
 
   void setOrderMessage(String orderMessage) {
     _orderMessage = orderMessage;

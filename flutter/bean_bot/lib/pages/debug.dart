@@ -2,7 +2,6 @@ import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:provider/provider.dart';
 
@@ -45,8 +44,7 @@ class _DebugPageState extends State<DebugPage> {
         _buildManualOverrideState(appState.getAppConnectionState),
         _buildServoInput(),
         _buildMotorToggle(),
-        _buildSensors(appState.getFirstColorInt, appState),
-        _buildSensors(appState.getBeanColor),
+        _buildSensors(appState),
         _buildArduinoToggle(),
       ]),
     );
@@ -601,7 +599,7 @@ class _DebugPageState extends State<DebugPage> {
                             padding: const EdgeInsets.only(
                                 left: 8, top: 0, right: 8, bottom: 8),
                             child: Center(
-                              child: Text('Distance [cm]: ${currentAppState.getDistance} '  ),
+                              child: Text('Distance [cm]: ${currentAppState.getDistance}.'  ),
                             ),
                           ),
                         ],

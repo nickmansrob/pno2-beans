@@ -1,7 +1,6 @@
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
 
-
 enum MQTTAppConnectionState { connected, disconnected, connecting }
 
 class MQTTAppState with ChangeNotifier {
@@ -33,6 +32,8 @@ class MQTTAppState with ChangeNotifier {
   
   void setDistance(String distance) {
     _distance = distance;
+    notifyListeners();
+  }
   void setBeanColor(Color color) {
     _beanColor = color;
     notifyListeners();

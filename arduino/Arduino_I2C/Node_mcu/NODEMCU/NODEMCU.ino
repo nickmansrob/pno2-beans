@@ -76,7 +76,7 @@ void callback(char* topic, byte* message, unsigned int length) {
     messageString += (char)message[i];
   }
 
-  logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);d
+  logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);
 
   if (topicString == "override") {
     if (messageString == "1") {

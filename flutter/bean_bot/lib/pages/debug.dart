@@ -440,10 +440,6 @@ class _DebugPageState extends State<DebugPage> {
             ),
           ],
         ),
-        const Divider(
-          indent: 8,
-          endIndent: 8,
-        ),
         Row(
           children: [
             Expanded(
@@ -599,7 +595,7 @@ class _DebugPageState extends State<DebugPage> {
                             padding: const EdgeInsets.only(
                                 left: 8, top: 0, right: 8, bottom: 8),
                             child: Center(
-                              child: Text('Distance [cm]: ${currentAppState.getDistance}.'  ),
+                              child: Text('Distance [cm]: ${currentAppState.getDistance}.'),
                             ),
                           ),
                         ],
@@ -610,10 +606,6 @@ class _DebugPageState extends State<DebugPage> {
               ),
             ),
           ],
-        ),
-        const Divider(
-          indent: 8,
-          endIndent: 8,
         ),
         Row(
           mainAxisSize: MainAxisSize.max,
@@ -700,6 +692,10 @@ class _DebugPageState extends State<DebugPage> {
               ),
             ),
           ],
+        ),
+        const Divider(
+          indent: 8,
+          endIndent: 8,
         ),
       ],
     );

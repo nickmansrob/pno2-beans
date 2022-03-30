@@ -76,7 +76,7 @@ void callback(char* topic, byte* message, unsigned int length) {
     messageString += (char)message[i];
   }
 
-  logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);
+  logFlow("Message arrived on [" + topicString + "]. Message is " + messageString);d
 
   if (topicString == "override") {
     if (messageString == "1") {
@@ -122,6 +122,7 @@ void reconnect() {
       client.subscribe("readUltrasonic");
       client.subscribe("readColor");
       client.subscribe("override");
+      client.subscribe("distanceListener");
 
     } else {
       Serial.print("failed, rc=");
@@ -242,6 +243,9 @@ void pollWire() {
     if (topic == "color")  {
       client.publish("firstColorListener", messageString.c_str());
     }
+    else if (topic == "ultra") {
+      client.publish("distanceListener", messageString.c_str());
+      }
   }
 }
 

@@ -104,6 +104,7 @@ class MQTTManager with ChangeNotifier {
             break;
           case 'firstColorListener':
             _currentState.setFirstColor(convertIntToColor(pt));
+            _currentState.setFirstColorInt(pt);
             _currentState.setBeanColor(convertRGBtoColor(pt));
             break;
           case 'secondColorListener':
@@ -121,6 +122,10 @@ class MQTTManager with ChangeNotifier {
               _currentState.setSecondOrderReceivedDone(pt);
               _currentState.setSecondOrderDone(pt);
             }
+            break;
+          case 'distanceListener':
+              _currentState.setDistance(pt);
+
             break;
           case 'adminListener':
             if (pt == 'done_all') {
@@ -168,9 +173,6 @@ class MQTTManager with ChangeNotifier {
       int.parse(colorInt.substring(3, 6)),
       int.parse(colorInt.substring(6, 9))
     ];
-    print(intList[0].toString());
-    print(intList[1].toString());
-    print(intList[2].toString());
 
     return Color.fromRGBO(intList[0], intList[1], intList[2], 1);
   }

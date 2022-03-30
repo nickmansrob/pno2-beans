@@ -2,6 +2,8 @@ import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+
 import 'package:provider/provider.dart';
 
 class DebugPage extends StatefulWidget {
@@ -43,6 +45,7 @@ class _DebugPageState extends State<DebugPage> {
         _buildManualOverrideState(appState.getAppConnectionState),
         _buildServoInput(),
         _buildMotorToggle(),
+        _buildSensors(appState.getFirstColorInt, appState),
         _buildSensors(appState.getBeanColor),
         _buildArduinoToggle(),
       ]),
@@ -513,7 +516,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
-  Widget _buildSensors(Color beanColor) {
+  Widget _buildSensors(MQTTAppState appState) {
     double width = MediaQuery.of(context).size.width;
 
     return Column(
@@ -564,10 +567,13 @@ class _DebugPageState extends State<DebugPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: ElevatedButton(
-                                onPressed: () {
-                                  _publishMessage(
-                                      'readUltra', 'readUltrasonic');
-                                },
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                        _publishMessage(
+                                            'readUltra', 'readUltrasonic');
+                                      }
+                                    : null,
+
                                 child: const Text('Start reading'),
                               ),
                             ),
@@ -576,12 +582,26 @@ class _DebugPageState extends State<DebugPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: ElevatedButton(
-                                onPressed: () {
-                                  _publishMessage(
-                                      'stopUltra', 'readUltrasonic');
-                                },
+
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                        _publishMessage(
+                                            'stopUltra', 'readUltrasonic');
+                                      }
+                                    : null,
                                 child: const Text('Stop reading'),
                               ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 8, top: 0, right: 8, bottom: 8),
+                            child: Center(
+                              child: Text('Distance [cm]: ${currentAppState.getDistance} '  ),
                             ),
                           ),
                         ],
@@ -631,9 +651,12 @@ class _DebugPageState extends State<DebugPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ElevatedButton(
-                                    onPressed: () {
-                                      _publishMessage('readColor', 'readColor');
-                                    },
+                                    onPressed: appState.getIsSwitched
+                                        ? () {
+                                            _publishMessage(
+                                                'readColor', 'readColor');
+                                          }
+                                        : null,
                                     child: const Text('Start reading'),
                                   ),
                                 ),
@@ -642,9 +665,13 @@ class _DebugPageState extends State<DebugPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ElevatedButton(
-                                    onPressed: () {
-                                      _publishMessage('stopColor', 'readColor');
-                                    },
+                                    onPressed: appState.getIsSwitched
+                                        ? () {
+                                            _publishMessage(
+                                                'stopColor', 'readColor');
+                                          }
+                                        : null,
+
                                     child: const Text('Stop reading'),
                                   ),
                                 ),
@@ -659,7 +686,7 @@ class _DebugPageState extends State<DebugPage> {
                                     left: 8, top: 0, right: 8, bottom: 8),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                      color: beanColor,
+                                      color: appState.getBeanColor,
                                       borderRadius: BorderRadius.circular(4.0)),
                                   width: width - 32,
                                   height: 30,
@@ -778,11 +805,8 @@ class _DebugPageState extends State<DebugPage> {
       int.parse(colorInt.substring(3, 6)),
       int.parse(colorInt.substring(6, 9))
     ];
-    print(intList[0].toString());
-    print(intList[1].toString());
-    print(intList[2].toString());
-
-    return Color.fromRGBO(intList[0], intList[1], intList[2], 0);
+    return Color.fromRGBO(intList[0], intList[1], intList[2], 1);
+    
   }
 
   /////////////////////////// Voids ///////////////////////////

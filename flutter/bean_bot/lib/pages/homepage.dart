@@ -1142,6 +1142,9 @@ class _HomePageState extends State<HomePage> {
       case MenuItems.itemLog:
         Navigator.pushNamed(context, '/logs');
         break;
+      case MenuItems.itemColor:
+        Navigator.pushNamed(context, '/color_calibration');
+        break;
     }
   }
 

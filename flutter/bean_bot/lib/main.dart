@@ -1,4 +1,6 @@
+import 'package:bean_bot/Providers/color_calibration_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
+import 'package:bean_bot/pages/color_calibration.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +21,9 @@ void main() {
           ),
           ChangeNotifierProvider<OrderState>(
             create: (_) => OrderState(),
+          ),
+          ChangeNotifierProvider<ColorCalibrationState>(
+            create: (_) => ColorCalibrationState(),
           ),
         ],
         child: const BeanBot(),
@@ -44,6 +49,7 @@ class _BeanBotState extends State<BeanBot> {
         '/': (context) => const HomePage(),
         '/debug': (context) => const DebugPage(),
         '/logs': (context) => const LogPage(),
+        '/color_calibration': (context) => const ColorCalibrationPage(),
       },
     );
   }

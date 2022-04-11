@@ -157,7 +157,7 @@ packages:
       name: mqtt_client
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.6.5"
+    version: "9.6.6"
   nested:
     dependency: transitive
     description:

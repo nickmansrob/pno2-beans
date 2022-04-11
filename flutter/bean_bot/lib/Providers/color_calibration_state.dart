@@ -4,6 +4,7 @@ class ColorCalibrationState with ChangeNotifier {
   int _r = 0;
   int _g = 0;
   int _b = 0;
+  int _calibrationsDone = 0;
 
   void set_r(int r) {
     _r = r;
@@ -20,7 +21,13 @@ class ColorCalibrationState with ChangeNotifier {
     notifyListeners();
   }
 
+  void incrementCalibrationsDone() {
+    _calibrationsDone += 1;
+    notifyListeners();
+  }
+
   int get get_r => _r;
   int get get_g => _g;
   int get get_b => _b;
+  int get getCalibrationsDone => _calibrationsDone;
 }

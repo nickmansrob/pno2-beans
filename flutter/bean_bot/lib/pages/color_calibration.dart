@@ -22,7 +22,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Color Calibration'),
+        title: Text(calibrationTitleText(colorCalibrationState)),
       ),
       body: ListView(
         children: [
@@ -137,14 +137,35 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
   Future<void> colorChanges(ColorCalibrationState colorCalibrationState) async {
     // This functions loops over all the possible RGB colors, with increments of size n.
     int increment = 15;
-    while (colorCalibrationState.get_r < 255 &&
-        colorCalibrationState.get_b < 255 &&
-        colorCalibrationState.get_b < 255) {
-      await Future.delayed(const Duration(seconds: 1));
-      colorCalibrationState.set_r(colorCalibrationState.get_r + increment);
-      colorCalibrationState.set_g(colorCalibrationState.get_g + increment);
+
+    // Estimated time of completion: 4917 seconds.
+    while (colorCalibrationState.get_r < 255) {
+      while (colorCalibrationState.get_g < 255) {
+        while (colorCalibrationState.get_b < 255) {
+          colorCalibrationState.set_r(colorCalibrationState.get_r + increment);
+          colorCalibrationState.incrementCalibrationsDone();
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        colorCalibrationState.set_b(0);
+        colorCalibrationState.set_g(colorCalibrationState.get_g + increment);
+        colorCalibrationState.incrementCalibrationsDone();
+        await Future.delayed(const Duration(seconds: 1));
+      }
+      colorCalibrationState.set_g(0);
+      colorCalibrationState.set_b(0);
       colorCalibrationState.set_b(colorCalibrationState.get_b + increment);
+      colorCalibrationState.incrementCalibrationsDone();
+      await Future.delayed(const Duration(seconds: 1));
     }
     calibrationState = false;
+  }
+
+  String calibrationTitleText(ColorCalibrationState colorCalibrationState) {
+    if(calibrationState) {
+      return "Calibrating... (${colorCalibrationState.getCalibrationsDone}/4917)";
+    }
+    else {
+      return "Color Calibration";
+    }
   }
 }

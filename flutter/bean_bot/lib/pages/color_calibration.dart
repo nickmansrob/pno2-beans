@@ -3,6 +3,8 @@ import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:provider/provider.dart';
 import 'package:bean_bot/Providers/color_calibration_state.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
+import 'package:bean_bot/data/menu_items_color.dart';
+import 'package:bean_bot/model/menu_item.dart';
 
 
 class ColorCalibrationPage extends StatefulWidget {
@@ -25,6 +27,13 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(calibrationTitleText(colorCalibrationState)),
+        actions: <Widget>[
+          PopupMenuButton<MenuItem>(
+            onSelected: (item) => onSelected(context, item),
+            itemBuilder: (context) =>
+            [...MenuItems.items.map(buildItem).toList()],
+          ),
+        ],
       ),
       body: ListView(
         children: [
@@ -147,10 +156,6 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
           colorCalibrationState.set_b(colorCalibrationState.get_b + increment);
           colorCalibrationState.incrementCalibrationsDone();
           _publishMessage(makeMessage(colorCalibrationState), 'colorCalibration');
-          print('R' + colorCalibrationState.get_r.toString());
-          print('R' + colorCalibrationState.get_g.toString());
-          print('R' + colorCalibrationState.get_b.toString());
-
           await Future.delayed(const Duration(seconds: 1));
         }
         colorCalibrationState.set_b(0);
@@ -203,4 +208,24 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     MQTTManager manager = appState.getMQTTManager;
     manager.publish(text, topic);
   }
+
+  //// Navigation Menu ////
+  // Handles the navigation of the popupmenu.
+  void onSelected(BuildContext context, MenuItem item) {
+    switch (item) {
+      case MenuItems.itemDebug:
+        Navigator.popAndPushNamed(context, '/debug');
+        break;
+      case MenuItems.itemLog:
+        Navigator.popAndPushNamed(context, '/color_calibration');
+        break;
+    }
+  }
+
+  // Creates the navigation menu.
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+    value: item,
+    child: Text(item.text),
+  );
+
 }

@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
-import 'package:bean_bot/data/menu_items.dart';
+import 'package:bean_bot/data/menu_items_home.dart';
 import 'package:bean_bot/model/menu_item.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:bean_bot/pages/debug.dart';

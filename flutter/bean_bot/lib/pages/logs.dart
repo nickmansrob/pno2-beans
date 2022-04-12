@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:provider/provider.dart';
+import 'package:bean_bot/data/menu_items_logs.dart';
+import 'package:bean_bot/model/menu_item.dart';
 
 class LogPage extends StatefulWidget {
   const LogPage({Key? key}) : super(key: key);
@@ -17,6 +19,13 @@ class _LogPageState extends State<LogPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Logs'),
+        actions: <Widget>[
+          PopupMenuButton<MenuItem>(
+            onSelected: (item) => onSelected(context, item),
+            itemBuilder: (context) =>
+            [...MenuItems.items.map(buildItem).toList()],
+          ),
+        ],
       ),
       body: ListView(
         children: [
@@ -144,5 +153,24 @@ class _LogPageState extends State<LogPage> {
       return true;
     }
   }
+
+  //// Navigation Menu ////
+  // Handles the navigation of the popupmenu.
+  void onSelected(BuildContext context, MenuItem item) {
+    switch (item) {
+      case MenuItems.itemDebug:
+        Navigator.popAndPushNamed(context, '/debug');
+        break;
+      case MenuItems.itemColor:
+        Navigator.popAndPushNamed(context, '/color_calibration');
+        break;
+    }
+  }
+
+  // Creates the navigation menu.
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+    value: item,
+    child: Text(item.text),
+  );
 
 }

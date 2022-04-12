@@ -2,6 +2,8 @@ import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:bean_bot/data/menu_items_debug.dart';
+import 'package:bean_bot/model/menu_item.dart';
 
 import 'package:provider/provider.dart';
 
@@ -34,6 +36,13 @@ class _DebugPageState extends State<DebugPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Debug Menu'),
+        actions: <Widget>[
+          PopupMenuButton<MenuItem>(
+            onSelected: (item) => onSelected(context, item),
+            itemBuilder: (context) =>
+                [...MenuItems.items.map(buildItem).toList()],
+          ),
+        ],
       ),
       body: ListView(children: [
         // Creates the connection indicator on top of the screen.
@@ -567,7 +576,6 @@ class _DebugPageState extends State<DebugPage> {
                                             'readUltra', 'readUltrasonic');
                                       }
                                     : null,
-
                                 child: const Text('Start reading'),
                               ),
                             ),
@@ -576,7 +584,6 @@ class _DebugPageState extends State<DebugPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: ElevatedButton(
-
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                         _publishMessage(
@@ -595,7 +602,8 @@ class _DebugPageState extends State<DebugPage> {
                             padding: const EdgeInsets.only(
                                 left: 8, top: 0, right: 8, bottom: 8),
                             child: Center(
-                              child: Text('Distance [cm]: ${currentAppState.getDistance}.'),
+                              child: Text(
+                                  'Distance [cm]: ${currentAppState.getDistance}.'),
                             ),
                           ),
                         ],
@@ -661,7 +669,6 @@ class _DebugPageState extends State<DebugPage> {
                                                 'stopColor', 'readColor');
                                           }
                                         : null,
-
                                     child: const Text('Stop reading'),
                                   ),
                                 ),
@@ -800,7 +807,6 @@ class _DebugPageState extends State<DebugPage> {
       int.parse(colorInt.substring(6, 9))
     ];
     return Color.fromRGBO(intList[0], intList[1], intList[2], 1);
-    
   }
 
   /////////////////////////// Voids ///////////////////////////
@@ -808,6 +814,25 @@ class _DebugPageState extends State<DebugPage> {
   void initState() {
     super.initState();
   }
+
+  //// Navigation Menu ////
+  // Handles the navigation of the popupmenu.
+  void onSelected(BuildContext context, MenuItem item) {
+    switch (item) {
+      case MenuItems.itemLog:
+        Navigator.popAndPushNamed(context, '/logs');
+        break;
+      case MenuItems.itemColor:
+        Navigator.popAndPushNamed(context, '/color_calibration');
+        break;
+    }
+  }
+
+  // Creates the navigation menu.
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+        value: item,
+        child: Text(item.text),
+      );
 
   void _showResetConfirmMessage(MQTTAppState currentAppState) {
     showDialog(

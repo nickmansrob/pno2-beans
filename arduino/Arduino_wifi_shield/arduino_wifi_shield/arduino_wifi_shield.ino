@@ -378,6 +378,48 @@ void readColor() {
   }
 }
 
+String readColorCalibration() {
+  String red = "0";
+  String green = "0";
+  String blue = "0";
+
+  digitalWrite(KS2_PIN, LOW);
+  digitalWrite(KS3_PIN, LOW);
+  red = String(pulseIn(KOUT_PIN, LOW));
+
+  digitalWrite(KS2_PIN, LOW);
+  digitalWrite(KS3_PIN, HIGH);
+  blue = String(pulseIn(KOUT_PIN, LOW));
+
+  digitalWrite(KS2_PIN, HIGH);
+  digitalWrite(KS3_PIN, HIGH);
+  green = String(pulseIn(KOUT_PIN, LOW));
+
+  return red + green + blue;
+
+}
+
+void calibrateColor(String topic, String messageString) {
+  String colorRGB = "";
+  String reading1 = "";
+  String reading2 = "";
+  String reading3 = "";
+
+  if (messageString == "start_calibration_app") {
+    client.publish("colorListener", "start_calibration");
+  }
+  else if (messageString.substring(0, 5) == "start") {
+    colorRGB = messageString.substring(6);
+    reading1 = readColorCalibration();
+    delay(200);
+    reading2 = readColorCalibration();
+    delay(200);
+    reading3 = readColorCalibration();
+    serial.println(colorRGB + "," + reading1 + "," + reading2 + "," + reading3);
+    client.publish("stop" + "colorRGB");
+  }
+}
+
 /************************* Read ultrasonic sensor *************************/
 void readUltrasonic() {
   uint8_t theta = servoOneState;

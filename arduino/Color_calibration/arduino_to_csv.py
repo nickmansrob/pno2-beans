@@ -4,36 +4,44 @@ import time
 import csv
 import os
 
-def read_serial():
+def main():
+    file = "test_data.csv"
+    datamatrix = []
+    
+    read_serial(3375)
+    if datamatrix:
+        write_csv(file, datamatrix)
+        open_file()
+
+    
+def read_serial(samples):
     arduino_port = "/dev/ttyACM0" 
     baud = 9600
-    file = "test_data.csv"
     i = 0
-    datamatrix = []
-    samples = 20
-
-
     ser = connect_to_serial(arduino_port, baud)
-    # Gets 20 serial outputs of the Arduino.
-    while(i < samples):
-        ser_bytes = ser.readline()
-        datamatrix.append([time_now(), ser_bytes.decode("utf-8").strip()])
-        i+=1
-        print("\r" +  f'Getting data... ({i}/{samples})', end="\r")
-        
-    write_csv(file, datamatrix)
-    open_file()
+    try:
+        ser.readline() 
+    except Exception:
+        return
+    else:
+        # Gets 20 serial outputs of the Arduino.
+        while(i < samples):
+            ser_bytes = ser.readline()
+            datamatrix.append([time_now()] + ser_bytes.decode("utf-8").strip().split(','))
+            i+=1
+            print("\r" +  f'Getting data... ({i}/{samples})', end="\r")
+            
 
 def connect_to_serial(port, baud):
     try:
         serial.Serial(port, baud)
     except Exception:
-        print('Connection failed. Please try again.')
+        print(f"Connection with '{port}' on baud {baud} failed. Please try again.")
+        return
     else:
         print('Connection established.')
         return serial.Serial(port, baud)
         
-    
     
 def time_now():
     # Tested, it works.
@@ -53,7 +61,7 @@ def time_now():
 
 def write_csv(file, matrix):
     # Tested, it works. 
-    fields = ['Timestamp', 'distance']
+    fields = ['Timestamp', 'color', 'reading1', 'reading2', 'reading3']
 
     with open(file, 'w') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -62,7 +70,8 @@ def write_csv(file, matrix):
 
 
 def open_file():
-    input_string = input('Would you like to open the file? (Y/N)')
+    # Works only on Linux.
+    input_string = input("Would you like to open the file (press 'N' on Windows)? (Y/N)")
 
     if input_string.lower() == 'y':
         os.popen('gedit test_data.csv')
@@ -70,4 +79,4 @@ def open_file():
         return
 
 if __name__ == '__main__':
-    read_serial()
+    main()

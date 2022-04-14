@@ -6,7 +6,6 @@ import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:bean_bot/data/menu_items_color.dart';
 import 'package:bean_bot/model/menu_item.dart';
 
-
 class ColorCalibrationPage extends StatefulWidget {
   const ColorCalibrationPage({Key? key}) : super(key: key);
 
@@ -31,7 +30,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
           PopupMenuButton<MenuItem>(
             onSelected: (item) => onSelected(context, item),
             itemBuilder: (context) =>
-            [...MenuItems.items.map(buildItem).toList()],
+                [...MenuItems.items.map(buildItem).toList()],
           ),
         ],
       ),
@@ -51,11 +50,6 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
         ],
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   Widget _buildConnectionStateText(String status, Color color) {
@@ -106,12 +100,11 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: ElevatedButton(
-              onPressed: disableTextField(appState.getAppConnectionState)? () {
-                setState(() {
-                  calibrationState = true;
-                });
-                colorChanges(appState, colorCalibrationState);
-              }: null,
+              onPressed: disableTextField(appState.getAppConnectionState)
+                  ? () {
+                      colorChanges(appState, colorCalibrationState);
+                    }
+                  : null,
               child: const Text('Start calibration'),
             ),
           ),
@@ -145,40 +138,78 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     }
   }
 
-  Future<void> colorChanges(MQTTAppState appState,ColorCalibrationState colorCalibrationState) async {
-    // This functions loops over all the possible RGB colors, with increments of size n.
-    int increment = 17;
-
-    // Estimated time of completion: 3375 seconds.
-    while (colorCalibrationState.get_r < 255) {
-      while (colorCalibrationState.get_g < 255) {
-        while (colorCalibrationState.get_b < 255) {
-          colorCalibrationState.set_b(colorCalibrationState.get_b + increment);
-          colorCalibrationState.incrementCalibrationsDone();
-          _publishMessage(makeMessage(colorCalibrationState), 'colorCalibration');
-          await Future.delayed(const Duration(seconds: 1));
-        }
-        colorCalibrationState.set_b(0);
-        colorCalibrationState.set_g(colorCalibrationState.get_g + increment);
-        colorCalibrationState.incrementCalibrationsDone();
-        _publishMessage(makeMessage(colorCalibrationState), 'colorCalibration');
-        await Future.delayed(const Duration(seconds: 1));
-      }
-      colorCalibrationState.set_g(0);
-      colorCalibrationState.set_b(0);
-      colorCalibrationState.set_r(colorCalibrationState.get_r + increment);
-      colorCalibrationState.incrementCalibrationsDone();
-      _publishMessage(makeMessage(colorCalibrationState), 'colorCalibration');
-      await Future.delayed(const Duration(seconds: 1));
+  Future<void> colorChanges(MQTTAppState appState,
+      ColorCalibrationState colorCalibrationState) async {
+    VoidCallback? callBack() {
+      Future.delayed(Duration.zero, () {
+        setState(() {
+          calibrationState = true;
+        });
+      });
+      return null;
     }
-    calibrationState = false;
+
+    // This functions loops over all the possible RGB colors, with increments of size n.
+    // The plan is to synchronize the data via MQTT. When the user presses the button to start the calibration, the app sends 'start_calibration' via MQTT, then it listens for the Arduino to react. When connection is established, the app sends 'startRRRGGGBBB'. When the Arduino receives this code, it conduct three measurements and then sends 'stopRRRGGGBBB'. The then increases the counter and starts the process again.
+    int increment = 17;
+    _publishMessage('start_calibration_app', 'colorCalibration');
+
+    while (!(colorCalibrationState.getStartCalibration)) {
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+
+    if (colorCalibrationState.getStartCalibration) {
+      callBack();
+      // Estimated time of completion: 3375 seconds.
+      _publishMessage(colorCalibrationState.getCalibrationSentMessage, 'colorCalibration');
+      while (toIncrementRGB(colorCalibrationState)) {
+        if (colorCalibrationState.getCalibrationReceivedMessage.substring(4) ==
+            colorCalibrationState.getCalibrationSentMessage.substring(5)) {
+          incrementRGB(colorCalibrationState, increment);
+        } else {
+          await Future.delayed(const Duration(milliseconds: 10));
+        }
+      }
+    }
+      calibrationState = false;
+  }
+
+  bool toIncrementRGB(ColorCalibrationState colorCalibrationState) {
+    int R = colorCalibrationState.get_r;
+    int G = colorCalibrationState.get_g;
+    int B = colorCalibrationState.get_b;
+
+    if (R == 155 && G == 155 && B == 155) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  void incrementRGB(
+      ColorCalibrationState colorCalibrationState, int increment) {
+    int R = colorCalibrationState.get_r;
+    int G = colorCalibrationState.get_g;
+    int B = colorCalibrationState.get_b;
+
+    if (B == 255 && G == 255) {
+      colorCalibrationState.set_b(0);
+      colorCalibrationState.set_g(0);
+      colorCalibrationState.set_r(R + increment);
+    } else if (B == 255 && G != 255) {
+      colorCalibrationState.set_b(0);
+      colorCalibrationState.set_g(G + increment);
+    } else {
+      colorCalibrationState.set_b(B + increment);
+    }
+    _publishMessage(makeMessage(colorCalibrationState), 'colorCalibration');
+    colorCalibrationState.incrementCalibrationsDone();
   }
 
   String calibrationTitleText(ColorCalibrationState colorCalibrationState) {
-    if(calibrationState) {
+    if (calibrationState) {
       return "Calibrating... (${colorCalibrationState.getCalibrationsDone}/3375)";
-    }
-    else {
+    } else {
       return "Color Calibration";
     }
   }
@@ -187,7 +218,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     String r = colorCalibrationState.get_r.toString();
     String g = colorCalibrationState.get_g.toString();
     String b = colorCalibrationState.get_b.toString();
-    if (r.length < 3  || g.length < 3 || b.length < 3) {
+    if (r.length < 3 || g.length < 3 || b.length < 3) {
       while (r.length != 3) {
         r = '0' + r;
       }
@@ -198,19 +229,20 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
         b = '0' + b;
       }
     }
-    return r + g + b;
+    colorCalibrationState.setCalibrationSentMessage('start' + r + g + b);
+    return 'start' + r + g + b;
   }
 
   void _publishMessage(String text, String topic) {
     final MQTTAppState appState =
-    Provider.of<MQTTAppState>(context, listen: false);
+        Provider.of<MQTTAppState>(context, listen: false);
 
     MQTTManager manager = appState.getMQTTManager;
     manager.publish(text, topic);
   }
 
-  //// Navigation Menu ////
-  // Handles the navigation of the popupmenu.
+//// Navigation Menu ////
+// Handles the navigation of the popupmenu.
   void onSelected(BuildContext context, MenuItem item) {
     switch (item) {
       case MenuItems.itemDebug:
@@ -222,10 +254,9 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     }
   }
 
-  // Creates the navigation menu.
+// Creates the navigation menu.
   PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-    value: item,
-    child: Text(item.text),
-  );
-
+        value: item,
+        child: Text(item.text),
+      );
 }

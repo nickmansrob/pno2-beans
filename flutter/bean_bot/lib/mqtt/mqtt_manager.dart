@@ -1,3 +1,4 @@
+import 'package:bean_bot/Providers/color_calibration_state.dart';
 import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +10,7 @@ class MQTTManager with ChangeNotifier {
   final MQTTAppState _currentState;
   MqttServerClient? _client;
   final OrderState _currentOrderState;
+  final ColorCalibrationState _currentColorCalibrationState;
   final String _identifier;
   final String _host;
   final List _topicList;
@@ -20,12 +22,12 @@ class MQTTManager with ChangeNotifier {
       required List topicList,
       required String identifier,
       required MQTTAppState state,
-      required OrderState orderState})
+      required OrderState orderState, required ColorCalibrationState colorCalibrationState})
       : _identifier = identifier,
         _host = host,
         _topicList = topicList,
         _currentState = state,
-        _currentOrderState = orderState;
+        _currentOrderState = orderState, _currentColorCalibrationState = colorCalibrationState;
 
   void initializeMQTTClient() {
     _client = MqttServerClient(_host, _identifier);
@@ -145,6 +147,17 @@ class MQTTManager with ChangeNotifier {
                 publish('proceed', 'adminListener');
               }
             }
+            break;
+          case 'colorCalibration':
+            if (pt == 'start_calibration') {
+              _currentColorCalibrationState.setStartCalibration(true);
+              notifyListeners();
+            }
+            else if (pt.substring(0, 4) == 'stop') {
+              _currentColorCalibrationState.setCalibrationReceivedMessage(pt);
+              notifyListeners();
+            }
+            break;
         }
       },
     );

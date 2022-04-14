@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:bean_bot/Providers/color_calibration_state.dart';
 import 'package:bean_bot/Providers/mqtt_app_state.dart';
 import 'package:bean_bot/Providers/order_state.dart';
 import 'package:bean_bot/data/menu_items_home.dart';
@@ -33,6 +34,7 @@ class _HomePageState extends State<HomePage> {
   late MQTTManager manager;
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
+  late ColorCalibrationState currentColorCalibrationState;
 
   double firstWeightFraction = 0;
   double secondWeightFraction = 0;
@@ -46,9 +48,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     final OrderState orderState = Provider.of<OrderState>(context);
+    final ColorCalibrationState calibrationState = Provider.of<ColorCalibrationState>(context);
     // Keep a reference to the app state.
     currentAppState = appState;
     currentOrderState = orderState;
+    currentColorCalibrationState = calibrationState;
     return MaterialApp(
       title: _title,
       home: Scaffold(
@@ -1120,7 +1124,7 @@ class _HomePageState extends State<HomePage> {
         ],
         identifier: currentAppState.getAppId,
         state: currentAppState,
-        orderState: currentOrderState);
+        orderState: currentOrderState, colorCalibrationState: currentColorCalibrationState);
     manager.initializeMQTTClient();
     manager.connect();
     currentAppState.setMQTTManger(manager);

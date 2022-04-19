@@ -16,7 +16,6 @@ class MQTTAppState with ChangeNotifier {
   String _firstOrderWeightText = '0';
   String _secondOrderWeightText = '0';
   String _logText = '';
-  String _hostIp = '';
   bool _isSwitched = false;
   String _firstColor = 'not determined';
   String _secondColor = 'not determined';
@@ -92,11 +91,6 @@ class MQTTAppState with ChangeNotifier {
 
   void setAppConnectionState(MQTTAppConnectionState state) {
     _appConnectionState = state;
-    notifyListeners();
-  }
-
-  void setHostIp(String ip) {
-    _hostIp = ip;
     notifyListeners();
   }
 
@@ -176,7 +170,6 @@ class MQTTAppState with ChangeNotifier {
   String get getLogText => _logText;
   String get getFirstOrderWeightText => _firstOrderWeightText;
   String get getSecondOrderWeightText => _secondOrderWeightText;
-  String get getHostIP => _hostIp;
   String get getSecondColor => _secondColor;
   String get getFirstColor => _firstColor;
   String get getFirstColorInt => _firstColorInt;

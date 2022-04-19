@@ -440,11 +440,13 @@ void manualFlow(String topic, String messageString) {
   }
   // Weight data
   else if (topic == "weight1") {
+    lcd.clear();
     lcd.setCursor(0, 1);
     lcd.print(messageString);
   }
 
   else if (topic == "weight2") {
+    lcd.clear();
     lcd.setCursor(0, 1);
     lcd.print(messageString);
   }

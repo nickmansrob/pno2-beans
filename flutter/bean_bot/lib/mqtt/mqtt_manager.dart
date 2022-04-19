@@ -23,6 +23,7 @@ class MQTTManager with ChangeNotifier {
       required String identifier,
       required MQTTAppState state,
       required OrderState orderState, required ColorCalibrationState colorCalibrationState})
+
       : _identifier = identifier,
         _host = host,
         _topicList = topicList,
@@ -74,8 +75,7 @@ class MQTTManager with ChangeNotifier {
   /// The unsolicited disconnect callback
   void onDisconnected() {
     if (_client!.connectionStatus!.returnCode ==
-        MqttConnectReturnCode.noneSpecified) {
-    }
+        MqttConnectReturnCode.noneSpecified) {}
     _currentState.setAppConnectionState(MQTTAppConnectionState.disconnected);
   }
 
@@ -130,15 +130,14 @@ class MQTTManager with ChangeNotifier {
             }
             break;
           case 'distanceListener':
-              _currentState.setDistance(pt);
+            _currentState.setDistance(pt);
 
             break;
           case 'adminListener':
             if (pt == 'done_all') {
               _currentOrderState.disposeOrderState();
               _currentState.disposeAppState();
-            }
-            else if (pt == 'section_done') {
+            } else if (pt == 'section_done') {
               if (_currentState.getIsSwitched == true) {
                 publish('override', 'adminListener');
               } else if (_currentState.getResetPressed == true) {
@@ -158,6 +157,7 @@ class MQTTManager with ChangeNotifier {
               notifyListeners();
             }
             else if (pt.substring(0, 4) == 'stop') {
+
               _currentColorCalibrationState.setCalibrationReceivedMessage(pt);
               notifyListeners();
             }
@@ -193,5 +193,4 @@ class MQTTManager with ChangeNotifier {
 
     return Color.fromRGBO(intList[0], intList[1], intList[2], 1);
   }
-
 }

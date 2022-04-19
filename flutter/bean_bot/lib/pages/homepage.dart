@@ -49,6 +49,7 @@ class _HomePageState extends State<HomePage> {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     final OrderState orderState = Provider.of<OrderState>(context);
     final ColorCalibrationState calibrationState = Provider.of<ColorCalibrationState>(context);
+
     // Keep a reference to the app state.
     currentAppState = appState;
     currentOrderState = orderState;
@@ -62,7 +63,7 @@ class _HomePageState extends State<HomePage> {
             PopupMenuButton<MenuItem>(
               onSelected: (item) => onSelected(context, item),
               itemBuilder: (context) =>
-              [...MenuItems.items.map(buildItem).toList()],
+                  [...MenuItems.items.map(buildItem).toList()],
             ),
           ],
         ),
@@ -175,7 +176,7 @@ class _HomePageState extends State<HomePage> {
     return InputDecorator(
       decoration: InputDecoration(
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
+            const EdgeInsets.symmetric(horizontal: -10, vertical: 5),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
       child: Column(
@@ -187,17 +188,17 @@ class _HomePageState extends State<HomePage> {
                 value: "Silo 1",
                 groupValue: currentOrderState.getSiloChoiceNumber,
                 onChanged: (disableTextField(state) &&
-                    currentOrderState.getOrderCount < 2)
+                        currentOrderState.getOrderCount < 2)
                     ? (value) {
-                  setState(
-                        () {
-                      currentOrderState
-                          .setSiloChoiceNumber(value.toString());
-                      currentOrderState.setSiloChoiceNumber(
-                          currentOrderState.getSiloChoiceNumber);
-                    },
-                  );
-                }
+                        setState(
+                          () {
+                            currentOrderState
+                                .setSiloChoiceNumber(value.toString());
+                            currentOrderState.setSiloChoiceNumber(
+                                currentOrderState.getSiloChoiceNumber);
+                          },
+                        );
+                      }
                     : null,
               ),
             ),
@@ -210,17 +211,17 @@ class _HomePageState extends State<HomePage> {
                 value: "Silo 2",
                 groupValue: currentOrderState.getSiloChoiceNumber,
                 onChanged: (disableTextField(state) &&
-                    currentOrderState.getOrderCount < 2)
+                        currentOrderState.getOrderCount < 2)
                     ? (value) {
-                  setState(
-                        () {
-                      currentOrderState
-                          .setSiloChoiceNumber(value.toString());
-                      currentOrderState.setSiloChoiceNumber(
-                          currentOrderState.getSiloChoiceNumber);
-                    },
-                  );
-                }
+                        setState(
+                          () {
+                            currentOrderState
+                                .setSiloChoiceNumber(value.toString());
+                            currentOrderState.setSiloChoiceNumber(
+                                currentOrderState.getSiloChoiceNumber);
+                          },
+                        );
+                      }
                     : null,
               ),
             ),
@@ -233,17 +234,17 @@ class _HomePageState extends State<HomePage> {
                 value: "Silo 3",
                 groupValue: currentOrderState.getSiloChoiceNumber,
                 onChanged: (disableTextField(state) &&
-                    currentOrderState.getOrderCount < 2)
+                        currentOrderState.getOrderCount < 2)
                     ? (value) {
-                  setState(
-                        () {
-                      currentOrderState
-                          .setSiloChoiceNumber(value.toString());
-                      currentOrderState.setSiloChoiceNumber(
-                          currentOrderState.getSiloChoiceNumber);
-                    },
-                  );
-                }
+                        setState(
+                          () {
+                            currentOrderState
+                                .setSiloChoiceNumber(value.toString());
+                            currentOrderState.setSiloChoiceNumber(
+                                currentOrderState.getSiloChoiceNumber);
+                          },
+                        );
+                      }
                     : null,
               ),
             ),
@@ -263,27 +264,27 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
               onPressed: (disableTextField(state) &&
-                  currentOrderState.getOrderCount < 2)
+                      currentOrderState.getOrderCount < 2)
                   ? () {
-                // Dismisses keyboard
-                if (!disableTextField(state)) {
-                  null;
-                } else {
-                  FocusScopeNode currentFocus = FocusScope.of(context);
-                  if (!currentFocus.hasPrimaryFocus) {
-                    currentFocus.unfocus();
-                  }
-                  // Validate returns true if the form is valid, or false otherwise.
-                  if (_weightForm.currentState!.validate()) {
-                    currentOrderState
-                        .setBothWeightOrder(_weightController.text);
-                    currentOrderState
-                        .setWeightOrder(_weightController.text);
-                    _showConfirmMessage(
-                        currentAppState.getAppConnectionState);
-                  }
-                }
-              }
+                      // Dismisses keyboard
+                      if (!disableTextField(state)) {
+                        null;
+                      } else {
+                        FocusScopeNode currentFocus = FocusScope.of(context);
+                        if (!currentFocus.hasPrimaryFocus) {
+                          currentFocus.unfocus();
+                        }
+                        // Validate returns true if the form is valid, or false otherwise.
+                        if (_weightForm.currentState!.validate()) {
+                          currentOrderState
+                              .setBothWeightOrder(_weightController.text);
+                          currentOrderState
+                              .setWeightOrder(_weightController.text);
+                          _showConfirmMessage(
+                              currentAppState.getAppConnectionState);
+                        }
+                      }
+                    }
                   : null,
               child: const Text('Submit'),
             ),
@@ -294,11 +295,11 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
               onPressed: (disableTextField(state) &&
-                  currentOrderState.getOrderCount < 2)
+                      currentOrderState.getOrderCount < 2)
                   ? () {
-                _weightController.clear();
-                currentOrderState.setSiloNumber('');
-              }
+                      _weightController.clear();
+                      currentOrderState.setSiloNumber('');
+                    }
                   : null,
               child: const Text('Cancel'),
             ),
@@ -325,7 +326,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -562,7 +563,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -635,7 +636,7 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                           color: Colors.green,
                                           borderRadius:
-                                          BorderRadius.circular(4.0)),
+                                              BorderRadius.circular(4.0)),
                                       width: firstWeightFraction * (width - 32),
                                       height: 28,
                                     ),
@@ -643,7 +644,7 @@ class _HomePageState extends State<HomePage> {
                                   Container(
                                     decoration: BoxDecoration(
                                         borderRadius:
-                                        BorderRadius.circular(5.0),
+                                            BorderRadius.circular(5.0),
                                         border: Border.all(
                                           width: 1,
                                           color: Colors.black,
@@ -676,19 +677,19 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableFirstCancelOrder(appState)
                                   ? () {
-                                _publishMessage('0000', 'order1');
-                                orderState.setFirstOrder('');
-                                orderState.decrementOrderCount();
-                                firstWeightFraction = 0.0;
-                              }
+                                      _publishMessage('0000', 'order1');
+                                      orderState.setFirstOrder('');
+                                      orderState.decrementOrderCount();
+                                      firstWeightFraction = 0.0;
+                                    }
                                   : null,
                               child: const Text('Cancel order'),
                               style: TextButton.styleFrom(
                                 primary: Colors.white,
                                 backgroundColor:
-                                colorFirstOrderCancelButton(appState),
+                                    colorFirstOrderCancelButton(appState),
                                 onSurface:
-                                colorFirstOrderCancelButton(appState),
+                                    colorFirstOrderCancelButton(appState),
                               ),
                             ),
                           ),
@@ -711,7 +712,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: Column(
@@ -752,7 +753,7 @@ class _HomePageState extends State<HomePage> {
             double.parse(currentAppState.getSecondOrderWeightText)) {
       secondWeightFraction = 1.0;
     } else if (double.tryParse(currentOrderState.getSecondWeightOrder) !=
-        null &&
+            null &&
         double.parse(currentOrderState.getSecondWeightOrder) > 0.0) {
       secondWeightFraction =
           double.parse(currentAppState.getSecondOrderWeightText) /
@@ -776,7 +777,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: ExpansionWidget(
@@ -787,7 +788,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => toggleFunction(animated: true),
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -855,9 +856,9 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                           color: Colors.green,
                                           borderRadius:
-                                          BorderRadius.circular(4.0)),
+                                              BorderRadius.circular(4.0)),
                                       width:
-                                      secondWeightFraction * (width - 32),
+                                          secondWeightFraction * (width - 32),
                                       height: 28,
                                     ),
                                   ),
@@ -897,19 +898,19 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton(
                               onPressed: disableSecondCancelOrder(appState)
                                   ? () {
-                                _publishMessage('0000', 'order2');
-                                orderState.setSecondOrder('');
-                                orderState.decrementOrderCount();
-                                secondWeightFraction = 0.0;
-                              }
+                                      _publishMessage('0000', 'order2');
+                                      orderState.setSecondOrder('');
+                                      orderState.decrementOrderCount();
+                                      secondWeightFraction = 0.0;
+                                    }
                                   : null,
                               child: const Text('Cancel order'),
                               style: TextButton.styleFrom(
                                 primary: Colors.white,
                                 backgroundColor:
-                                colorSecondOrderCancelButton(appState),
+                                    colorSecondOrderCancelButton(appState),
                                 onSurface:
-                                colorSecondOrderCancelButton(appState),
+                                    colorSecondOrderCancelButton(appState),
                               ),
                             ),
                           ),
@@ -932,7 +933,7 @@ class _HomePageState extends State<HomePage> {
       child: InputDecorator(
         decoration: InputDecoration(
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
         ),
         child: Column(
@@ -1007,9 +1008,9 @@ class _HomePageState extends State<HomePage> {
 
   // Creates the navigation menu.
   PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
-    value: item,
-    child: Text(item.text),
-  );
+        value: item,
+        child: Text(item.text),
+      );
 
   // Returns false when the first order has started.
   bool disableFirstCancelOrder(MQTTAppState appState) {

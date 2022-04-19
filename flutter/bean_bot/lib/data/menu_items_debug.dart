@@ -5,6 +5,7 @@ class MenuItems {
     itemLog,
     itemColor
   ];
+
   static const itemLog = MenuItem(
     text: 'Logs',
   );

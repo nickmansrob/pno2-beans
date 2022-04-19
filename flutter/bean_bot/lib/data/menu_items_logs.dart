@@ -6,6 +6,7 @@ class MenuItems {
     itemColor
   ];
 
+
   static const itemDebug = MenuItem(
     text: 'Debug Menu',
   );

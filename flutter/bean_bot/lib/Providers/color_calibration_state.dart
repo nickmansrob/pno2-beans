@@ -51,4 +51,6 @@ class ColorCalibrationState with ChangeNotifier {
   bool get getStartCalibration => _startCalibration;
   String get getCalibrationSentMessage => _calibrationSentMessage;
   String get getCalibrationReceivedMessage => _calibrationReceivedMessage;
+
 }
+

@@ -23,17 +23,18 @@ class MQTTAppState with ChangeNotifier {
   String _firstColorInt = '000000000';
   String _secondColorInt = '000000000';
   String _distance = "";
-  
+
   Color _beanColor = const Color.fromRGBO(0, 0, 0, 1);
-  String  _orderMessage = '';
+  String _orderMessage = '';
   bool _resetPressed = false;
   bool _restorePressed = false;
   String _appId = "BeanBotApp";
-  
+
   void setDistance(String distance) {
     _distance = distance;
     notifyListeners();
   }
+
   void setBeanColor(Color color) {
     _beanColor = color;
     notifyListeners();

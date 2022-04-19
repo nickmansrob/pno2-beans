@@ -99,10 +99,14 @@ class MQTTManager with ChangeNotifier {
             _currentState.setReceivedLogText(pt);
             break;
           case 'firstWeightListener':
-            _currentState.setFirstOrderReceivedWeightText(pt);
+            if (double.tryParse(pt) != null) {
+              _currentState.setFirstOrderReceivedWeightText(pt);
+            }
             break;
           case 'secondWeightListener':
-            _currentState.setSecondOrderReceivedWeightText(pt);
+            if (double.tryParse(pt) != null) {
+              _currentState.setSecondOrderReceivedWeightText(pt);
+            }
             break;
           case 'firstColorListener':
             _currentState.setFirstColor(convertIntToColor(pt));

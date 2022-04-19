@@ -161,7 +161,8 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     if (colorCalibrationState.getStartCalibration) {
       callBack();
       // Estimated time of completion: 3375 seconds.
-      _publishMessage(colorCalibrationState.getCalibrationSentMessage, 'colorCalibration');
+      _publishMessage(
+          colorCalibrationState.getCalibrationSentMessage, 'colorCalibration');
       while (toIncrementRGB(colorCalibrationState)) {
         if (colorCalibrationState.getCalibrationReceivedMessage.substring(4) ==
             colorCalibrationState.getCalibrationSentMessage.substring(5)) {
@@ -171,7 +172,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
         }
       }
     }
-      calibrationState = false;
+    calibrationState = false;
   }
 
   bool toIncrementRGB(ColorCalibrationState colorCalibrationState) {

@@ -3,5 +3,5 @@ class MenuItem {
 
   const MenuItem({
     required this.text,
- });
+  });
 }

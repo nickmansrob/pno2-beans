@@ -1,10 +1,9 @@
-import 'package:bean_bot/Providers/mqtt_app_state.dart';
-import 'package:bean_bot/Providers/order_state.dart';
-import 'package:bean_bot/mqtt/mqtt_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:bean_bot/data/menu_items_debug.dart';
 import 'package:bean_bot/model/menu_item.dart';
-
+import 'package:bean_bot/mqtt/mqtt_manager.dart';
+import 'package:bean_bot/providers/mqtt_app_state.dart';
+import 'package:bean_bot/providers/order_state.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class DebugPage extends StatefulWidget {
@@ -15,6 +14,7 @@ class DebugPage extends StatefulWidget {
 }
 
 class _DebugPageState extends State<DebugPage> {
+  /////////////////////////// Variables ///////////////////////////
   final _servoForm1 = GlobalKey<FormState>();
   final _servoForm2 = GlobalKey<FormState>();
   final _servoForm3 = GlobalKey<FormState>();
@@ -29,6 +29,8 @@ class _DebugPageState extends State<DebugPage> {
   final TextEditingController _thirdServoController = TextEditingController();
   final TextEditingController _fourthServoController = TextEditingController();
 
+  /////////////////////////// Widgets ///////////////////////////
+  // Builds the main widget of the debug page.
   @override
   Widget build(BuildContext context) {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
@@ -47,8 +49,8 @@ class _DebugPageState extends State<DebugPage> {
       body: ListView(children: [
         // Creates the connection indicator on top of the screen.
         _buildConnectionStateText(
-          _prepareStateMessageFrom(appState.getAppConnectionState),
-          setColor(appState.getAppConnectionState),
+          statusBarMessage(appState.getAppConnectionState),
+          setColorStatusBar(appState.getAppConnectionState),
         ),
         _buildManualOverrideState(appState.getAppConnectionState),
         _buildServoInput(),
@@ -59,7 +61,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
-  /////////////////////////// Widgets ///////////////////////////
+  // Creates the connection state widget on top of the screen.
   Widget _buildConnectionStateText(String status, Color color) {
     return Row(
       children: <Widget>[
@@ -75,6 +77,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
+  // Creates the manual override switch.
   Widget _buildManualOverrideState(MQTTAppConnectionState connectionState) {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Column(
@@ -135,6 +138,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
+  // Creates to forms for the input for the servo motors.
   Widget _buildServoInput() {
     MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Column(
@@ -367,6 +371,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
+  // Creates the DC-motor input
   Widget _buildMotorToggle() {
     final MQTTAppState appState = Provider.of<MQTTAppState>(context);
     return Column(
@@ -519,6 +524,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
+  // Creates the widgets for the color sensor and the ultrasonic sensor.
   Widget _buildSensors(MQTTAppState appState) {
     double width = MediaQuery.of(context).size.width;
 
@@ -708,6 +714,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
+  // Creates the widgets for resetting and restoring the Arduino and Bean Bot.
   Widget _buildArduinoToggle() {
     return Column(children: [
       Row(
@@ -768,7 +775,8 @@ class _DebugPageState extends State<DebugPage> {
   }
 
   /////////////////////////// Helper functions ///////////////////////////
-  Color setColor(MQTTAppConnectionState state) {
+  // Gets the color of the status bar on top of the screen.
+  Color setColorStatusBar(MQTTAppConnectionState state) {
     switch (state) {
       case MQTTAppConnectionState.connected:
         return Colors.green;
@@ -779,7 +787,8 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+  // Gets the message for the status bar on top of the screen.
+  String statusBarMessage(MQTTAppConnectionState state) {
     switch (state) {
       case MQTTAppConnectionState.connected:
         return 'Connected';
@@ -790,7 +799,7 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
-  // Function to disable textfields when not connected to the Arduino.
+  // Function to disable text-fields when not connected to the broker.
   bool disableTextField(MQTTAppConnectionState state) {
     if (state == MQTTAppConnectionState.disconnected ||
         state == MQTTAppConnectionState.connecting) {
@@ -800,6 +809,7 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
+  // Function to convert a RGB-triplet to a color, specified in RGB.
   Color convertRGBtoColor(String colorInt) {
     List intList = [
       int.parse(colorInt.substring(0, 3)),
@@ -815,7 +825,7 @@ class _DebugPageState extends State<DebugPage> {
     super.initState();
   }
 
-  //// Navigation Menu ////
+  //// Navigation Menu
   // Handles the navigation of the popupmenu.
   void onSelected(BuildContext context, MenuItem item) {
     switch (item) {
@@ -834,6 +844,7 @@ class _DebugPageState extends State<DebugPage> {
         child: Text(item.text),
       );
 
+  // Creates a dialog box when the user wants to rest the Arduino.
   void _showResetConfirmMessage(MQTTAppState currentAppState) {
     showDialog(
       context: context,
@@ -868,6 +879,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
+  // Creates a dialog box when the user wants to restore the Bean Bot.
   void _showRestoreConfirmMessage(MQTTAppState currentAppState) {
     showDialog(
       context: context,
@@ -902,6 +914,7 @@ class _DebugPageState extends State<DebugPage> {
     );
   }
 
+  // Publishes message on MQTT.
   void _publishMessage(String text, String topic) {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);

@@ -1,17 +1,20 @@
-import 'package:flutter/material.dart';
-import 'package:bean_bot/Providers/mqtt_app_state.dart';
-import 'package:provider/provider.dart';
 import 'package:bean_bot/data/menu_items_logs.dart';
 import 'package:bean_bot/model/menu_item.dart';
+import 'package:bean_bot/providers/mqtt_app_state.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LogPage extends StatefulWidget {
   const LogPage({Key? key}) : super(key: key);
+
   @override
   _LogPageState createState() => _LogPageState();
 }
 
 class _LogPageState extends State<LogPage> {
+  /////////////////////////// Widgets ///////////////////////////
   @override
+  // Creates the main widget of the Log page.
   Widget build(BuildContext context) {
     final MQTTAppState appState =
         Provider.of<MQTTAppState>(context, listen: false);
@@ -30,9 +33,10 @@ class _LogPageState extends State<LogPage> {
       body: ListView(
         children: [
           _buildConnectionStateText(
-            _prepareStateMessageFrom(
+            statusBarMessage(
                 Provider.of<MQTTAppState>(context).getAppConnectionState),
-            setColor(Provider.of<MQTTAppState>(context).getAppConnectionState),
+            setColorStatusBar(
+                Provider.of<MQTTAppState>(context).getAppConnectionState),
           ),
           _buildLogText(appState.getLogText),
           _buildLogDeleteButton(
@@ -42,43 +46,24 @@ class _LogPageState extends State<LogPage> {
     );
   }
 
+  // Creates the connection state widget on top of the screen.
   Widget _buildConnectionStateText(String status, Color color) {
     return Row(
       children: <Widget>[
         Expanded(
           child: Container(
-              color: color,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Text(status, textAlign: TextAlign.center),
-              )),
+            color: color,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Text(status, textAlign: TextAlign.center),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return 'Connected';
-      case MQTTAppConnectionState.connecting:
-        return 'Connecting';
-      case MQTTAppConnectionState.disconnected:
-        return 'Disconnected';
-    }
-  }
-
-  Color setColor(MQTTAppConnectionState state) {
-    switch (state) {
-      case MQTTAppConnectionState.connected:
-        return Colors.green;
-      case MQTTAppConnectionState.connecting:
-        return Colors.deepOrange;
-      case MQTTAppConnectionState.disconnected:
-        return Colors.red;
-    }
-  }
-
+  // Builds the header of the container of the incoming log texts.
   Widget _buildLogText(String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,6 +94,7 @@ class _LogPageState extends State<LogPage> {
     );
   }
 
+  // Creates the container to display to incoming log texts.
   Widget _buildScrollableTextWith(BuildContext context, String text) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -122,6 +108,7 @@ class _LogPageState extends State<LogPage> {
     );
   }
 
+  // Creates the button to clear out the logs.
   Widget _buildLogDeleteButton(BuildContext context, MQTTAppState appState,
       MQTTAppConnectionState connectionState) {
     return Row(
@@ -146,6 +133,32 @@ class _LogPageState extends State<LogPage> {
     );
   }
 
+  /////////////////////////// Helper functions ///////////////////////////
+  // Gets the message for the status bar on top of the screen.
+  String statusBarMessage(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return 'Connected';
+      case MQTTAppConnectionState.connecting:
+        return 'Connecting';
+      case MQTTAppConnectionState.disconnected:
+        return 'Disconnected';
+    }
+  }
+
+  // Gets the color of the status bar on top of the screen.
+  Color setColorStatusBar(MQTTAppConnectionState state) {
+    switch (state) {
+      case MQTTAppConnectionState.connected:
+        return Colors.green;
+      case MQTTAppConnectionState.connecting:
+        return Colors.deepOrange;
+      case MQTTAppConnectionState.disconnected:
+        return Colors.red;
+    }
+  }
+
+  // Function to disable text-fields when not connected to the broker.
   bool disableTextField(MQTTAppConnectionState state) {
     if (state == MQTTAppConnectionState.disconnected ||
         state == MQTTAppConnectionState.connecting) {
@@ -155,7 +168,7 @@ class _LogPageState extends State<LogPage> {
     }
   }
 
-  //// Navigation Menu ////
+  //// Navigation Menu
   // Handles the navigation of the popupmenu.
   void onSelected(BuildContext context, MenuItem item) {
     switch (item) {

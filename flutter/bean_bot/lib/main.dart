@@ -1,13 +1,13 @@
-import 'package:bean_bot/Providers/color_calibration_state.dart';
-import 'package:bean_bot/Providers/order_state.dart';
+import 'package:bean_bot/providers/color_calibration_state.dart';
+import 'package:bean_bot/providers/order_state.dart';
 import 'package:bean_bot/pages/color_calibration.dart';
+import 'package:bean_bot/pages/debug.dart';
+import 'package:bean_bot/pages/homepage.dart';
+import 'package:bean_bot/pages/logs.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:bean_bot/pages/logs.dart';
-import 'package:bean_bot/pages/debug.dart';
-import 'Providers/mqtt_app_state.dart';
-import 'package:bean_bot/pages/homepage.dart';
+import 'providers/mqtt_app_state.dart';
 
 void main() {
   runApp(

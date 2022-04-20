@@ -1,6 +1,6 @@
-import 'package:bean_bot/Providers/color_calibration_state.dart';
-import 'package:bean_bot/Providers/mqtt_app_state.dart';
-import 'package:bean_bot/Providers/order_state.dart';
+import 'package:bean_bot/providers/color_calibration_state.dart';
+import 'package:bean_bot/providers/mqtt_app_state.dart';
+import 'package:bean_bot/providers/order_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';

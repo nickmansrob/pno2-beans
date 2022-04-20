@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:bean_bot/Providers/color_calibration_state.dart';
-import 'package:bean_bot/Providers/mqtt_app_state.dart';
-import 'package:bean_bot/Providers/order_state.dart';
 import 'package:bean_bot/data/menu_items_home.dart';
 import 'package:bean_bot/model/menu_item.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:bean_bot/pages/debug.dart';
 import 'package:bean_bot/pages/logs.dart';
+import 'package:bean_bot/providers/color_calibration_state.dart';
+import 'package:bean_bot/providers/mqtt_app_state.dart';
+import 'package:bean_bot/providers/order_state.dart';
 import 'package:expansion_widget/expansion_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   final _idForm = GlobalKey<FormState>();
 
   final TextEditingController _ipTextController = TextEditingController();
-  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _weightTextController = TextEditingController();
   final TextEditingController _idTextController = TextEditingController();
 
   late MQTTManager manager;
@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
           title: const Text(_title),
           actions: <Widget>[
             PopupMenuButton<MenuItem>(
-              onSelected: (item) => onSelected(context, item),
+              onSelected: (item) => _onSelected(context, item),
               itemBuilder: (context) =>
                   [...MenuItems.items.map(buildItem).toList()],
             ),
@@ -70,8 +70,8 @@ class _HomePageState extends State<HomePage> {
         body: ListView(
           children: [
             _buildConnectionStateText(
-              _prepareStateMessageFrom(appState.getAppConnectionState),
-              setColor(appState.getAppConnectionState),
+              statusBarMessage(appState.getAppConnectionState),
+              setColorStatusBar(appState.getAppConnectionState),
             ),
             _buildWeightInput(appState.getAppConnectionState),
             _buildConfirmButtons(appState.getAppConnectionState),
@@ -106,11 +106,12 @@ class _HomePageState extends State<HomePage> {
       children: <Widget>[
         Expanded(
           child: Container(
-              color: color,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Text(status, textAlign: TextAlign.center),
-              )),
+            color: color,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Text(status, textAlign: TextAlign.center),
+            ),
+          ),
         ),
       ],
     );
@@ -137,9 +138,9 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: TextFormField(
-              enabled: (disableTextField(state) &&
+              enabled: (disableTextFields(state) &&
                   currentOrderState.getOrderCount < 2),
-              controller: _weightController,
+              controller: _weightTextController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter the weight',
@@ -187,7 +188,7 @@ class _HomePageState extends State<HomePage> {
               leading: Radio(
                 value: "Silo 1",
                 groupValue: currentOrderState.getSiloChoiceNumber,
-                onChanged: (disableTextField(state) &&
+                onChanged: (disableTextFields(state) &&
                         currentOrderState.getOrderCount < 2)
                     ? (value) {
                         setState(
@@ -210,7 +211,7 @@ class _HomePageState extends State<HomePage> {
               leading: Radio(
                 value: "Silo 2",
                 groupValue: currentOrderState.getSiloChoiceNumber,
-                onChanged: (disableTextField(state) &&
+                onChanged: (disableTextFields(state) &&
                         currentOrderState.getOrderCount < 2)
                     ? (value) {
                         setState(
@@ -233,7 +234,7 @@ class _HomePageState extends State<HomePage> {
               leading: Radio(
                 value: "Silo 3",
                 groupValue: currentOrderState.getSiloChoiceNumber,
-                onChanged: (disableTextField(state) &&
+                onChanged: (disableTextFields(state) &&
                         currentOrderState.getOrderCount < 2)
                     ? (value) {
                         setState(
@@ -263,11 +264,11 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
-              onPressed: (disableTextField(state) &&
+              onPressed: (disableTextFields(state) &&
                       currentOrderState.getOrderCount < 2)
                   ? () {
                       // Dismisses keyboard
-                      if (!disableTextField(state)) {
+                      if (!disableTextFields(state)) {
                         null;
                       } else {
                         FocusScopeNode currentFocus = FocusScope.of(context);
@@ -277,9 +278,9 @@ class _HomePageState extends State<HomePage> {
                         // Validate returns true if the form is valid, or false otherwise.
                         if (_weightForm.currentState!.validate()) {
                           currentOrderState
-                              .setBothWeightOrder(_weightController.text);
+                              .setBothWeightOrder(_weightTextController.text);
                           currentOrderState
-                              .setWeightOrder(_weightController.text);
+                              .setWeightOrder(_weightTextController.text);
                           _showConfirmMessage(
                               currentAppState.getAppConnectionState);
                         }
@@ -294,10 +295,10 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
             child: ElevatedButton(
-              onPressed: (disableTextField(state) &&
+              onPressed: (disableTextFields(state) &&
                       currentOrderState.getOrderCount < 2)
                   ? () {
-                      _weightController.clear();
+                      _weightTextController.clear();
                       currentOrderState.setSiloNumber('');
                     }
                   : null,
@@ -706,6 +707,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Builds the widget of the first order when it's finished.
   Widget _buildFirstOrderDone(OrderState orderState) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
@@ -736,13 +738,18 @@ class _HomePageState extends State<HomePage> {
     final int orderNumber;
 
     VoidCallback? callBack() {
-      Future.delayed(Duration.zero, () {
-        setState(() {
-          currentOrderState.setSecondOrder('');
-          currentAppState.setSecondOrderReceivedDone('');
-          _showSecondEndOrderMessage();
-        });
-      });
+      Future.delayed(
+        Duration.zero,
+        () {
+          setState(
+            () {
+              currentOrderState.setSecondOrder('');
+              currentAppState.setSecondOrderReceivedDone('');
+              _showSecondEndOrderMessage();
+            },
+          );
+        },
+      );
       return null;
     }
 
@@ -785,29 +792,29 @@ class _HomePageState extends State<HomePage> {
           titleBuilder:
               (double animationValue, _, bool isExpanded, toggleFunction) {
             return InkWell(
-                onTap: () => toggleFunction(animated: true),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Order $orderNumber (${orderState.getSecondOrder}):',
-                          style: const TextStyle(
-                            fontSize: 18,
-                          ),
+              onTap: () => toggleFunction(animated: true),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Order $orderNumber (${orderState.getSecondOrder}):',
+                        style: const TextStyle(
+                          fontSize: 18,
                         ),
                       ),
-                      Transform.rotate(
-                        angle: math.pi * animationValue / 2,
-                        child: const Icon(Icons.arrow_right, size: 40),
-                        alignment: Alignment.center,
-                      ),
-                    ],
-                  ),
-                ));
+                    ),
+                    Transform.rotate(
+                      angle: math.pi * animationValue / 2,
+                      child: const Icon(Icons.arrow_right, size: 40),
+                      alignment: Alignment.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
           },
           content: Column(
             children: [
@@ -927,6 +934,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Builds the widget of the second order when it's finished.
   Widget _buildSecondOrderDone(OrderState orderState) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
@@ -953,9 +961,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   ////////////////////////// Helper Methods //////////////////////////
-
   // Gets the connection state and returns the associated string.
-  String _prepareStateMessageFrom(MQTTAppConnectionState state) {
+  String statusBarMessage(MQTTAppConnectionState state) {
     switch (state) {
       case MQTTAppConnectionState.connected:
         return 'Connected';
@@ -967,7 +974,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Gets the connection state and returns the associated color.
-  Color setColor(MQTTAppConnectionState state) {
+  Color setColorStatusBar(MQTTAppConnectionState state) {
     switch (state) {
       case MQTTAppConnectionState.connected:
         return Colors.green;
@@ -978,7 +985,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Makes the cancel button in the order menu grey when disabled.
+  // Disables text-fields when not connected to the Arduino.
+  bool disableTextFields(MQTTAppConnectionState state) {
+    if (state == MQTTAppConnectionState.disconnected ||
+        state == MQTTAppConnectionState.connecting) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  // Makes the cancel button in the order widget grey when disabled.
   Color? colorFirstOrderCancelButton(MQTTAppState appState) {
     if (double.parse(appState.getFirstOrderWeightText) > 0) {
       return null;
@@ -996,10 +1013,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Disables text-fields when not connected to the Arduino.
-  bool disableTextField(MQTTAppConnectionState state) {
-    if (state == MQTTAppConnectionState.disconnected ||
-        state == MQTTAppConnectionState.connecting) {
+  // Returns false when the first order has started.
+  bool disableFirstCancelOrder(MQTTAppState appState) {
+    if (double.parse(appState.getFirstOrderWeightText) > 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  // Returns false when the second order has started.
+  bool disableSecondCancelOrder(MQTTAppState appState) {
+    if (double.parse(appState.getSecondOrderWeightText) > 0) {
       return false;
     } else {
       return true;
@@ -1011,24 +1036,6 @@ class _HomePageState extends State<HomePage> {
         value: item,
         child: Text(item.text),
       );
-
-  // Returns false when the first order has started.
-  bool disableFirstCancelOrder(MQTTAppState appState) {
-    if (double.parse(appState.getFirstOrderWeightText) > 0) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  // Returns true when the first order has started.
-  bool disableSecondCancelOrder(MQTTAppState appState) {
-    if (double.parse(appState.getSecondOrderWeightText) > 0) {
-      return false;
-    } else {
-      return true;
-    }
-  }
 
   // Checks if a given string is a valid IPv4 address.
   bool validateIp(String s) {
@@ -1088,12 +1095,11 @@ class _HomePageState extends State<HomePage> {
   // Sends a message over the MQTT connection.
   void _publishMessage(String text, String topic) {
     manager.publish(text, topic);
-    _weightController.clear();
+    _weightTextController.clear();
   }
 
-  @override
   // Clears the text of the IP controller.
-  void dispose() {
+  void disposeIpController() {
     _ipTextController.dispose();
     super.dispose();
   }
@@ -1104,24 +1110,43 @@ class _HomePageState extends State<HomePage> {
         host: currentAppState.getHostIP,
         topicList: [
           "order1",
+          // sending 'done' for first order
           "order2",
+          // sending 'done' for second order
           "logListener",
+          // sending all log data from Arduino to log page
           "firstWeightListener",
+          // sending weight data from Arduino to app for first order
           "secondWeightListener",
+          // sending weight data form Arduino to app for second order
           'adminListener',
+          // for resetting and restoring the Arduino and Bean Bot
           "motor1",
+          // 'toggle' and 'change_rotation' for first DC
           'motor2',
+          // 'toggle' and 'change_rotation' for second DC
           'servo1',
+          // degrees for first servo
           'servo2',
+          // degrees for second servo
           'servo3',
+          // degrees for third servo
           'servo4',
+          // degrees for fourth servo
           'readUltrasonic',
+          // sending data from ultrasonic sensor to app
           'readColor',
+          // sending data from color sensor to app
           'firstColorListener',
+          // sending data from color sensor (RGB-triplet) from color sensor to app for first order
           'secondColorListener',
+          // sending data from color sensor (RGB-triplet) from color sensor to app for second order
           'override',
+          // '0' when manual override is not enabled, '1' when override is enabled
           'distanceListener',
+          // currently no idea why I did not use 'readUltrasonic'
           'colorCalibration'
+          // for sending data of the color sensor calibration between app and Arduino
         ],
         identifier: currentAppState.getAppId,
         state: currentAppState,
@@ -1141,7 +1166,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Handles the navigation of the popupmenu.
-  void onSelected(BuildContext context, MenuItem item) {
+  void _onSelected(BuildContext context, MenuItem item) {
     switch (item) {
       case MenuItems.itemDebug:
         Navigator.pushNamed(context, '/debug');
@@ -1223,7 +1248,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Shows a message when the order of the user is ready.
+  // Opens a dialog box when the first order of the user is ready.
   void _showFirstEndOrderMessage() {
     showDialog(
       context: context,
@@ -1254,6 +1279,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Opens a dialog box when the first order of the user is ready.
   void _showSecondEndOrderMessage() {
     showDialog(
       context: context,
@@ -1312,6 +1338,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Opens a dialog box when the user manually disconnects from the broker.
   void _showDisconnectionMessage() {
     showDialog(
       context: context,

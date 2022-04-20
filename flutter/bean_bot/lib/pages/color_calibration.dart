@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:bean_bot/Providers/mqtt_app_state.dart';
+import 'package:bean_bot/providers/mqtt_app_state.dart';
 import 'package:provider/provider.dart';
-import 'package:bean_bot/Providers/color_calibration_state.dart';
+import 'package:bean_bot/providers/color_calibration_state.dart';
 import 'package:bean_bot/mqtt/mqtt_manager.dart';
 import 'package:bean_bot/data/menu_items_color.dart';
 import 'package:bean_bot/model/menu_item.dart';

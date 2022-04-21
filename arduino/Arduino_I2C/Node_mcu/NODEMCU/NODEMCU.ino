@@ -11,7 +11,7 @@
 /************************* WiFi *************************/
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "192.168.9.124";
+const char * mqtt_server = "192.168.137.1";
 
 /************************* MQTT *************************/
 WiFiClient espClient;
@@ -187,7 +187,10 @@ void manualFlow(String topic, String messageString) {
     logFlow("ROUTE: From origin to colorFlow");
     Serial.println(messageString);
     wireFlow("color_" + messageString);
-  }
+  } else if (topic == "readWeight" ) {
+    logFlow("ROUTE: From origin to weightFlow" );
+    wireFlow("weight_" + messageString);
+    }
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }

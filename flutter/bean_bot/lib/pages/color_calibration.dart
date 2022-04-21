@@ -107,8 +107,8 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
       height: height,
       width: width,
       decoration: BoxDecoration(
-        color: Color.fromRGBO(colorCalibrationState.get_r,
-            colorCalibrationState.get_g, colorCalibrationState.get_b, 1.0),
+        color: Color.fromRGBO(colorCalibrationState.getR,
+            colorCalibrationState.getG, colorCalibrationState.getB, 1.0),
       ),
     );
   }
@@ -188,9 +188,9 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
 
   // Function that checks if the RGB value has to be increased.
   bool toIncrementRGB(ColorCalibrationState colorCalibrationState) {
-    int R = colorCalibrationState.get_r;
-    int G = colorCalibrationState.get_g;
-    int B = colorCalibrationState.get_b;
+    int R = colorCalibrationState.getR;
+    int G = colorCalibrationState.getG;
+    int B = colorCalibrationState.getB;
 
     // When the RGB value equals (255, 255, 255), the maximum has been reached.
     if (R == 255 && G == 255 && B == 255) {
@@ -211,9 +211,9 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
 
   // Function for making message that has to be sent via MQTT.
   String makeMessage(ColorCalibrationState colorCalibrationState) {
-    String r = colorCalibrationState.get_r.toString();
-    String g = colorCalibrationState.get_g.toString();
-    String b = colorCalibrationState.get_b.toString();
+    String r = colorCalibrationState.getR.toString();
+    String g = colorCalibrationState.getG.toString();
+    String b = colorCalibrationState.getB.toString();
     if (r.length < 3 || g.length < 3 || b.length < 3) {
       while (r.length != 3) {
         r = '0' + r;
@@ -248,19 +248,19 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
   // Void that handles the increment of the color of the main container.
   void incrementRGB(
       ColorCalibrationState colorCalibrationState, int increment) {
-    int R = colorCalibrationState.get_r;
-    int G = colorCalibrationState.get_g;
-    int B = colorCalibrationState.get_b;
+    int R = colorCalibrationState.getR;
+    int G = colorCalibrationState.getG;
+    int B = colorCalibrationState.getB;
 
     if (B == 255 && G == 255) {
-      colorCalibrationState.set_b(0);
-      colorCalibrationState.set_g(0);
-      colorCalibrationState.set_r(R + increment);
+      colorCalibrationState.setB(0);
+      colorCalibrationState.setG(0);
+      colorCalibrationState.setR(R + increment);
     } else if (B == 255 && G != 255) {
-      colorCalibrationState.set_b(0);
-      colorCalibrationState.set_g(G + increment);
+      colorCalibrationState.setB(0);
+      colorCalibrationState.setG(G + increment);
     } else {
-      colorCalibrationState.set_b(B + increment);
+      colorCalibrationState.setB(B + increment);
     }
     _publishMessage(makeMessage(colorCalibrationState), 'colorCalibration');
     colorCalibrationState.incrementCalibrationsDone();

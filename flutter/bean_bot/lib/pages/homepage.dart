@@ -1231,7 +1231,7 @@ class _HomePageState extends State<HomePage> {
                   currentOrderState.setOrder(currentOrder);
                   currentOrderState
                       .setSiloNumber(currentOrderState.getSiloChoiceNumber);
-                  currentOrderState.incementOrderCount();
+                  currentOrderState.incrementOrderCount();
                   _showOrderMessage();
                 }
               },

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 class ColorCalibrationState with ChangeNotifier {
+  /////////////////////////// Variables ///////////////////////////
   int _r = 0;
   int _g = 0;
   int _b = 0;
@@ -9,17 +10,18 @@ class ColorCalibrationState with ChangeNotifier {
   String _calibrationSentMessage = 'start000000000';
   String _calibrationReceivedMessage = 'stop256256256';
 
-  void set_r(int r) {
+  /////////////////////////// Setters ///////////////////////////
+  void setR(int r) {
     _r = r;
     notifyListeners();
   }
 
-  void set_g(int g) {
+  void setG(int g) {
     _g = g;
     notifyListeners();
   }
 
-  void set_b(int b) {
+  void setB(int b) {
     _b = b;
     notifyListeners();
   }
@@ -44,9 +46,10 @@ class ColorCalibrationState with ChangeNotifier {
     notifyListeners();
   }
 
-  int get get_r => _r;
-  int get get_g => _g;
-  int get get_b => _b;
+  /////////////////////////// Getters ///////////////////////////
+  int get getR => _r;
+  int get getG => _g;
+  int get getB => _b;
   int get getCalibrationsDone => _calibrationsDone;
   bool get getStartCalibration => _startCalibration;
   String get getCalibrationSentMessage => _calibrationSentMessage;

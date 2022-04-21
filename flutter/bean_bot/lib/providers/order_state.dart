@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class OrderState with ChangeNotifier {
+  /////////////////////////// Variables ///////////////////////////
   String _firstWeightOrder = '';
   String _secondWeightOrder = '';
   String _weightOrder = '';
@@ -11,12 +12,13 @@ class OrderState with ChangeNotifier {
   String _secondOrder = '';
   int _orderCount = 0;
 
+  /////////////////////////// Setters ///////////////////////////
   void setWeightOrder(String weight) {
     _weightOrder = weight;
     notifyListeners();
   }
 
-  void incementOrderCount() {
+  void incrementOrderCount() {
     _orderCount++;
     notifyListeners();
   }
@@ -115,6 +117,7 @@ class OrderState with ChangeNotifier {
     notifyListeners();
   }
 
+  /////////////////////////// Setters ///////////////////////////
   String get getSiloChoiceNumber => _siloChoiceNumber;
   String get getFirstSiloNumber => _firstSiloNumber;
   String get getSecondSiloNumber => _secondSiloNumber;

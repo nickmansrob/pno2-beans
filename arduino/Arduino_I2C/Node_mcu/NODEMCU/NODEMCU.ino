@@ -117,6 +117,8 @@ void reconnect() {
       client.subscribe("servo4");
       client.subscribe("order");
       client.subscribe("adminListener");
+      client.subscribe("weightListener");
+      client.subscribe("readWeight");
       client.subscribe("firstWeightListener");
       client.subscribe("secondWeightListener");
       client.subscribe("readUltrasonic");
@@ -248,6 +250,9 @@ void pollWire() {
     }
     else if (topic == "ultra") {
       client.publish("distanceListener", messageString.c_str());
+      }
+     else if (topic == "weight" ) {
+      client.publish("weightListener", messageString.c_str());
       }
   }
 }

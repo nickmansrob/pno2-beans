@@ -146,6 +146,9 @@ class MQTTManager with ChangeNotifier {
           case 'distanceListener':
             _currentState.setDistance(pt);
             break;
+          case 'weightListener':
+            _currentState.setWeight(pt);
+            break;
           case 'adminListener':
             if (pt == 'done_all') {
               _currentOrderState.disposeOrderState();

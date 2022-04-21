@@ -29,6 +29,7 @@ class MQTTAppState with ChangeNotifier {
   String _secondColorInt = '000000000';
 
   String _distance = "";
+  String _weight = "";
 
   Color _beanColor = const Color.fromRGBO(0, 0, 0, 1);
   String _orderMessage = '';
@@ -37,6 +38,10 @@ class MQTTAppState with ChangeNotifier {
   String _appId = "BeanBotApp";
 
   /////////////////////////// Setters ///////////////////////////
+  void setWeight(String weight) {
+    _weight = weight;
+    notifyListeners();
+  }
   void setDistance(String distance) {
     _distance = distance;
     notifyListeners();
@@ -177,6 +182,7 @@ class MQTTAppState with ChangeNotifier {
   }
 
   /////////////////////////// Getters ///////////////////////////
+  String get getWeight => _weight;
   String get getReceivedText => _receivedText;
   String get getFirstOrderReceivedDone => _firstOrderReceivedDone;
   String get getSecondOrderReceivedDone => _secondOrderReceivedDone;

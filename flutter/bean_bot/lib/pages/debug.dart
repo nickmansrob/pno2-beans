@@ -697,6 +697,83 @@ class _DebugPageState extends State<DebugPage> {
                               ),
                             ],
                           ),
+
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                          padding:
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Weight sensor',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15),
+                          )),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                  _publishMessage(
+                                      'readWeight', 'readWeight');
+                                }
+                                    : null,
+                                child: const Text('Start reading'),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElevatedButton(
+                                onPressed: appState.getIsSwitched
+                                    ? () {
+                                  _publishMessage(
+                                      'stopWeight', 'readWeight');
+                                }
+                                    : null,
+                                child: const Text('Stop reading'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 8, top: 0, right: 8, bottom: 8),
+                            child: Center(
+                              child: Text(
+                                  'Weight [g]: ${currentAppState.getWeight}.'),
+                            ),
+                          ),
                         ],
                       ),
                     ],

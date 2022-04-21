@@ -14,6 +14,8 @@ const char * mqtt_server = "10.45.66.58";
 
 #include <Servo.h>
 
+#include <DFRobot_HX711_I2C.h> // KUL library
+
 #include <HX711_ADC.h> // Library for operating the scales.
 #include <LiquidCrystal.h> // Library for operating the LCD display.
 #include <PubSubClient.h>
@@ -65,6 +67,8 @@ LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB
 const uint8_t UTRIG_PIN = 10;
 const uint8_t UECHO_PIN = 8;
 uint8_t ultrasonicState = LOW;
+uint8_t colorState = LOW;
+uint8_t weightState = LOW;
 
 const uint8_t LEDR_PIN = 9;
 const uint8_t LEDG_PIN = 10;
@@ -73,10 +77,12 @@ const uint8_t LEDB_PIN = 11;
 const uint8_t KS2_PIN = 14;
 const uint8_t KS3_PIN = 19;
 const uint8_t KOUT_PIN = 38;
-uint8_t colorState = LOW;
 
 const uint8_t WSDA_PIN = 20;
 const uint8_t WSCL_PIN = 21;
+
+//DFRobot_HX711_I2C MyScale(&Wire,/*addr=*/0x64);
+DFRobot_HX711_I2C MyScale;
 
 /************************* Reset function *************************/
 void(* resetFunc) (void) = 0;
@@ -137,6 +143,37 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("Weight [g]:");
 
+  while (!MyScale.begin()) {
+    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+    delay(1000);
+  }
+
+  // Set the calibration weight when the weight sensor module is automatically calibrated (g)
+  MyScale.setCalWeight(100);
+  // Set the trigger threshold (G) for automatic calibration of the weight sensor module. When only the weight of the object on the scale is greater than this value, the module will start the calibration process
+  // This value cannot be greater than the calibration weight of the setCalWeight() setting
+  MyScale.setThreshold(50);
+
+  delay(2000);
+  //Start sensor calibration
+  MyScale.enableCal();
+  long time1 = millis();
+  //Wait for sensor calibration to complete
+
+  while (!MyScale.getCalFlag()) {
+    if ((millis() - time1) > 7000) {
+      Serial.println("Calibration failed, no weight was detected on the scale");
+    }
+    delay(1000);
+  }
+
+  // obtain the calibration value. The accurate calibration value can be obtained after the calibration operation is completed
+  Serial.print("the calibration value of the sensor is: ");
+  Serial.println(MyScale.getCalibration());
+  MyScale.setCalibration(MyScale.getCalibration());
+  delay(1000);
+  //remove the peel
+  MyScale.peel();
 }
 
 void loop() {
@@ -229,32 +266,42 @@ void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, ui
 
 
 /************************* Read weight sensor and publish *************************/
-void readWeight() {
-  String weight = "0";
-  float weightInt = 0.0;
-
-  HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
-  LoadCell.begin(); // Starts  connection to the weight sensor.
-  LoadCell.start(2000); // Sets the time the sensor gets to configure
-  calibrateScale();
-  LoadCell.setCalFactor(calibrationFactor); // Calibaration
-
-  LoadCell.update(); // gets data from load cell
-  weightInt = LoadCell.getData(); // gets output values
-  weight = String(weightInt);
-
-  // Printing the weight to the LCD screen.
-
-  // If one second has passed, weight is updated.
-  if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
-    if (orderState == 1) {
+void readScaleWeight() {
+  while (weightState == HIGH) {
+    if ((millis() - lastReadingTimeWeight) > 1000 && weightState == HIGH) {
+      message = "";
+      messageString = "";
+      topic = "";
       lastReadingTimeWeight = millis();
-      sendMessage = "weight1_" + weight;
-    } else if (orderState == 2) {
-      lastReadingTimeWeight = millis();
-      sendMessage = "weight2_" + weight;
-    } else {
-      sendMessage = "weight_error";
+
+      String weight = "0";
+      float weightInt = 0.0;
+
+      //HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
+      //LoadCell.begin(); // Starts  connection to the weight sensor.
+      //LoadCell.start(2000); // Sets the time the sensor gets to configure
+      //calibrateScale();
+      //LoadCell.setCalFactor(calibrationFactor); // Calibaration
+
+      //LoadCell.update(); // gets data from load cell
+      weightInt = MyScale.readWeight(); // gets output values from the scale
+      weight = String(weightInt);
+      Serial.println(weight);
+
+      // Printing the weight to the LCD screen.
+
+      // If one second has passed, weight is updated.
+      if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
+        if (orderState == 1) {
+          lastReadingTimeWeight = millis();
+          sendMessage = "weight1_" + weight;
+        } else if (orderState == 2) {
+          lastReadingTimeWeight = millis();
+          sendMessage = "weight2_" + weight;
+        } else {
+          sendMessage = "weight_error";
+        }
+      }
     }
   }
 }
@@ -263,6 +310,9 @@ void readWeight() {
 void readColor() {
   while (colorState == HIGH) {
     if ((millis() - lastReadingTimeColor) > 1000 && colorState == HIGH) {
+      message = "";
+      messageString = "";
+      topic = "";
       lastReadingTimeColor = millis();
       sendMessage = "color_";
 
@@ -319,7 +369,6 @@ void readUltrasonic() {
       message = "";
       messageString = "";
       topic = "";
-      Serial.println("started reading");
       lastReadingTimeDistance = millis();
       sendMessage = "ultra_";
 
@@ -461,12 +510,18 @@ void manualFlow(String topic, String messageString) {
   }
 
   else if (topic == "color") {
-    Serial.print("color");
     if (messageString == "readColor" && colorState == LOW) {
       colorState = HIGH;
       readColor();
-    } else if (messageString == "readColor" && colorState == HIGH) {
+    } else if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
       colorState = LOW;
+    }
+  } else if (topic == "weight") {
+    if (messageString == "readWeight" && weightState == LOW) {
+      weightState = HIGH;
+      readScaleWeight();
+    } else if (messageString == "readWeight" && weightState == HIGH || messageString == "stopWeight" ) {
+      weightState = LOW;
     }
   }
 
@@ -496,6 +551,18 @@ void receiveEvent(int howMany) {
   if (topic == "ultra") {
     if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
       ultrasonicState = LOW;
+    }
+  }
+
+  if (topic == "color") {
+    if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
+      colorState = LOW;
+    }
+  }
+
+  if (topic == "weight") {
+    if (messageString == "readWeight" && colorState == HIGH || messageString == "stopWeight") {
+      weightState = LOW;
     }
   }
   Serial.println(message);

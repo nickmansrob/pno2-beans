@@ -1144,7 +1144,7 @@ class _HomePageState extends State<HomePage> {
           'override',
           // '0' when manual override is not enabled, '1' when override is enabled
           'distanceListener',
-          // currently no idea why I did not use 'readUltrasonic'
+          // used for listening to the read sensor. 
           'colorCalibration'
           // for sending data of the color sensor calibration between app and Arduino
         ],

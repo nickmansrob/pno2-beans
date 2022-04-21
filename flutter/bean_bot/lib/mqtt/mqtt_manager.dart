@@ -100,12 +100,21 @@ class MQTTManager with ChangeNotifier {
             _currentState.setReceivedLogText(pt);
             break;
           case 'firstWeightListener':
-            if (double.tryParse(pt) != null) {
+            if (pt == 'done') {
+              _currentState.setFirstOrderReceivedDone(pt);
+              _currentState.setFirstOderDone(pt);
+              publish(_currentState.getOrderMessage, 'order2');
+            }
+            else if (double.tryParse(pt) != null) {
               _currentState.setFirstOrderReceivedWeightText(pt);
             }
             break;
           case 'secondWeightListener':
-            if (double.tryParse(pt) != null) {
+            if (pt == 'done') {
+              _currentState.setSecondOrderReceivedDone(pt);
+              _currentState.setSecondOrderDone(pt);
+            }
+            else if (double.tryParse(pt) != null) {
               _currentState.setSecondOrderReceivedWeightText(pt);
             }
             break;
@@ -117,6 +126,9 @@ class MQTTManager with ChangeNotifier {
           case 'secondColorListener':
             _currentState.setSecondColor(convertIntToColor(pt));
             break;
+
+            // This is deprecated by `firstWeightListener` and `secondWeightListener`.
+            // Remains for backwards compatibility.
           case 'order1':
             if (pt == 'done') {
               _currentState.setFirstOrderReceivedDone(pt);

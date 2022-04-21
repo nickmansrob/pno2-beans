@@ -4,24 +4,30 @@ import 'package:flutter/material.dart';
 enum MQTTAppConnectionState { connected, disconnected, connecting }
 
 class MQTTAppState with ChangeNotifier {
+
+  /////////////////////////// Variables ///////////////////////////
   late MQTTManager _mqttManager;
 
   MQTTAppConnectionState _appConnectionState =
       MQTTAppConnectionState.disconnected;
   String _receivedText = '';
+
   String _firstOrderReceivedDone = '';
   String _secondOrderReceivedDone = '';
   String _firstOrderDone = '';
   String _secondOrderDone = '';
   String _firstOrderWeightText = '0';
   String _secondOrderWeightText = '0';
+
   String _logText = '';
   String _hostIp = '';
   bool _isSwitched = false;
+
   String _firstColor = 'not determined';
   String _secondColor = 'not determined';
   String _firstColorInt = '000000000';
   String _secondColorInt = '000000000';
+
   String _distance = "";
 
   Color _beanColor = const Color.fromRGBO(0, 0, 0, 1);
@@ -30,6 +36,7 @@ class MQTTAppState with ChangeNotifier {
   bool _restorePressed = false;
   String _appId = "BeanBotApp";
 
+  /////////////////////////// Setters ///////////////////////////
   void setDistance(String distance) {
     _distance = distance;
     notifyListeners();
@@ -169,6 +176,7 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
+  /////////////////////////// Getters ///////////////////////////
   String get getReceivedText => _receivedText;
   String get getFirstOrderReceivedDone => _firstOrderReceivedDone;
   String get getSecondOrderReceivedDone => _secondOrderReceivedDone;

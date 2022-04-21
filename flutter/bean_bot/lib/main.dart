@@ -41,7 +41,7 @@ class BeanBot extends StatefulWidget {
 
 class _BeanBotState extends State<BeanBot> {
   @override
-  // Widget that creates the routs between the different pages.
+  // Widget that creates the routes between the different pages.
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: '/',

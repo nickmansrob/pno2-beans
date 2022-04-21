@@ -6,6 +6,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 class MQTTManager with ChangeNotifier {
+  /////////////////////////// Variables ///////////////////////////
   // Private instance of client
   final MQTTAppState _currentState;
   MqttServerClient? _client;
@@ -15,8 +16,6 @@ class MQTTManager with ChangeNotifier {
   final String _host;
   final List _topicList;
 
-  // Constructor
-  // ignore: sort_constructors_first
   MQTTManager(
       {required String host,
       required List topicList,
@@ -31,6 +30,8 @@ class MQTTManager with ChangeNotifier {
         _currentOrderState = orderState,
         _currentColorCalibrationState = colorCalibrationState;
 
+  /////////////////////////// Voids ///////////////////////////
+  // FUnction for initializing the client, in case the Bean Bot.
   void initializeMQTTClient() {
     _client = MqttServerClient(_host, _identifier);
     _client!.port = 1883;
@@ -43,13 +44,12 @@ class MQTTManager with ChangeNotifier {
 
     final MqttConnectMessage connMess = MqttConnectMessage()
         .withClientIdentifier(_identifier)
-        .startClean() // Non persistent session for testing
+        .startClean()
         .withWillQos(MqttQos.atLeastOnce);
     _client!.connectionMessage = connMess;
   }
 
-  // Connect to the host
-  // ignore: avoid_void_async
+  // Function to connect to the broker.
   void connect() async {
     assert(_client != null);
     try {
@@ -60,6 +60,7 @@ class MQTTManager with ChangeNotifier {
     }
   }
 
+  // Function to disconnect manually from the broker.
   void disconnect() {
     _client!.disconnect();
     _currentState.setIsSwitched(false);
@@ -67,32 +68,34 @@ class MQTTManager with ChangeNotifier {
     _currentOrderState.disposeSecondOrder();
   }
 
+  // Function for sending publishing messages.
   void publish(String message, String topic) {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
     builder.addString(message);
     _client!.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
   }
 
-  /// The unsolicited disconnect callback
+  // Callback when app could not connect.
   void onDisconnected() {
     if (_client!.connectionStatus!.returnCode ==
         MqttConnectReturnCode.noneSpecified) {}
     _currentState.setAppConnectionState(MQTTAppConnectionState.disconnected);
   }
 
-  /// The successful connect callback
+  // Callback when the could connect.
   void onConnected() {
     _currentState.setAppConnectionState(MQTTAppConnectionState.connected);
+    // Subscribes to all the topics.
     for (var i = 0; i < _topicList.length; i++) {
       _client!.subscribe(_topicList[i], MqttQos.atLeastOnce);
     }
 
     _client!.updates!.listen(
       (List<MqttReceivedMessage<MqttMessage?>>? c) {
-        // ignore: avoid_as
+        // Gets the message object sent via MQTT.
         final MqttPublishMessage recMess = c![0].payload as MqttPublishMessage;
 
-        // final MqttPublishMessage recMess = c![0].payload;
+        // Gets the message string sent via MQTT.
         final String pt =
             MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
         switch (c[0].topic) {
@@ -104,8 +107,7 @@ class MQTTManager with ChangeNotifier {
               _currentState.setFirstOrderReceivedDone(pt);
               _currentState.setFirstOderDone(pt);
               publish(_currentState.getOrderMessage, 'order2');
-            }
-            else if (double.tryParse(pt) != null) {
+            } else if (double.tryParse(pt) != null) {
               _currentState.setFirstOrderReceivedWeightText(pt);
             }
             break;
@@ -113,8 +115,7 @@ class MQTTManager with ChangeNotifier {
             if (pt == 'done') {
               _currentState.setSecondOrderReceivedDone(pt);
               _currentState.setSecondOrderDone(pt);
-            }
-            else if (double.tryParse(pt) != null) {
+            } else if (double.tryParse(pt) != null) {
               _currentState.setSecondOrderReceivedWeightText(pt);
             }
             break;
@@ -127,8 +128,8 @@ class MQTTManager with ChangeNotifier {
             _currentState.setSecondColor(convertIntToColor(pt));
             break;
 
-            // This is deprecated by `firstWeightListener` and `secondWeightListener`.
-            // Remains for backwards compatibility.
+          // This is deprecated by `firstWeightListener` and `secondWeightListener`.
+          // Remains for backwards compatibility.
           case 'order1':
             if (pt == 'done') {
               _currentState.setFirstOrderReceivedDone(pt);
@@ -144,7 +145,6 @@ class MQTTManager with ChangeNotifier {
             break;
           case 'distanceListener':
             _currentState.setDistance(pt);
-
             break;
           case 'adminListener':
             if (pt == 'done_all') {
@@ -178,6 +178,8 @@ class MQTTManager with ChangeNotifier {
     );
   }
 
+  /////////////////////////// Helper Functions ///////////////////////////
+  // Function for converting RGB triplet to a color string, to be displayed in the app.
   String convertIntToColor(String colorInt) {
     List intList = [
       int.parse(colorInt.substring(0, 3)),
@@ -195,6 +197,7 @@ class MQTTManager with ChangeNotifier {
     }
   }
 
+  // Function for converting RBG triplet to an RGB-color object.
   Color convertRGBtoColor(String colorInt) {
     List intList = [
       int.parse(colorInt.substring(0, 3)),

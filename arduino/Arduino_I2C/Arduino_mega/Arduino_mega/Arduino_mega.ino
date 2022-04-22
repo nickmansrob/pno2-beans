@@ -20,8 +20,8 @@ const char * mqtt_server = "10.45.66.58";
 #include <LiquidCrystal.h> // Library for operating the LCD display.
 #include <PubSubClient.h>
 
-
-/************************* DC-motors *************************/
+/************************* Pins and variables *************************/
+// DC-motors
 const uint8_t MOTOR_VOLTAGE = 2;
 
 const uint8_t MOTOR1_PIN = 2;
@@ -39,7 +39,7 @@ const uint8_t MOTOR3_RELAY_PIN = 27;
 uint8_t motorThreeState = LOW;
 bool motorThreeClockwise = true;
 
-/************************* Servos *************************/
+// Servos
 Servo servoOne;
 const uint8_t SERVO1_PIN = 9; // Not known yet
 uint8_t servoOneState = 90;
@@ -52,61 +52,56 @@ Servo servoThree;
 const uint8_t SERVO3_PIN = 0; // Not known yet
 uint8_t servoThreeState = 90;
 
-/************************* LCD *************************/
-
+// LCD
 const uint8_t LCDRS_PIN = 50;
 const uint8_t LCDE_PIN = 49;
 const uint8_t LCDDB4_PIN = 46;
 const uint8_t LCDDB5_PIN = 52;
 const uint8_t LCDDB6_PIN = 47;
 const uint8_t LCDDB7_PIN = 45;
-
 LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
-/************************* Sensors *************************/
+// Ultrasonic Sensor
 const uint8_t UTRIG_PIN = 10;
 const uint8_t UECHO_PIN = 8;
 uint8_t ultrasonicState = LOW;
-uint8_t colorState = LOW;
-uint8_t weightState = LOW;
+long lastReadingTimeDistance = 0;
 
+// RGB-led
 const uint8_t LEDR_PIN = 9;
 const uint8_t LEDG_PIN = 10;
 const uint8_t LEDB_PIN = 11;
 
+// Color Sensor
 const uint8_t KS2_PIN = 14;
 const uint8_t KS3_PIN = 19;
 const uint8_t KOUT_PIN = 38;
-
-const uint8_t WSDA_PIN = 20;
-const uint8_t WSCL_PIN = 21;
-
-//DFRobot_HX711_I2C MyScale(&Wire,/*addr=*/0x64);
-DFRobot_HX711_I2C MyScale;
-
-/************************* Reset function *************************/
-void(* resetFunc) (void) = 0;
-
-/************************* Miscellaneous ***********************/
-uint8_t orderState = 1;
-bool proceedNormalFlow = false;
-
-long lastReadingTimeWeight = 0;
-long lastReadingTimeDistance = 0;
+uint8_t colorState = LOW;
 long lastReadingTimeColor = 0;
 
-uint8_t calibrationFactor = 1;
+// Weight sensor
+// DFRobot_HX711_I2C MyScale(&Wire,/*addr=*/0x64);
+DFRobot_HX711_I2C MyScale;
+uint8_t weightState = LOW;
+long lastReadingTimeWeight = 0;
 
+// Sending over wire
 String sendMessage = "";
 
+// Receiving over wire
 String message = "";
 String topic;
 String messageString;
 
-/*****************************************************************/
+
+// Miscellaneous
+uint8_t orderState = 1;
+bool proceedNormalFlow = false;
+
 
 void setup() {
-  /************************* DC-motors *************************/
+  /************************* Variables *************************/
+  // DC-motors
   pinMode(MOTOR1_PIN, OUTPUT);
   pinMode(MOTOR2_PIN, OUTPUT);
   pinMode(MOTOR3_PIN, OUTPUT);
@@ -115,7 +110,7 @@ void setup() {
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
   pinMode(MOTOR3_RELAY_PIN, OUTPUT);
 
-  /************************* Servos *************************/
+  // Servos
   servoOne.attach(SERVO1_PIN);
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
@@ -143,22 +138,18 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("Weight [g]:");
 
+  // Initializing and calibrating the weight sensor.
   while (!MyScale.begin()) {
     Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
     delay(1000);
   }
 
-  // Set the calibration weight when the weight sensor module is automatically calibrated (g)
   MyScale.setCalWeight(100);
-  // Set the trigger threshold (G) for automatic calibration of the weight sensor module. When only the weight of the object on the scale is greater than this value, the module will start the calibration process
-  // This value cannot be greater than the calibration weight of the setCalWeight() setting
   MyScale.setThreshold(50);
 
   delay(2000);
-  //Start sensor calibration
   MyScale.enableCal();
   long time1 = millis();
-  //Wait for sensor calibration to complete
 
   while (!MyScale.getCalFlag()) {
     if ((millis() - time1) > 7000) {
@@ -166,14 +157,12 @@ void setup() {
     }
     delay(1000);
   }
-
-  // obtain the calibration value. The accurate calibration value can be obtained after the calibration operation is completed
-  Serial.print("the calibration value of the sensor is: ");
+  Serial.print("The calibration value of the sensor is: ");
   Serial.println(MyScale.getCalibration());
   MyScale.setCalibration(MyScale.getCalibration());
   delay(1000);
-  //remove the peel
   MyScale.peel();
+
 }
 
 void loop() {
@@ -187,218 +176,7 @@ void loop() {
   messageString = "";
   topic = "";
 }
-
-/************************* Helpers *************************/
-uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
-  return map(motorVoltage, 0, 12, 0, 255);
-}
-
-// Method for calibrating the weight sensor.
-void calibrateScale() {
-  const uint8_t calibrationWeight = 100;
-  // Used as disposable variable for calibrating the weight sensor.
-  uint8_t count = 0;
-
-  HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
-
-  lcd.clear();
-  lcd.print("Please put " + String(calibrationWeight) + "g on the sensor.");
-
-  // Used to display the message on the LCD until the user puts something on the scale.
-  while (count < 1000) {
-    LoadCell.update();
-    count = LoadCell.getData();
-  }
-
-  lcd.clear();
-  lcd.print("Please wait...");
-
-  // Used to get an accurate result for the calibrationFactor.
-  for (int i = 0; i < 100; i++) {
-    LoadCell.update();
-    count = LoadCell.getData();
-    calibrationFactor = count / calibrationWeight;
-  }
-
-  lcd.print("Calibration complete.");
-  delay(1000);
-  lcd.clear();
-}
-
-void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
-  if (motorClockwise == true) {
-    if (motorState == HIGH) {
-      // Stops the motor when the motor is spinning.
-      analogWrite(motorPin, 0);
-      // Wait for the motor to stop.
-      delay(1000);
-      // Switch the relay.
-      digitalWrite(motorRelayPin, HIGH);
-      // Wait for the relay to switch.
-      delay(2000);
-      // Spins the motor in the other direction.
-      analogWrite(motorPin, getMotorVoltage());
-    } else if (motorState == LOW) {
-      // Switch the relay.
-      digitalWrite(motorRelayPin, HIGH);
-      delay(500);
-    }
-  }
-  else if (motorClockwise == false) {
-    if (motorState == HIGH) {
-      // Stops the motor when the motor is spinning.
-      analogWrite(motorPin, 0);
-      // Wait for the motor to stop.
-      delay(1000);
-      // Switch the relay.
-      digitalWrite(motorRelayPin, LOW);
-      // Wait for the relay to switch.
-      delay(2000);
-      // Spins the motor in the other direction.
-      analogWrite(motorPin, getMotorVoltage());
-    } else if (motorState == LOW) {
-      // Switch the relay.
-      digitalWrite(motorRelayPin, LOW);
-      delay(500);
-    }
-  }
-}
-
-
-/************************* Read weight sensor and publish *************************/
-void readScaleWeight() {
-  while (weightState == HIGH) {
-    if ((millis() - lastReadingTimeWeight) > 1000 && weightState == HIGH) {
-      message = "";
-      messageString = "";
-      topic = "";
-      lastReadingTimeWeight = millis();
-
-      String weight = "0";
-      float weightInt = 0.0;
-
-      //HX711_ADC LoadCell(WSDA_PIN, WSCL_PIN);
-      //LoadCell.begin(); // Starts  connection to the weight sensor.
-      //LoadCell.start(2000); // Sets the time the sensor gets to configure
-      //calibrateScale();
-      //LoadCell.setCalFactor(calibrationFactor); // Calibaration
-
-      //LoadCell.update(); // gets data from load cell
-      weightInt = MyScale.readWeight(); // gets output values from the scale
-      weight = String(weightInt);
-      Serial.println(weight);
-
-      // Printing the weight to the LCD screen.
-
-      // If one second has passed, weight is updated.
-      if (weight != "0" && (millis() - lastReadingTimeWeight) > 1000) {
-        if (orderState == 1) {
-          lastReadingTimeWeight = millis();
-          sendMessage = "weight1_" + weight;
-        } else if (orderState == 2) {
-          lastReadingTimeWeight = millis();
-          sendMessage = "weight2_" + weight;
-        } else {
-          sendMessage = "weight_error";
-        }
-      }
-    }
-  }
-}
-
-/************************* Read color sensor and publish *************************/
-void readColor() {
-  while (colorState == HIGH) {
-    if ((millis() - lastReadingTimeColor) > 1000 && colorState == HIGH) {
-      message = "";
-      messageString = "";
-      topic = "";
-      lastReadingTimeColor = millis();
-      sendMessage = "color_";
-
-      uint8_t red = "0";
-      uint8_t green = "0";
-      uint8_t blue = "0";
-
-      String redString;
-      String greenString;
-      String blueString;
-
-      digitalWrite(KS2_PIN, LOW);
-      digitalWrite(KS3_PIN, LOW);
-      red = pulseIn(KOUT_PIN, LOW);
-      redString = String(red);
-      if (redString.length() == 1) {
-        redString = "00" + redString;
-      } else if (redString.length() == 2) {
-        redString = "0" + redString;
-      }
-
-      digitalWrite(KS2_PIN, HIGH);
-      digitalWrite(KS3_PIN, HIGH);
-      green = pulseIn(KOUT_PIN, LOW);
-      greenString = String(green);
-      if (greenString.length() == 1) {
-        greenString = "00" + greenString;
-      } else if (greenString.length() == 2) {
-        greenString = "0" + greenString;
-      }
-
-      digitalWrite(KS2_PIN, LOW);
-      digitalWrite(KS3_PIN, HIGH);
-      blue = pulseIn(KOUT_PIN, LOW);
-      blueString = String(blue);
-      if (blueString .length() == 1) {
-        blueString  = "00" + blueString ;
-      } else if (blueString.length() == 2) {
-        blueString  = "0" + blueString ;
-      }
-
-      String color = redString + greenString + blueString;
-
-      sendMessage = sendMessage + color;
-      Serial.println(color);
-    }
-  }
-}
-
-/************************* Read ultrasonic sensor *************************/
-void readUltrasonic() {
-  while (ultrasonicState == HIGH) {
-    if ((millis() - lastReadingTimeDistance) > 500 && ultrasonicState == HIGH) {
-      message = "";
-      messageString = "";
-      topic = "";
-      lastReadingTimeDistance = millis();
-      sendMessage = "ultra_";
-
-      uint8_t theta = servoOneState;
-      uint16_t radius = 0;
-      const uint8_t cilinderOffset = 2;
-      double duration;
-      double distance;
-
-      // Clears the condition on the trig pin.
-      digitalWrite(UTRIG_PIN, LOW);
-      delayMicroseconds(2);
-
-      // Sets the trig pin active for 10 microseconds.
-      digitalWrite(UTRIG_PIN, HIGH);
-      delayMicroseconds(10);
-      // Mesures the time the sound wave traveled.
-      duration = pulseIn(UECHO_PIN, HIGH);
-      // Gives the distance in cm.
-      distance = duration * 0.034 / 2;
-      distance = distance + cilinderOffset;
-
-      sendMessage = sendMessage + String(distance);
-      Serial.println(distance);
-    }
-    delay(100);
-  }
-}
-
-/************************* Program flow *************************/
+/************************* Program flows *************************/
 void manualFlow(String topic, String messageString) {
   sendMessage = "log_";
 
@@ -455,38 +233,29 @@ void manualFlow(String topic, String messageString) {
     } else {
       sendMessage = sendMessage + "message error";
     }
-
-
   }
+
   //Servos
   else if (topic == "servo1") {
     uint8_t angle = messageString.toInt();
-    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
     servoOne.write(angle);
     servoOneState = angle;
     sendMessage = sendMessage + angle;
-    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
   }
   else if (topic == "servo2") {
     uint8_t angle = messageString.toInt();
-    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
-
+    
     servoTwo.write(angle);
     servoTwoState = angle;
-    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
   }
   else if (topic == "servo3") {
     uint8_t angle = messageString.toInt();
-    // Constrain angle between 0-180 degrees, 90 degrees is default state (silo 2)
 
     servoThree.write(angle);
     servoThreeState = angle;
-    // TO DO: Implement feedback from Servo to correct angle, don't adjust servoState accordingly!!
-
   }
+
   // Weight data
   else if (topic == "weight1") {
     lcd.clear();
@@ -500,28 +269,30 @@ void manualFlow(String topic, String messageString) {
     lcd.print(messageString);
   }
 
-  else if (topic == "ultra") {
-    if (messageString == "readUltra" && ultrasonicState == LOW) {
-      ultrasonicState = HIGH;
-      readUltrasonic();
-    } else if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
-      ultrasonicState = LOW;
-    }
-  }
-
-  else if (topic == "color") {
+  else if (topic == "colorControl") {
     if (messageString == "readColor" && colorState == LOW) {
       colorState = HIGH;
       readColor();
     } else if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
       colorState = LOW;
     }
-  } else if (topic == "weight") {
-    if (messageString == "readWeight" && weightState == LOW) {
-      weightState = HIGH;
-      readScaleWeight();
-    } else if (messageString == "readWeight" && weightState == HIGH || messageString == "stopWeight" ) {
-      weightState = LOW;
+  }
+
+  else if (topic == "distControl") {
+    if (messageString == "readDist" && ultrasonicState == LOW) {
+      ultrasonicState = HIGH;
+      readUltrasonic();
+    } else if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
+      ultrasonicState = LOW;
+    }
+  }
+
+  else if (topic == "weightControl") {
+    if (messageString == "readWeight" && ultrasonicState == LOW) {
+      ultrasonicState = HIGH;
+      readUltrasonic();
+    } else if (messageString == "readWeight" && ultrasonicState == HIGH || messageString == "stopUltra") {
+      ultrasonicState = LOW;
     }
   }
 
@@ -531,6 +302,190 @@ void manualFlow(String topic, String messageString) {
 
 }
 
+/************************* Helpers *************************/
+uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
+  return map(motorVoltage, 0, 12, 0, 255);
+}
+
+/************************* Voids *************************/
+// Changes the rotation of the motor, keeps the state at its original level.
+void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
+  if (motorClockwise == true) {
+    if (motorState == HIGH) {
+      // Stops the motor when the motor is spinning.
+      analogWrite(motorPin, 0);
+      // Wait for the motor to stop.
+      delay(1000);
+      // Switch the relay.
+      digitalWrite(motorRelayPin, HIGH);
+      // Wait for the relay to switch.
+      delay(2000);
+      // Spins the motor in the other direction.
+      analogWrite(motorPin, getMotorVoltage());
+    } else if (motorState == LOW) {
+      // Switch the relay.
+      digitalWrite(motorRelayPin, HIGH);
+      delay(500);
+    }
+  }
+  else if (motorClockwise == false) {
+    if (motorState == HIGH) {
+      // Stops the motor when the motor is spinning.
+      analogWrite(motorPin, 0);
+      // Wait for the motor to stop.
+      delay(1000);
+      // Switch the relay.
+      digitalWrite(motorRelayPin, LOW);
+      // Wait for the relay to switch.
+      delay(2000);
+      // Spins the motor in the other direction.
+      analogWrite(motorPin, getMotorVoltage());
+    } else if (motorState == LOW) {
+      // Switch the relay.
+      digitalWrite(motorRelayPin, LOW);
+      delay(500);
+    }
+  }
+}
+
+/************************* Read weight sensor and publish *************************/
+void readScaleWeight() {
+  while (weightState == HIGH) {
+    if ((millis() - lastReadingTimeWeight) > 1000 && weightState == HIGH) {
+      // Used for clearing the cache of those variables. 
+      message = "";
+      messageString = "";
+      topic = "";
+      lastReadingTimeWeight = millis();
+
+      String weight = "0";
+      float weightInt = 0.0;
+
+      weightInt = MyScale.readWeight(); // gets output values from the scale
+      weight = String(weightInt);
+
+      // If one second has passed, weight is updated.
+
+      if (orderState == 0) {
+        sendMessage = "weightData_" + weight;
+      }
+      else if (orderState == 1) {
+        sendMessage = "weight1_" + weight;
+      } 
+      else if (orderState == 2) {
+        sendMessage = "weight2_" + weight;
+      } 
+      else {
+        sendMessage = "log_" + "orderStateBoundError";
+      }
+
+    }
+  }
+}
+
+/************************* Read color sensor and publish *************************/
+void readColor() {
+  while (colorState == HIGH) {
+    if ((millis() - lastReadingTimeColor) > 1000 && colorState == HIGH) {
+      // Used for clearing the cache of those variables. 
+      message = "";
+      messageString = "";
+      topic = "";
+      lastReadingTimeColor = millis();
+
+      uint8_t red = "0";
+      uint8_t green = "0";
+      uint8_t blue = "0";
+
+      String redString;
+      String greenString;
+      String blueString;
+
+      // Red
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, LOW);
+      red = pulseIn(KOUT_PIN, LOW);
+      redString = String(red);
+      if (redString.length() == 1) {
+        redString = "00" + redString;
+      } else if (redString.length() == 2) {
+        redString = "0" + redString;
+      }
+
+      // Green
+      digitalWrite(KS2_PIN, HIGH);
+      digitalWrite(KS3_PIN, HIGH);
+      green = pulseIn(KOUT_PIN, LOW);
+      greenString = String(green);
+      if (greenString.length() == 1) {
+        greenString = "00" + greenString;
+      } else if (greenString.length() == 2) {
+        greenString = "0" + greenString;
+      }
+
+      // Blue
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, HIGH);
+      blue = pulseIn(KOUT_PIN, LOW);
+      blueString = String(blue);
+      if (blueString .length() == 1) {
+        blueString  = "00" + blueString ;
+      } else if (blueString.length() == 2) {
+        blueString  = "0" + blueString ;
+      }
+
+      // Publish
+      if (orderState == 0) {
+        sendMessage = "colorData_" + redString + greenString + blueString;
+      }
+      else if (orderState == 1) {
+        sendMessage = "color1_" + redString + greenString + blueString;
+      }
+      else if (orderState == 2) {
+        sendMessage = "color2_" + redString + greenString + blueString;
+      }
+      else {
+        sendMessage = "log_" + "orderStateBoundError"
+      }
+
+    }
+  }
+}
+
+/************************* Read ultrasonic sensor and publish*************************/
+void readUltrasonic() {
+  while (ultrasonicState == HIGH) {
+    if ((millis() - lastReadingTimeDistance) > 1000 && ultrasonicState == HIGH) {
+      // Used for clearing the cache of those variables. 
+      message = "";
+      messageString = "";
+      topic = "";
+      lastReadingTimeDistance = millis();
+
+      uint8_t theta = servoOneState;
+      uint16_t radius = 0;
+      const uint8_t cilinderOffset = 2;
+      double duration;
+      double distance;
+
+      digitalWrite(UTRIG_PIN, LOW);
+      delayMicroseconds(2);
+
+      digitalWrite(UTRIG_PIN, HIGH);
+      delayMicroseconds(10);
+
+      duration = pulseIn(UECHO_PIN, HIGH);
+      distance = duration * 0.034 / 2;
+      distance = distance + cilinderOffset;
+
+      // Publish
+      sendMessage = "distData_" + String(distance);
+    }
+    delay(100);
+  }
+}
+
+// Receives wire events.
 void receiveEvent(int howMany) {
   while (0 < Wire.available()) {
     char c = Wire.read();
@@ -548,29 +503,31 @@ void receiveEvent(int howMany) {
     delay(100);
   }
 
-  if (topic == "ultra") {
-    if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
-      ultrasonicState = LOW;
-    }
-  }
+  //  // For receiving topics via Wire.
+  //  if (topic == "distControl") {
+  //    if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
+  //      ultrasonicState = LOW;
+  //    }
+  //  }
+  //
+  //  else if (topic == "colorControl") {
+  //    if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
+  //      colorState = LOW;
+  //    }
+  //  }
+  //
+  //  else if (topic == "weightControl") {
+  //    if (messageString == "readWeight" && colorState == HIGH || messageString == "stopWeight") {
+  //      weightState = LOW;
+  //    }
+  //  }
 
-  if (topic == "color") {
-    if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
-      colorState = LOW;
-    }
-  }
-
-  if (topic == "weight") {
-    if (messageString == "readWeight" && colorState == HIGH || messageString == "stopWeight") {
-      weightState = LOW;
-    }
-  }
   Serial.println(message);
   Serial.println(messageString);
   Serial.println(topic);
 }
 
-// function that executes whenever data is requested from master
+// Function that executes whenever data is requested from master.
 void sendText(int numBytes) {
   if (sendMessage != "") {
     while (sendMessage.length() != 32) {

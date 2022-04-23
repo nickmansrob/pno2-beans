@@ -102,7 +102,7 @@ class MQTTManager with ChangeNotifier {
           case 'logListener':
             _currentState.setReceivedLogText(pt);
             break;
-          case 'firstWeightListener':
+          case 'weight1':
             if (pt == 'done') {
               _currentState.setFirstOrderReceivedDone(pt);
               _currentState.setFirstOderDone(pt);
@@ -111,7 +111,7 @@ class MQTTManager with ChangeNotifier {
               _currentState.setFirstOrderReceivedWeightText(pt);
             }
             break;
-          case 'secondWeightListener':
+          case 'weight2':
             if (pt == 'done') {
               _currentState.setSecondOrderReceivedDone(pt);
               _currentState.setSecondOrderDone(pt);
@@ -119,12 +119,12 @@ class MQTTManager with ChangeNotifier {
               _currentState.setSecondOrderReceivedWeightText(pt);
             }
             break;
-          case 'firstColorListener':
+          case 'color1':
             _currentState.setFirstColor(convertIntToColor(pt));
             _currentState.setFirstColorInt(pt);
             _currentState.setBeanColor(convertRGBtoColor(pt));
             break;
-          case 'secondColorListener':
+          case 'color2':
             _currentState.setSecondColor(convertIntToColor(pt));
             break;
 
@@ -143,10 +143,13 @@ class MQTTManager with ChangeNotifier {
               _currentState.setSecondOrderDone(pt);
             }
             break;
-          case 'distanceListener':
+          case 'colorData':
+            _currentState.setColorDebug(convertRGBtoColor(pt));
+            break;
+          case 'distData':
             _currentState.setDistance(pt);
             break;
-          case 'weightListener':
+          case 'weightData':
             _currentState.setWeight(pt);
             break;
           case 'adminListener':

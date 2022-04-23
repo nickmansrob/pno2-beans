@@ -11,7 +11,7 @@
 /************************* WiFi *************************/
 const char * ssid = "ENVYROB113004";
 const char * password = "0j085693";
-const char * mqtt_server = "192.168.137.1";
+const char * mqtt_server = "192.168.0.222";
 
 /************************* MQTT *************************/
 WiFiClient espClient;
@@ -49,7 +49,6 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
-
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
@@ -81,11 +80,12 @@ void callback(char* topic, byte* message, unsigned int length) {
   if (topicString == "override") {
     if (messageString == "1") {
       logFlow("WARNING: Override enabled");
-      // TO DO: Add logFlow to each Serial println as above
       manualOverride = true;
+      wireFlow("debug_1");
     } else if (messageString == "0") {
       logFlow("WARNING: Override disabled");
       manualOverride = false;
+      wireFlow("debug_0");
     }
   }
 
@@ -115,16 +115,17 @@ void reconnect() {
       client.subscribe("servo2");
       client.subscribe("servo3");
       client.subscribe("servo4");
-      client.subscribe("order");
-      client.subscribe("adminListener");
-      client.subscribe("weightListener");
-      client.subscribe("readWeight");
-      client.subscribe("firstWeightListener");
-      client.subscribe("secondWeightListener");
-      client.subscribe("readUltrasonic");
-      client.subscribe("readColor");
+      client.subscribe("order1");
+      client.subscribe("order2");
+      client.subscribe("weight1");
+      client.subscribe("weight2");
+      client.subscribe("weightControl");
+      client.subscribe("weightData");
+      client.subscribe("colorControl");
+      client.subscribe("colorData");
+      client.subscribe("distControl");
+      client.subscribe("colorData");
       client.subscribe("override");
-      client.subscribe("distanceListener");
 
     } else {
       Serial.print("failed, rc=");
@@ -174,24 +175,24 @@ void manualFlow(String topic, String messageString) {
   else if (topic == "adminListener") {
     logFlow("ROUTE: From origin to adminFlow");
     adminFlow(messageString);
-  } else if (topic == "firstWeightListener") {
-    logFlow("ROUTE: From origin to weightFlow");
+  } else if (topic == "weight1") {
+    logFlow("ROUTE: From origin to weight1");
     wireFlow("weight1_" + messageString);
-  } else if (topic == "secondWeightListener") {
-    logFlow("ROUTE: From origin to weightFlow");
+  } else if (topic == "weight2") {
+    logFlow("ROUTE: From origin to weight2");
     wireFlow("weight2_" + messageString);
-  } else if (topic == "readUltrasonic") {
-    logFlow("ROUTE: From origin to ultranosicFlow");
-    wireFlow("ultra_" + messageString);
+  } else if (topic == "distControl") {
+    logFlow("ROUTE: From origin to distControl");
+    wireFlow("distControl_" + messageString);
     Serial.println(messageString);
 
-  } else if (topic == "readColor") {
-    logFlow("ROUTE: From origin to colorFlow");
+  } else if (topic == "colorControl") {
+    logFlow("ROUTE: From origin to colorControl");
     Serial.println(messageString);
-    wireFlow("color_" + messageString);
-  } else if (topic == "readWeight" ) {
-    logFlow("ROUTE: From origin to weightFlow" );
-    wireFlow("weight_" + messageString);
+    wireFlow("colorControl_" + messageString);
+  } else if (topic == "weightControl" ) {
+    logFlow("ROUTE: From origin to weightControl" );
+    wireFlow("weightControl_" + messageString);
     }
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
@@ -245,14 +246,14 @@ void pollWire() {
 
   if (message != "" and messageString != "") {
     logFlow(messageString);
-    if (topic == "color")  {
-      client.publish("firstColorListener", messageString.c_str());
+    if (topic == "colorData")  {
+      client.publish("colorData", messageString.c_str());
     }
-    else if (topic == "ultra") {
-      client.publish("distanceListener", messageString.c_str());
+    else if (topic == "distData") {
+      client.publish("distData", messageString.c_str());
       }
-     else if (topic == "weight" ) {
-      client.publish("weightListener", messageString.c_str());
+     else if (topic == "weightData" ) {
+      client.publish("weightData", messageString.c_str());
       }
   }
 }

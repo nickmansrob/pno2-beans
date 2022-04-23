@@ -97,6 +97,7 @@ String messageString;
 // Miscellaneous
 uint8_t orderState = 1;
 bool proceedNormalFlow = false;
+bool debug = false;
 
 
 void setup() {
@@ -139,29 +140,29 @@ void setup() {
   lcd.print("Weight [g]:");
 
   // Initializing and calibrating the weight sensor.
-  while (!MyScale.begin()) {
-    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-    delay(1000);
-  }
-
-  MyScale.setCalWeight(100);
-  MyScale.setThreshold(50);
-
-  delay(2000);
-  MyScale.enableCal();
-  long time1 = millis();
-
-  while (!MyScale.getCalFlag()) {
-    if ((millis() - time1) > 7000) {
-      Serial.println("Calibration failed, no weight was detected on the scale");
-    }
-    delay(1000);
-  }
-  Serial.print("The calibration value of the sensor is: ");
-  Serial.println(MyScale.getCalibration());
-  MyScale.setCalibration(MyScale.getCalibration());
-  delay(1000);
-  MyScale.peel();
+//  while (!MyScale.begin()) {
+//    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+//    delay(1000);
+//  }
+//
+//  MyScale.setCalWeight(100);
+//  MyScale.setThreshold(50);
+//
+//  delay(2000);
+//  MyScale.enableCal();
+//  long time1 = millis();
+//
+//  while (!MyScale.getCalFlag()) {
+//    if ((millis() - time1) > 7000) {
+//      Serial.println("Calibration failed, no weight was detected on the scale");
+//    }
+//    delay(1000);
+//  }
+//  Serial.print("The calibration value of the sensor is: ");
+//  Serial.println(MyScale.getCalibration());
+//  MyScale.setCalibration(MyScale.getCalibration());
+//  delay(1000);
+//  MyScale.peel();
 
 }
 
@@ -177,6 +178,10 @@ void loop() {
   topic = "";
 }
 /************************* Program flows *************************/
+uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
+  return map(motorVoltage, 0, 12, 0, 255);
+}
+
 void manualFlow(String topic, String messageString) {
   sendMessage = "log_";
 
@@ -245,7 +250,7 @@ void manualFlow(String topic, String messageString) {
   }
   else if (topic == "servo2") {
     uint8_t angle = messageString.toInt();
-    
+
     servoTwo.write(angle);
     servoTwoState = angle;
   }
@@ -294,6 +299,15 @@ void manualFlow(String topic, String messageString) {
     } else if (messageString == "readWeight" && ultrasonicState == HIGH || messageString == "stopUltra") {
       ultrasonicState = LOW;
     }
+  } else if (topic == "debug") {
+    if (messageString == "1") {
+      debug = true;
+      Serial.println(debug);
+    }
+    else if (messageString == "0") {
+      debug = false;
+      Serial.println(debug);
+    }
   }
 
   else {
@@ -303,9 +317,7 @@ void manualFlow(String topic, String messageString) {
 }
 
 /************************* Helpers *************************/
-uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
-  return map(motorVoltage, 0, 12, 0, 255);
-}
+
 
 /************************* Voids *************************/
 // Changes the rotation of the motor, keeps the state at its original level.
@@ -352,7 +364,7 @@ void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, ui
 void readScaleWeight() {
   while (weightState == HIGH) {
     if ((millis() - lastReadingTimeWeight) > 1000 && weightState == HIGH) {
-      // Used for clearing the cache of those variables. 
+      // Used for clearing the cache of those variables.
       message = "";
       messageString = "";
       topic = "";
@@ -366,17 +378,17 @@ void readScaleWeight() {
 
       // If one second has passed, weight is updated.
 
-      if (orderState == 0) {
+      if (debug) {
         sendMessage = "weightData_" + weight;
       }
       else if (orderState == 1) {
         sendMessage = "weight1_" + weight;
-      } 
+      }
       else if (orderState == 2) {
         sendMessage = "weight2_" + weight;
-      } 
+      }
       else {
-        sendMessage = "log_" + "orderStateBoundError";
+        sendMessage = "log_orderStateBoundError";
       }
 
     }
@@ -387,7 +399,7 @@ void readScaleWeight() {
 void readColor() {
   while (colorState == HIGH) {
     if ((millis() - lastReadingTimeColor) > 1000 && colorState == HIGH) {
-      // Used for clearing the cache of those variables. 
+      // Used for clearing the cache of those variables.
       message = "";
       messageString = "";
       topic = "";
@@ -435,7 +447,7 @@ void readColor() {
       }
 
       // Publish
-      if (orderState == 0) {
+      if (debug) {
         sendMessage = "colorData_" + redString + greenString + blueString;
       }
       else if (orderState == 1) {
@@ -445,9 +457,7 @@ void readColor() {
         sendMessage = "color2_" + redString + greenString + blueString;
       }
       else {
-        sendMessage = "log_" + "orderStateBoundError"
       }
-
     }
   }
 }
@@ -456,7 +466,7 @@ void readColor() {
 void readUltrasonic() {
   while (ultrasonicState == HIGH) {
     if ((millis() - lastReadingTimeDistance) > 1000 && ultrasonicState == HIGH) {
-      // Used for clearing the cache of those variables. 
+      // Used for clearing the cache of those variables.
       message = "";
       messageString = "";
       topic = "";
@@ -479,7 +489,10 @@ void readUltrasonic() {
       distance = distance + cilinderOffset;
 
       // Publish
-      sendMessage = "distData_" + String(distance);
+      if (debug) {
+        sendMessage = "distData_" + String(distance);
+      }
+
     }
     delay(100);
   }
@@ -503,24 +516,24 @@ void receiveEvent(int howMany) {
     delay(100);
   }
 
-  //  // For receiving topics via Wire.
-  //  if (topic == "distControl") {
-  //    if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
-  //      ultrasonicState = LOW;
-  //    }
-  //  }
-  //
-  //  else if (topic == "colorControl") {
-  //    if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
-  //      colorState = LOW;
-  //    }
-  //  }
-  //
-  //  else if (topic == "weightControl") {
-  //    if (messageString == "readWeight" && colorState == HIGH || messageString == "stopWeight") {
-  //      weightState = LOW;
-  //    }
-  //  }
+    // For receiving topics via Wire.
+    if (topic == "distControl") {
+      if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
+        ultrasonicState = LOW;
+      }
+    }
+  
+    else if (topic == "colorControl") {
+      if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
+        colorState = LOW;
+      }
+    }
+  
+    else if (topic == "weightControl") {
+      if (messageString == "readWeight" && colorState == HIGH || messageString == "stopWeight") {
+        weightState = LOW;
+      }
+    }
 
   Serial.println(message);
   Serial.println(messageString);

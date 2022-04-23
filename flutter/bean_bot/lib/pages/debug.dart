@@ -579,7 +579,7 @@ class _DebugPageState extends State<DebugPage> {
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                         _publishMessage(
-                                            'readUltra', 'readUltrasonic');
+                                            'readUltra', 'distControl');
                                       }
                                     : null,
                                 child: const Text('Start reading'),
@@ -593,7 +593,7 @@ class _DebugPageState extends State<DebugPage> {
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                         _publishMessage(
-                                            'stopUltra', 'readUltrasonic');
+                                            'stopUltra', 'distControl');
                                       }
                                     : null,
                                 child: const Text('Stop reading'),
@@ -658,7 +658,7 @@ class _DebugPageState extends State<DebugPage> {
                                     onPressed: appState.getIsSwitched
                                         ? () {
                                             _publishMessage(
-                                                'readColor', 'readColor');
+                                                'readColor', 'colorControl');
                                           }
                                         : null,
                                     child: const Text('Start reading'),
@@ -672,7 +672,7 @@ class _DebugPageState extends State<DebugPage> {
                                     onPressed: appState.getIsSwitched
                                         ? () {
                                             _publishMessage(
-                                                'stopColor', 'readColor');
+                                                'stopColor', 'colorControl');
                                           }
                                         : null,
                                     child: const Text('Stop reading'),
@@ -689,7 +689,7 @@ class _DebugPageState extends State<DebugPage> {
                                     left: 8, top: 0, right: 8, bottom: 8),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                      color: appState.getBeanColor,
+                                      color: appState.getColorDebug,
                                       borderRadius: BorderRadius.circular(4.0)),
                                   width: width - 32,
                                   height: 30,
@@ -741,7 +741,7 @@ class _DebugPageState extends State<DebugPage> {
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                   _publishMessage(
-                                      'readWeight', 'readWeight');
+                                      'readWeight', 'weightControl');
                                 }
                                     : null,
                                 child: const Text('Start reading'),
@@ -755,7 +755,7 @@ class _DebugPageState extends State<DebugPage> {
                                 onPressed: appState.getIsSwitched
                                     ? () {
                                   _publishMessage(
-                                      'stopWeight', 'readWeight');
+                                      'stopWeight', 'weightControl');
                                 }
                                     : null,
                                 child: const Text('Stop reading'),

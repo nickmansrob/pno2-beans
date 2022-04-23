@@ -1115,12 +1115,10 @@ class _HomePageState extends State<HomePage> {
           // sending 'done' for second order
           "logListener",
           // sending all log data from Arduino to log page
-          "firstWeightListener",
+          "weight1",
           // sending weight data from Arduino to app for first order
-          "secondWeightListener",
+          "weight2",
           // sending weight data form Arduino to app for second order
-          'adminListener',
-          // for resetting and restoring the Arduino and Bean Bot
           "motor1",
           // 'toggle' and 'change_rotation' for first DC
           'motor2',
@@ -1133,18 +1131,21 @@ class _HomePageState extends State<HomePage> {
           // degrees for third servo
           'servo4',
           // degrees for fourth servo
-          'readUltrasonic',
-          // sending data from ultrasonic sensor to app
-          'readColor',
-          // sending data from color sensor to app
-          'firstColorListener',
+          'distControl',
+          // for controlling ultrasonic sensor from app
+          'colorControl',
+          // for controlling color sensor from app
+          'color1',
           // sending data from color sensor (RGB-triplet) from color sensor to app for first order
-          'secondColorListener',
+          'color2',
           // sending data from color sensor (RGB-triplet) from color sensor to app for second order
           'override',
           // '0' when manual override is not enabled, '1' when override is enabled
           'distanceListener',
-          // used for listening to the read sensor. 
+          // used for listening to the read sensor.
+          'colorData', // sending data from color sensor to app
+          'weightData', // sending data from weight sensor to app
+          'distData', // sending data from ultrasonic sensor to app
           'colorCalibration'
           // for sending data of the color sensor calibration between app and Arduino
         ],

@@ -92,6 +92,19 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
             ),
           ),
         ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: ElevatedButton(
+              onPressed: disableTextFields(appState.getAppConnectionState)
+                  ? () {
+                resetCalibration(colorCalibrationState);
+              }
+                  : null,
+              child: const Text('Reset calibration'),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -163,7 +176,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     // This functions loops over all the possible RGB colors, with increments of size n.
     // The plan is to synchronize the data via MQTT. When the user presses the button to start the calibration, the app sends 'start_calibration' via MQTT, then it listens for the Arduino to react. When connection is established, the app sends 'startRRRGGGBBB'. When the Arduino receives this code, it conduct three measurements and then sends 'stopRRRGGGBBB'. The then increases the counter and starts the process again.
     int increment = 17;
-    _publishMessage('start_calibration_app', 'colorCalibration');
+    _publishMessage('calApp', 'colorCal');
 
     while (!(colorCalibrationState.getStartCalibration)) {
       await Future.delayed(const Duration(milliseconds: 10));
@@ -173,7 +186,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
       callBack();
       // Estimated time of completion: 3375 seconds.
       _publishMessage(
-          colorCalibrationState.getCalibrationSentMessage, 'colorCalibration');
+          colorCalibrationState.getCalibrationSentMessage, 'colorCal');
       while (toIncrementRGB(colorCalibrationState)) {
         if (colorCalibrationState.getCalibrationReceivedMessage.substring(4) ==
             colorCalibrationState.getCalibrationSentMessage.substring(5)) {
@@ -262,8 +275,18 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
     } else {
       colorCalibrationState.setB(B + increment);
     }
-    _publishMessage(makeMessage(colorCalibrationState), 'colorCalibration');
+    _publishMessage(makeMessage(colorCalibrationState), 'colorCal');
     colorCalibrationState.incrementCalibrationsDone();
+  }
+
+  void resetCalibration(ColorCalibrationState colorCalibrationState) {
+    colorCalibrationState.setStartCalibration(false);
+    colorCalibrationState.setR(0);
+    colorCalibrationState.setG(0);
+    colorCalibrationState.setB(0);
+    colorCalibrationState.resetCalibrationsDone();
+    colorCalibrationState.setCalibrationReceivedMessage('stop256256256');
+    colorCalibrationState.setCalibrationSentMessage('start000000000');
   }
 
   // Handles the navigation of the popupmenu.
@@ -273,7 +296,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
         Navigator.popAndPushNamed(context, '/debug');
         break;
       case MenuItems.itemLog:
-        Navigator.popAndPushNamed(context, '/color_calibration');
+        Navigator.popAndPushNamed(context, '/logs');
         break;
     }
   }

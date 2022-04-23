@@ -170,8 +170,8 @@ class MQTTManager with ChangeNotifier {
               }
             }
             break;
-          case 'colorCalibration':
-            if (pt == 'start_calibration') {
+          case 'colorCal':
+            if (pt == 'cal') {
               _currentColorCalibrationState.setStartCalibration(true);
               notifyListeners();
             } else if (pt.substring(0, 4) == 'stop') {

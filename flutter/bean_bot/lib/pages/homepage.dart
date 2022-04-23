@@ -1146,7 +1146,7 @@ class _HomePageState extends State<HomePage> {
           'colorData', // sending data from color sensor to app
           'weightData', // sending data from weight sensor to app
           'distData', // sending data from ultrasonic sensor to app
-          'colorCalibration'
+          'colorCal'
           // for sending data of the color sensor calibration between app and Arduino
         ],
         identifier: currentAppState.getAppId,

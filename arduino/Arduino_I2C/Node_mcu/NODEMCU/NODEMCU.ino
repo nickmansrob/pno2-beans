@@ -29,7 +29,7 @@ char rdata;
 
 void setup() {
   /************************* Initializaton *************************/
-  Serial.begin(115200);
+  Serial.begin(9600);
   Wire.begin(5, 4);
   delay(10);
 
@@ -126,6 +126,7 @@ void reconnect() {
       client.subscribe("distControl");
       client.subscribe("colorData");
       client.subscribe("override");
+      client.subscribe("colorCal");
 
     } else {
       Serial.print("failed, rc=");
@@ -193,7 +194,10 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "weightControl" ) {
     logFlow("ROUTE: From origin to weightControl" );
     wireFlow("weightControl_" + messageString);
-    }
+  } else if (topic = "colorCal") {
+    logFlow("ROUTE: From origin to colorCal");
+    wireFlow("colorCal_" + messageString);
+  }
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
@@ -251,10 +255,13 @@ void pollWire() {
     }
     else if (topic == "distData") {
       client.publish("distData", messageString.c_str());
-      }
-     else if (topic == "weightData" ) {
+    }
+    else if (topic == "weightData" ) {
       client.publish("weightData", messageString.c_str());
-      }
+    } 
+    else if (topic == "colorCal") {
+      client.publish("colorCal", messageString.c_str());
+    }
   }
 }
 

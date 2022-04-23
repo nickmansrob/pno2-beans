@@ -25,6 +25,10 @@ class ColorCalibrationState with ChangeNotifier {
     _b = b;
     notifyListeners();
   }
+  void resetCalibrationsDone() {
+    _calibrationsDone = 0;
+    notifyListeners();
+  }
 
   void incrementCalibrationsDone() {
     _calibrationsDone += 1;

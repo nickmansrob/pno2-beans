@@ -131,7 +131,7 @@ void setup() {
   Wire.begin(8);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(sendText);
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   digitalWrite(MOTOR1_PIN, LOW);
 
@@ -140,29 +140,29 @@ void setup() {
   lcd.print("Weight [g]:");
 
   // Initializing and calibrating the weight sensor.
-//  while (!MyScale.begin()) {
-//    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-//    delay(1000);
-//  }
-//
-//  MyScale.setCalWeight(100);
-//  MyScale.setThreshold(50);
-//
-//  delay(2000);
-//  MyScale.enableCal();
-//  long time1 = millis();
-//
-//  while (!MyScale.getCalFlag()) {
-//    if ((millis() - time1) > 7000) {
-//      Serial.println("Calibration failed, no weight was detected on the scale");
-//    }
-//    delay(1000);
-//  }
-//  Serial.print("The calibration value of the sensor is: ");
-//  Serial.println(MyScale.getCalibration());
-//  MyScale.setCalibration(MyScale.getCalibration());
-//  delay(1000);
-//  MyScale.peel();
+  //  while (!MyScale.begin()) {
+  //    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+  //    delay(1000);
+  //  }
+  //
+  //  MyScale.setCalWeight(100);
+  //  MyScale.setThreshold(50);
+  //
+  //  delay(2000);
+  //  MyScale.enableCal();
+  //  long time1 = millis();
+  //
+  //  while (!MyScale.getCalFlag()) {
+  //    if ((millis() - time1) > 7000) {
+  //      Serial.println("Calibration failed, no weight was detected on the scale");
+  //    }
+  //    delay(1000);
+  //  }
+  //  Serial.print("The calibration value of the sensor is: ");
+  //  Serial.println(MyScale.getCalibration());
+  //  MyScale.setCalibration(MyScale.getCalibration());
+  //  delay(1000);
+  //  MyScale.peel();
 
 }
 
@@ -302,12 +302,12 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "debug") {
     if (messageString == "1") {
       debug = true;
-      Serial.println(debug);
     }
     else if (messageString == "0") {
       debug = false;
-      Serial.println(debug);
     }
+  } else if (topic == "colorCal") {
+    calibrateColor(messageString);
   }
 
   else {
@@ -462,6 +462,82 @@ void readColor() {
   }
 }
 
+String readColorCalibration() {
+  // Used for clearing the cache of those variables.
+        uint8_t red = "0";
+      uint8_t green = "0";
+      uint8_t blue = "0";
+
+      String redString;
+      String greenString;
+      String blueString;
+
+      // Red
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, LOW);
+      red = pulseIn(KOUT_PIN, LOW);
+      redString = String(red);
+      if (redString.length() == 1) {
+        redString = "00" + redString;
+      } else if (redString.length() == 2) {
+        redString = "0" + redString;
+      }
+
+      // Green
+      digitalWrite(KS2_PIN, HIGH);
+      digitalWrite(KS3_PIN, HIGH);
+      green = pulseIn(KOUT_PIN, LOW);
+      greenString = String(green);
+      if (greenString.length() == 1) {
+        greenString = "00" + greenString;
+      } else if (greenString.length() == 2) {
+        greenString = "0" + greenString;
+      }
+
+      // Blue
+      digitalWrite(KS2_PIN, LOW);
+      digitalWrite(KS3_PIN, HIGH);
+      blue = pulseIn(KOUT_PIN, LOW);
+      blueString = String(blue);
+      if (blueString .length() == 1) {
+        blueString  = "00" + blueString ;
+      } else if (blueString.length() == 2) {
+        blueString  = "0" + blueString ;
+      }
+
+  return redString + greenString + blueString;
+}
+
+void calibrateColor(String messageString) {
+  // Used for clearing the cache of those variables.
+
+  String colorRGB = "";
+  String reading1 = "";
+  String reading2 = "";
+  String reading3 = "";
+
+  if (messageString == "calApp") {
+    sendMessage = "colorCal_cal";
+    message = "";
+    messageString = "";
+    topic = "";
+  }
+  else if (messageString.substring(0, 5) == "start") {
+    colorRGB = messageString.substring(5);
+    reading1 = readColorCalibration();
+    delay(200);
+    reading2 = readColorCalibration();
+    delay(200);
+    reading3 = readColorCalibration();
+    Serial.println(colorRGB + "," + reading1 + "," + reading2 + "," + reading3);
+    sendMessage = "colorCal_stop" + colorRGB;
+    message = "";
+    messageString = "";
+    topic = "";
+  }
+}
+
+
 /************************* Read ultrasonic sensor and publish*************************/
 void readUltrasonic() {
   while (ultrasonicState == HIGH) {
@@ -516,28 +592,28 @@ void receiveEvent(int howMany) {
     delay(100);
   }
 
-    // For receiving topics via Wire.
-    if (topic == "distControl") {
-      if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
-        ultrasonicState = LOW;
-      }
+  // For receiving topics via Wire.
+  if (topic == "distControl") {
+    if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
+      ultrasonicState = LOW;
     }
-  
-    else if (topic == "colorControl") {
-      if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
-        colorState = LOW;
-      }
-    }
-  
-    else if (topic == "weightControl") {
-      if (messageString == "readWeight" && colorState == HIGH || messageString == "stopWeight") {
-        weightState = LOW;
-      }
-    }
+  }
 
-  Serial.println(message);
-  Serial.println(messageString);
-  Serial.println(topic);
+  else if (topic == "colorControl") {
+    if (messageString == "readColor" && colorState == HIGH || messageString == "stopColor") {
+      colorState = LOW;
+    }
+  }
+
+  else if (topic == "weightControl") {
+    if (messageString == "readWeight" && colorState == HIGH || messageString == "stopWeight") {
+      weightState = LOW;
+    }
+  }
+
+  //Serial.println(message);
+  //Serial.println(messageString);
+  //Serial.println(topic);
 }
 
 // Function that executes whenever data is requested from master.

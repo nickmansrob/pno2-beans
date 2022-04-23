@@ -7,42 +7,30 @@ import os
 def main():
     file = "test_data.csv"
     datamatrix = []
-    
-    read_serial(3375)
+    baud = 9600
+    port = "/dev/ttyACM0" 
+
+    read_serial(300, datamatrix, port, baud)
     if datamatrix:
         write_csv(file, datamatrix)
         open_file()
 
     
-def read_serial(samples):
-    arduino_port = "/dev/ttyACM0" 
-    baud = 9600
+def read_serial(samples, datamatrix, port, baud):
     i = 0
-    ser = connect_to_serial(arduino_port, baud)
     try:
-        ser.readline() 
+        serial.Serial(port, baud)
     except Exception:
-        return
+        print(f"Connection with '{port}' on baud {baud} failed. Please try again.")
     else:
-        # Gets 20 serial outputs of the Arduino.
+        print('Connection established.')
+        ser = serial.Serial(port, baud)
         while(i < samples):
             ser_bytes = ser.readline()
             datamatrix.append([time_now()] + ser_bytes.decode("utf-8").strip().split(','))
             i+=1
             print("\r" +  f'Getting data... ({i}/{samples})', end="\r")
-            
 
-def connect_to_serial(port, baud):
-    try:
-        serial.Serial(port, baud)
-    except Exception:
-        print(f"Connection with '{port}' on baud {baud} failed. Please try again.")
-        return
-    else:
-        print('Connection established.')
-        return serial.Serial(port, baud)
-        
-    
 def time_now():
     # Tested, it works.
     now = datetime.now()

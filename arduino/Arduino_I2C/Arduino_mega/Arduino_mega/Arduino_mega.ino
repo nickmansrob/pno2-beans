@@ -131,7 +131,7 @@ void setup() {
   Wire.begin(8);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(sendText);
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   digitalWrite(MOTOR1_PIN, LOW);
 
@@ -464,46 +464,46 @@ void readColor() {
 
 String readColorCalibration() {
   // Used for clearing the cache of those variables.
-        uint8_t red = "0";
-      uint8_t green = "0";
-      uint8_t blue = "0";
+  uint8_t red = "0";
+  uint8_t green = "0";
+  uint8_t blue = "0";
 
-      String redString;
-      String greenString;
-      String blueString;
+  String redString;
+  String greenString;
+  String blueString;
 
-      // Red
-      digitalWrite(KS2_PIN, LOW);
-      digitalWrite(KS3_PIN, LOW);
-      red = pulseIn(KOUT_PIN, LOW);
-      redString = String(red);
-      if (redString.length() == 1) {
-        redString = "00" + redString;
-      } else if (redString.length() == 2) {
-        redString = "0" + redString;
-      }
+  // Red
+  digitalWrite(KS2_PIN, LOW);
+  digitalWrite(KS3_PIN, LOW);
+  red = pulseIn(KOUT_PIN, LOW);
+  redString = String(red);
+  if (redString.length() == 1) {
+    redString = "00" + redString;
+  } else if (redString.length() == 2) {
+    redString = "0" + redString;
+  }
 
-      // Green
-      digitalWrite(KS2_PIN, HIGH);
-      digitalWrite(KS3_PIN, HIGH);
-      green = pulseIn(KOUT_PIN, LOW);
-      greenString = String(green);
-      if (greenString.length() == 1) {
-        greenString = "00" + greenString;
-      } else if (greenString.length() == 2) {
-        greenString = "0" + greenString;
-      }
+  // Green
+  digitalWrite(KS2_PIN, HIGH);
+  digitalWrite(KS3_PIN, HIGH);
+  green = pulseIn(KOUT_PIN, LOW);
+  greenString = String(green);
+  if (greenString.length() == 1) {
+    greenString = "00" + greenString;
+  } else if (greenString.length() == 2) {
+    greenString = "0" + greenString;
+  }
 
-      // Blue
-      digitalWrite(KS2_PIN, LOW);
-      digitalWrite(KS3_PIN, HIGH);
-      blue = pulseIn(KOUT_PIN, LOW);
-      blueString = String(blue);
-      if (blueString .length() == 1) {
-        blueString  = "00" + blueString ;
-      } else if (blueString.length() == 2) {
-        blueString  = "0" + blueString ;
-      }
+  // Blue
+  digitalWrite(KS2_PIN, LOW);
+  digitalWrite(KS3_PIN, HIGH);
+  blue = pulseIn(KOUT_PIN, LOW);
+  blueString = String(blue);
+  if (blueString .length() == 1) {
+    blueString  = "00" + blueString ;
+  } else if (blueString.length() == 2) {
+    blueString  = "0" + blueString ;
+  }
 
   return redString + greenString + blueString;
 }

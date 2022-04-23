@@ -29,7 +29,7 @@ char rdata;
 
 void setup() {
   /************************* Initializaton *************************/
-  Serial.begin(9600);
+  Serial.begin(115200);
   Wire.begin(5, 4);
   delay(10);
 

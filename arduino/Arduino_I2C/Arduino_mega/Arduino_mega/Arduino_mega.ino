@@ -22,14 +22,14 @@ const char * mqtt_server = "10.45.66.58";
 
 /************************* Pins and variables *************************/
 // DC-motors
-const uint8_t MOTOR_VOLTAGE = 2;
+const uint8_t MOTOR_VOLTAGE = 12;
 
-const uint8_t MOTOR1_PIN = 2;
+const uint8_t MOTOR1_PIN = 7;
 const uint8_t MOTOR1_RELAY_PIN = 24;
 uint8_t motorOneState = LOW;
 bool motorOneClockwise = true;
 
-const uint8_t MOTOR2_PIN = 3;
+const uint8_t MOTOR2_PIN = 6;
 const uint8_t MOTOR2_RELAY_PIN = 26;
 uint8_t motorTwoState = LOW;
 bool motorTwoClockwise = true;
@@ -176,6 +176,7 @@ void loop() {
   message = "";
   messageString = "";
   topic = "";
+
 }
 /************************* Program flows *************************/
 uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
@@ -189,7 +190,7 @@ void manualFlow(String topic, String messageString) {
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
       sendMessage = sendMessage + "on";
-      analogWrite(MOTOR1_PIN, getMotorVoltage());
+      analogWrite(MOTOR1_PIN, getMotorVoltage(12));
       motorOneState = HIGH;
     } else if (messageString == "toggle" && motorOneState == HIGH) {
       sendMessage = sendMessage + "off";
@@ -210,33 +211,23 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "motor2") {
     if (messageString == "toggle" && motorTwoState == LOW) {
       sendMessage = sendMessage + "on";
-      analogWrite(MOTOR2_PIN, getMotorVoltage());
+      analogWrite(MOTOR2_PIN, getMotorVoltage(12));
       motorTwoState = HIGH;
     } else if (messageString == "toggle" && motorTwoState == HIGH) {
       sendMessage = sendMessage + "off";
       analogWrite(MOTOR2_PIN, 0);
       motorTwoState = LOW;
     } else if (messageString == "turn") {
-      changeMotorRotation(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
+      if (motorTwoClockwise == true) {
+        changeMotorRotation(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
+        motorTwoClockwise = false;
+      } else {
+        changeMotorRotation(MOTOR2_PIN, MOTOR2_RELAY_PIN, motorTwoState, motorTwoClockwise);
+        motorTwoClockwise = true;
+      }
       sendMessage = sendMessage + "turn";
     } else {
-      sendMessage = sendMessage + "message error";
-    }
-  } else if (topic == "motor3") {
-    if (messageString == "toggle" && motorThreeState == LOW) {
-      sendMessage = sendMessage + "on";
-      analogWrite(MOTOR3_PIN, getMotorVoltage());
-      motorThreeState = HIGH;
-    } else if (messageString == "toggle" && motorThreeState == HIGH) {
-      sendMessage = sendMessage + "off";
-      analogWrite(MOTOR3_PIN, 0);
-      motorThreeState = LOW;
-    } else if (messageString == "change_rotation") {
-      changeMotorRotation(MOTOR3_PIN, MOTOR3_RELAY_PIN, motorThreeState, motorThreeClockwise);
-      sendMessage = sendMessage + "change rotation";
-
-    } else {
-      sendMessage = sendMessage + "message error";
+      sendMessage = sendMessage + "topic error";
     }
   }
 
@@ -284,10 +275,10 @@ void manualFlow(String topic, String messageString) {
   }
 
   else if (topic == "distControl") {
-    if (messageString == "readDist" && ultrasonicState == LOW) {
+    if (messageString == "readUltra" && ultrasonicState == LOW) {
       ultrasonicState = HIGH;
       readUltrasonic();
-    } else if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
+    } else if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
       ultrasonicState = LOW;
     }
   }
@@ -611,9 +602,9 @@ void receiveEvent(int howMany) {
     }
   }
 
-  //Serial.println(message);
-  //Serial.println(messageString);
-  //Serial.println(topic);
+  Serial.println(message);
+  Serial.println(messageString);
+  Serial.println(topic);
 }
 
 // Function that executes whenever data is requested from master.

@@ -585,7 +585,7 @@ void receiveEvent(int howMany) {
 
   // For receiving topics via Wire.
   if (topic == "distControl") {
-    if (messageString == "readDist" && ultrasonicState == HIGH || messageString == "stopDist") {
+    if (messageString == "readUltra" && ultrasonicState == HIGH || messageString == "stopUltra") {
       ultrasonicState = LOW;
     }
   }

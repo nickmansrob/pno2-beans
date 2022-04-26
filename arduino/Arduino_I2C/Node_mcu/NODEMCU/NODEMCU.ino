@@ -106,25 +106,31 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ArduinoBeanBot")) {
+    if (client.connect("ArduinoBeanBotNodeMCU")) {
       Serial.println("connected");
       // Subscribe
       client.subscribe("motor1");
       client.subscribe("motor2");
+      
       client.subscribe("servo1");
       client.subscribe("servo2");
       client.subscribe("servo3");
       client.subscribe("servo4");
+      
       client.subscribe("order1");
       client.subscribe("order2");
+      
       client.subscribe("weight1");
       client.subscribe("weight2");
+      
       client.subscribe("weightControl");
       client.subscribe("weightData");
+      
       client.subscribe("colorControl");
       client.subscribe("colorData");
+      
       client.subscribe("distControl");
-      client.subscribe("colorData");
+
       client.subscribe("override");
       client.subscribe("colorCal");
 
@@ -173,10 +179,7 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "servo4") {
     wireFlow("servo4_" + messageString);
   }
-  else if (topic == "adminListener") {
-    logFlow("ROUTE: From origin to adminFlow");
-    adminFlow(messageString);
-  } else if (topic == "weight1") {
+  else if (topic == "weight1") {
     logFlow("ROUTE: From origin to weight1");
     wireFlow("weight1_" + messageString);
   } else if (topic == "weight2") {
@@ -200,19 +203,6 @@ void manualFlow(String topic, String messageString) {
   }
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
-  }
-}
-
-void adminFlow(String messageString) {
-  if (messageString == "reset") {
-    logFlow("WARNING: Hard reset");
-    wireFlow("admin_reset");
-    resetFunc();
-  } else if (messageString == "restore") {
-    logFlow("WARNING: Beanbot restore");
-    wireFlow("admin_restore");
-  } else {
-    logFlow("ERROR: adminFlow() :: no message match");
   }
 }
 
@@ -258,7 +248,7 @@ void pollWire() {
     }
     else if (topic == "weightData" ) {
       client.publish("weightData", messageString.c_str());
-    } 
+    }
     else if (topic == "colorCal") {
       client.publish("colorCal", messageString.c_str());
     }

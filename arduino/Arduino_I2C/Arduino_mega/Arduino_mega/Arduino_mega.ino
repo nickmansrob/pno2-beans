@@ -1,14 +1,4 @@
 /************************* Libraries *************************/
-#if defined(__AVR__)
-#include <WiFi.h>
-#elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-
-const char * ssid = "ENVYROB113004";
-const char * password = "0j085693";
-const char * mqtt_server = "10.45.66.58";
-
-#endif
 #include <SoftwareSerial.h>
 #include <Wire.h>
 
@@ -34,11 +24,6 @@ const uint8_t MOTOR2_RELAY_PIN = 26;
 uint8_t motorTwoState = LOW;
 bool motorTwoClockwise = true;
 
-const uint8_t MOTOR3_PIN = 4;
-const uint8_t MOTOR3_RELAY_PIN = 27;
-uint8_t motorThreeState = LOW;
-bool motorThreeClockwise = true;
-
 // Servos
 Servo servoOne;
 const uint8_t SERVO1_PIN = 9; // Not known yet
@@ -51,6 +36,10 @@ uint8_t servoTwoState = 90;
 Servo servoThree;
 const uint8_t SERVO3_PIN = 0; // Not known yet
 uint8_t servoThreeState = 90;
+
+Servo servoFour;
+const uint8_t SERVO4_PIN = 0; // Not known yet
+uint8_t servoFourState = 90;
 
 // LCD
 const uint8_t LCDRS_PIN = 50;
@@ -105,18 +94,20 @@ void setup() {
   // DC-motors
   pinMode(MOTOR1_PIN, OUTPUT);
   pinMode(MOTOR2_PIN, OUTPUT);
-  pinMode(MOTOR3_PIN, OUTPUT);
 
   pinMode(MOTOR1_RELAY_PIN, OUTPUT);
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
-  pinMode(MOTOR3_RELAY_PIN, OUTPUT);
 
   // Servos
   servoOne.attach(SERVO1_PIN);
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
+  servoFour.attach(SERVO4_PIN);
 
   servoOne.write(servoOneState);
+  servoTwo.write(servoTwoState);
+  servoThree.write(servoThreeState);
+  servoFour.write(servoFourState);
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
@@ -250,6 +241,12 @@ void manualFlow(String topic, String messageString) {
 
     servoThree.write(angle);
     servoThreeState = angle;
+  }  
+  else if (topic == "servo4") {
+    uint8_t angle = messageString.toInt();
+
+    servoFour.write(angle);
+    servoFourState = angle;
   }
 
   // Weight data
@@ -527,7 +524,6 @@ void calibrateColor(String messageString) {
     topic = "";
   }
 }
-
 
 /************************* Read ultrasonic sensor and publish*************************/
 void readUltrasonic() {

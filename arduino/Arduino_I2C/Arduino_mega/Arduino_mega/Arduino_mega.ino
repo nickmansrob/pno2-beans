@@ -1,12 +1,7 @@
 /************************* Libraries *************************/
-#include <SoftwareSerial.h>
 #include <Wire.h>
-
 #include <Servo.h>
-
 #include <DFRobot_HX711_I2C.h> // KUL library
-
-#include <HX711_ADC.h> // Library for operating the scales.
 #include <LiquidCrystal.h> // Library for operating the LCD display.
 #include <PubSubClient.h>
 

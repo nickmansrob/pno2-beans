@@ -159,7 +159,7 @@ void manualFlow(String topic, String messageString) {
   if (topic == "motor1") {
     if (messageString == "toggle" && motorOneState == LOW) {
       sendMessage = sendMessage + "on";
-      analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+      analogWrite(MOTOR1_PIN, getMotorVoltage());
       motorOneState = HIGH;
     } else if (messageString == "toggle" && motorOneState == HIGH) {
       sendMessage = sendMessage + "off";
@@ -180,7 +180,7 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "motor2") {
     if (messageString == "toggle" && motorTwoState == LOW) {
       sendMessage = sendMessage + "on";
-      analogWrite(MOTOR2_PIN, getMotorVoltage(12));
+      analogWrite(MOTOR2_PIN, getMotorVoltage());
       motorTwoState = HIGH;
     } else if (messageString == "toggle" && motorTwoState == HIGH) {
       sendMessage = sendMessage + "off";

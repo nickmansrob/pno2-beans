@@ -21,19 +21,19 @@ bool motorTwoClockwise = true;
 
 // Servos
 Servo servoOne;
-const uint8_t SERVO1_PIN = 9; // Not known yet
+const uint8_t SERVO1_PIN = 9;
 uint8_t servoOneState = 90;
 
 Servo servoTwo;
-const uint8_t SERVO2_PIN = 0; // Not known yet
+const uint8_t SERVO2_PIN = 8;
 uint8_t servoTwoState = 90;
 
 Servo servoThree;
-const uint8_t SERVO3_PIN = 0; // Not known yet
+const uint8_t SERVO3_PIN = 5;
 uint8_t servoThreeState = 90;
 
 Servo servoFour;
-const uint8_t SERVO4_PIN = 0; // Not known yet
+const uint8_t SERVO4_PIN = 4;
 uint8_t servoFourState = 90;
 
 // LCD
@@ -64,7 +64,6 @@ uint8_t colorState = LOW;
 long lastReadingTimeColor = 0;
 
 // Weight sensor
-// DFRobot_HX711_I2C MyScale(&Wire,/*addr=*/0x64);
 DFRobot_HX711_I2C MyScale;
 uint8_t weightState = LOW;
 long lastReadingTimeWeight = 0;
@@ -81,7 +80,7 @@ String messageString;
 // Miscellaneous
 uint8_t orderState = 1;
 bool proceedNormalFlow = false;
-bool debug = false;
+bool debug = false; // Enabled when in manualOverride color/weight/distance reading is enabled
 
 
 void setup() {
@@ -125,30 +124,14 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("Weight [g]:");
 
-  // Initializing and calibrating the weight sensor.
-  //  while (!MyScale.begin()) {
-  //    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-  //    delay(1000);
-  //  }
-  //
-  //  MyScale.setCalWeight(100);
-  //  MyScale.setThreshold(50);
-  //
-  //  delay(2000);
-  //  MyScale.enableCal();
-  //  long time1 = millis();
-  //
-  //  while (!MyScale.getCalFlag()) {
-  //    if ((millis() - time1) > 7000) {
-  //      Serial.println("Calibration failed, no weight was detected on the scale");
-  //    }
-  //    delay(1000);
-  //  }
-  //  Serial.print("The calibration value of the sensor is: ");
-  //  Serial.println(MyScale.getCalibration());
-  //  MyScale.setCalibration(MyScale.getCalibration());
-  //  delay(1000);
-  //  MyScale.peel();
+  while (!MyScale.begin()) {
+    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+    delay(1000);
+  }
+  //Manually set the calibration values
+  MyScale.setCalibration(2000.f);
+  //remove the peel
+  MyScale.peel();
 
 }
 

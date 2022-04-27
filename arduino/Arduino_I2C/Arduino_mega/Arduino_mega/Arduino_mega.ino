@@ -14,29 +14,35 @@
 // DC-motors
 const uint8_t MOTOR_VOLTAGE = 12;
 
+// DC controlling the first belt.
 const uint8_t MOTOR1_PIN = 7;
 const uint8_t MOTOR1_RELAY_PIN = 24;
 uint8_t motorOneState = LOW;
 bool motorOneClockwise = true;
 
+// DC controlling the second belt.
 const uint8_t MOTOR2_PIN = 6;
 const uint8_t MOTOR2_RELAY_PIN = 26;
 uint8_t motorTwoState = LOW;
 bool motorTwoClockwise = true;
 
 // Servos
+// Servo controlling the rotation of the first conveyer belt.
 Servo servoOne;
 const uint8_t SERVO1_PIN = 9; // Not known yet
 uint8_t servoOneState = 90;
 
+// Servo controlling the rotation of the second belt.
 Servo servoTwo;
 const uint8_t SERVO2_PIN = 0; // Not known yet
 uint8_t servoTwoState = 90;
 
+// Servo controlling the up-and-down motion of the first belt.
 Servo servoThree;
 const uint8_t SERVO3_PIN = 0; // Not known yet
 uint8_t servoThreeState = 90;
 
+// Servo controlling the back-and-forward motion of the second belt.
 Servo servoFour;
 const uint8_t SERVO4_PIN = 0; // Not known yet
 uint8_t servoFourState = 90;
@@ -174,6 +180,142 @@ uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
   return map(motorVoltage, 0, 12, 0, 255);
 }
 
+void normalFlow(String topic, String messageString) {
+  /* Variables */
+  int firstSiloAngle = 0;
+  int secondSiloAngle = 0;
+  int thirdSiloAngle = 0;
+
+  /* Starting the flow. */
+  if (topic == 'order1') {
+    // Gets the silo number and the weight from the orderString of the form siloNunber_weight
+    int siloNumberFirstOrder = (messageString.substring(0, 1)).toInt();
+    int orderedWeightFirstOrder = (messageString.substring(1)).toInt();
+
+    // Gets the distance and angle of the truck.
+    String distanceAndAngle = getDistanceAndAngle();
+
+    // Gets angle.
+    int indexDelimiter = distanceAndAngle.indexOf('_');
+    int angle = distanceAndAngle.substring(indexDelimiter + 1, distanceAndAngle.length()).toInt();
+  }
+
+  else if (topic == 'order2') {
+    // Gets the silo number and the weight from the orderString of the form siloNunber_weight
+    int siloNumbderSecondOrder = (messageString.substring(0, 1)).toInt();
+    int orderedWeightSecondOrder = (messageString.substring(1)).toInt();
+  }
+
+}
+// Sets the bean Bot to default position.
+void section0() {
+  int servoOneDefaultAngle = 0;
+  int servoTwoDefaultAngle = 0;
+  int servoThreeDefaultAngle = 0;
+  int servoFourDefaultAngle = 0;
+
+  // Writing to the servos.
+  servoOne.write(servoOneDefaultAngle);
+  servoTwo.write(servoTwoDefaultAngle);
+  servoThree.write(servoThreeDefaultAngle);
+  servoFour.write(servoFourDefaultAngle);
+}
+
+// First conveyer belt moves to the correct position
+void section1(int siloNumberFirstOrder, int firstSiloAngle, int secondSiloAngle, int thirdSiloAngle) {
+  // Sets first belt in the right angle position.
+  if (siloNumberFirstOrder == 0) {
+    servoOne.write(firstSiloAngle);
+  }
+  else if (siloNumberFirstOrder == 1) {
+    servoOne.write(secondSiloAngle);
+  }
+  else if (siloNumberFirstOrder == 2) {
+    servoOne.write(thirdSiloAngle);
+  }
+
+  // Dropping the belt onto the beans.
+  int firstBeltDownAngle = 0; // The angle of the thrid servo has to have in order for the belt to be completely down.
+  servoThree.write(firstBeltDownAngle);
+}
+
+// Second conveyer belt moves to correct position.
+void section2(int angle) {
+  String distanceAndAngle = getDistanceAndAngle();
+  long distance = 0;
+
+  // Writes the correct angle to the second servo.
+  servoTwo.write(angle);
+}
+
+// Loads the second conveyer belt.
+void section3() {
+  // The time the second servo has to turn in order to fill the entire belt.
+  int turningTimeSecondDC = 0;
+
+  // Starts the first DC.
+  analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+  // Starts the second DC.
+  int motor2Voltage = 0;
+  analogWrite(MOTOR2_PIN, getMotorVoltage(motor2Voltage));
+
+  // Waits for the second belt to fill.
+  delay(turningTimeSecondDC);
+
+  // Shutting down the DC's.
+  analogWrite(MOTOR1_PIN, 0);
+  analogWrite(MOTOR2_PIN, 0);
+
+}
+
+// Moves the second servo to the right position and unloads the belt in de container and returns to original position.
+void section4(long distance, long orderedWeight) {
+  long weight = getWeight();
+  // The time the servo has to turn for the belt to reach to end.
+  int servoTurnTime = 0;
+
+  // Riding to the right distance.
+  servoFour.write(0);
+  delay(servoTurnTime);
+  servoFour.write(89);
+
+  // Rotating the belt until weight is reached.
+  while (weight < orderedWeight) {
+    int motor2Voltage = 0;
+    analogWrite(MOTOR2_PIN, getMotorVoltage(motor2Voltage));
+    delay(2000);
+    analogWrite(MOTOR2_PIN, 0);
+    weight = getWeight();
+
+  }
+
+  // Riding back to default.
+  servoFour.write(180);
+  delay(servoTurnTime);
+  servoFour.write(0);
+}
+
+/*
+  Gets the distance and the angle to the truck.
+  Returns a string of the form 'distance_angle'.
+*/
+String getDistanceAndAngle() {
+  long distance = 0;
+  int pos = 0;
+  for (int pos = 0; pos <= 70; pos++) {
+    distance = readDistance();
+    if (distance > 14 && distance < 40) {
+      break;
+    }
+    else {
+      servoOne.write(pos);
+      delay(50);
+    }
+  }
+  return String(distance) + '_' +  String(pos);
+}
+
+
 void manualFlow(String topic, String messageString) {
   sendMessage = "log_";
 
@@ -241,7 +383,7 @@ void manualFlow(String topic, String messageString) {
 
     servoThree.write(angle);
     servoThreeState = angle;
-  }  
+  }
   else if (topic == "servo4") {
     uint8_t angle = messageString.toInt();
 
@@ -349,6 +491,27 @@ void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, ui
 }
 
 /************************* Read weight sensor and publish *************************/
+long getWeight() {
+  long readings[3] = {0, 0, 0};
+  long averageDistance = 0;
+  long sum = 0;
+
+  for (int i; i <= 3; i++) {
+    long weightInt = MyScale.readWeight();
+
+    readings[i] = weightInt;
+  }
+
+  // Gets the average of the three outputs.
+  for (int i = 0; i < 3; i++ ) {
+    sum += readings[i];
+  }
+
+  averageDistance = sum / 3;
+
+  return averageDistance;
+}
+
 void readScaleWeight() {
   while (weightState == HIGH) {
     if ((millis() - lastReadingTimeWeight) > 1000 && weightState == HIGH) {
@@ -526,6 +689,37 @@ void calibrateColor(String messageString) {
 }
 
 /************************* Read ultrasonic sensor and publish*************************/
+// This function reads the distance 3 times and returns the average of the three values.
+long readDistance() {
+  long averageDistance = 0;
+  int sum = 0;
+  long readings[3] = {0, 0, 0};
+
+  // Reads for three times and stores output in an array.
+  for (int i = 0; i <= 3; i++) {
+    double duration;
+    double distance;
+    digitalWrite(UTRIG_PIN, LOW);
+    delayMicroseconds(2);
+
+    digitalWrite(UTRIG_PIN, HIGH);
+    delayMicroseconds(10);
+
+    duration = pulseIn(UECHO_PIN, HIGH);
+    distance = duration * 0.034 / 2;
+    readings[i] = distance;
+    delay(100);
+  }
+
+  // Gets the average of the three outputs.
+  for (int i = 0; i < 3; i++ ) {
+    sum += readings[i];
+  }
+  averageDistance = sum / 3;
+
+  return averageDistance;
+}
+
 void readUltrasonic() {
   while (ultrasonicState == HIGH) {
     if ((millis() - lastReadingTimeDistance) > 1000 && ultrasonicState == HIGH) {

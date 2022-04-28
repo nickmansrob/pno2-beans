@@ -106,6 +106,7 @@ class MQTTManager with ChangeNotifier {
             if (pt == 'done') {
               _currentState.setFirstOrderReceivedDone(pt);
               _currentState.setFirstOderDone(pt);
+              // Starts the second order.
               publish(_currentState.getOrderMessage, 'order2');
             } else if (double.tryParse(pt) != null) {
               _currentState.setFirstOrderReceivedWeightText(pt);

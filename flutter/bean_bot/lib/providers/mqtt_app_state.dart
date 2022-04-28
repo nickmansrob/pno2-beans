@@ -129,7 +129,6 @@ class MQTTAppState with ChangeNotifier {
     _firstOrderReceivedDone = '';
     _firstColor = const Color.fromRGBO(0, 0, 0, 1);
     _firstOrderWeightText = '0';
-    _firstOrderDone = "";
     notifyListeners();
   }
 
@@ -137,7 +136,6 @@ class MQTTAppState with ChangeNotifier {
     _secondOrderReceivedDone = '';
     _secondColor = const Color.fromRGBO(0, 0, 0, 1);
     _secondOrderWeightText = '0';
-    _secondOrderDone = "";
     notifyListeners();
   }
 

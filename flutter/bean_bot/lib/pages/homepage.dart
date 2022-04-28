@@ -536,7 +536,6 @@ class _HomePageState extends State<HomePage> {
       Future.delayed(Duration.zero, () {
         setState(() {
           currentOrderState.setFirstOrder('');
-          currentAppState.setFirstOrderReceivedDone('');
           _showFirstEndOrderMessage();
         });
       });
@@ -786,7 +785,6 @@ class _HomePageState extends State<HomePage> {
           setState(
             () {
               currentOrderState.setSecondOrder('');
-              currentAppState.setSecondOrderReceivedDone('');
               _showSecondEndOrderMessage();
             },
           );
@@ -1352,6 +1350,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 currentOrderState.disposeFirstOrder();
                 currentAppState.disposeFirstOrderAppState();
+                currentOrderState.decrementOrderCount();
                 Navigator.of(context, rootNavigator: true).maybePop();
               },
             ),
@@ -1383,6 +1382,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 currentOrderState.disposeSecondOrder();
                 currentAppState.disposeSecondOrderAppState();
+                currentOrderState.decrementOrderCount();
                 Navigator.of(context, rootNavigator: true).maybePop();
               },
             ),

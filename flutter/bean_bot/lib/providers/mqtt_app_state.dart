@@ -23,10 +23,8 @@ class MQTTAppState with ChangeNotifier {
   String _hostIp = '';
   bool _isSwitched = false;
 
-  String _firstColor = 'not determined';
-  String _secondColor = 'not determined';
-  String _firstColorInt = '000000000';
-  String _secondColorInt = '000000000';
+  Color _firstColor = const Color.fromRGBO(0, 0, 0, 1);
+  Color _secondColor = const Color.fromRGBO(0, 0, 0, 1);
 
   String _distance = "";
   String _weight = "";
@@ -48,11 +46,6 @@ class MQTTAppState with ChangeNotifier {
   }
   void setDistance(String distance) {
     _distance = distance;
-    notifyListeners();
-  }
-
-  void setBeanColor(Color color) {
-    _colorDebug = color;
     notifyListeners();
   }
 
@@ -122,29 +115,19 @@ class MQTTAppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void setFirstColor(String color) {
+  void setFirstColor(Color color) {
     _firstColor = color;
     notifyListeners();
   }
 
-  void setSecondColor(String color) {
+  void setSecondColor(Color color) {
     _secondColor = color;
-    notifyListeners();
-  }
-
-  void setFirstColorInt(String colorInt) {
-    _firstColorInt = colorInt;
-    notifyListeners();
-  }
-
-  void setSecondOrder(String colorInt) {
-    _firstColorInt = colorInt;
     notifyListeners();
   }
 
   void disposeFirstOrderAppState() {
     _firstOrderReceivedDone = '';
-    _firstColor = 'not determined';
+    _firstColor = const Color.fromRGBO(0, 0, 0, 1);
     _firstOrderWeightText = '';
     _firstOrderDone = "";
     notifyListeners();
@@ -152,7 +135,7 @@ class MQTTAppState with ChangeNotifier {
 
   void disposeSecondOrderAppState() {
     _secondOrderReceivedDone = '';
-    _secondColor = 'not determined';
+    _secondColor = const Color.fromRGBO(0, 0, 0, 1);
     _secondOrderWeightText = '';
     _secondOrderDone = "";
     notifyListeners();
@@ -160,10 +143,10 @@ class MQTTAppState with ChangeNotifier {
 
   void disposeAppState() {
     _firstOrderReceivedDone = '';
-    _firstColor = 'not determined';
+    _firstColor = const Color.fromRGBO(0, 0, 0, 1);
     _firstOrderWeightText = '0';
     _secondOrderReceivedDone = '';
-    _secondColor = 'not determined';
+    _secondColor = const Color.fromRGBO(0, 0, 0, 1);
     _secondOrderWeightText = '0';
     _firstOrderDone = '';
     _secondOrderDone = '';
@@ -196,11 +179,10 @@ class MQTTAppState with ChangeNotifier {
   String get getFirstOrderWeightText => _firstOrderWeightText;
   String get getSecondOrderWeightText => _secondOrderWeightText;
   String get getHostIP => _hostIp;
-  String get getSecondColor => _secondColor;
-  String get getFirstColor => _firstColor;
+  Color get getSecondColor => _secondColor;
+  Color get getFirstColor => _firstColor;
   Color get getColorDebug => _colorDebug;
-  String get getFirstColorInt => _firstColorInt;
-  String get getSecondColorInt => _secondColorInt;
+
   String get getOrderMessage => _orderMessage;
   bool get getIsSwitched => _isSwitched;
   bool get getRestorePressed => _restorePressed;

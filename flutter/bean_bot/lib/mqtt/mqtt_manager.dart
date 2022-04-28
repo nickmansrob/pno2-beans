@@ -120,12 +120,10 @@ class MQTTManager with ChangeNotifier {
             }
             break;
           case 'color1':
-            _currentState.setFirstColor(convertIntToColor(pt));
-            _currentState.setFirstColorInt(pt);
-            _currentState.setBeanColor(convertRGBtoColor(pt));
+            _currentState.setFirstColor(convertRGBtoColor(pt));
             break;
           case 'color2':
-            _currentState.setSecondColor(convertIntToColor(pt));
+            _currentState.setSecondColor(convertRGBtoColor(pt));
             break;
 
           // This is deprecated by `firstWeightListener` and `secondWeightListener`.
@@ -185,23 +183,6 @@ class MQTTManager with ChangeNotifier {
   }
 
   /////////////////////////// Helper Functions ///////////////////////////
-  // Function for converting RGB triplet to a color string, to be displayed in the app.
-  String convertIntToColor(String colorInt) {
-    List intList = [
-      int.parse(colorInt.substring(0, 3)),
-      int.parse(colorInt.substring(3, 6)),
-      int.parse(colorInt.substring(6, 9))
-    ];
-    if (intList[0] == 255 && intList[1] == 0 && intList[2] == 0) {
-      return 'red';
-    } else if (intList[0] == 255 && intList[1] == 255 && intList[2] == 255) {
-      return 'white';
-    } else if (intList[0] == 0 && intList[1] == 0 && intList[2] == 0) {
-      return 'black';
-    } else {
-      return 'not determined';
-    }
-  }
 
   // Function for converting RBG triplet to an RGB-color object.
   Color convertRGBtoColor(String colorInt) {

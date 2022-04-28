@@ -604,28 +604,69 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: [
+                      children: const [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 0, vertical: 2),
+                          padding: EdgeInsets.only(
+                              left: 0, top: 0, right: 0, bottom: 4),
                           child: Text(
-                              'Color: ${currentAppState.getFirstColor}.',
-                              style: const TextStyle(fontSize: 15)),
-                        )
+                            'Color:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 0, top: 0, right: 0, bottom: 8),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: appState.getFirstColor,
+                                borderRadius: BorderRadius.circular(4.0)),
+                            width: width - 32,
+                            height: 30,
+                          ),
+                        ),
                       ],
                     ),
                     Row(
                       children: [
+                        const Text(
+                          'Current weight: ',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
                         Text(
-                            'Current weight: ${currentAppState.getFirstOrderWeightText}g.',
-                            style: const TextStyle(fontSize: 15)),
+                          '${currentAppState.getFirstOrderWeightText}g.',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.only(
+                              left: 0, top: 8, right: 0, bottom: 4),
+                          child: Text(
+                            'Progress:',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     Row(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 0, vertical: 8),
+                          padding: const EdgeInsets.only(
+                              left: 0, top: 0, bottom: 8, right: 0),
                           child: Row(
                             children: [
                               Stack(
@@ -654,7 +695,7 @@ class _HomePageState extends State<HomePage> {
                                     height: 30,
                                     child: Center(
                                       child: Text(
-                                        'progress (${(firstWeightFraction * 100).toStringAsFixed(1)}%)',
+                                        '${(firstWeightFraction * 100).toStringAsFixed(1)}%',
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
                                           color: Colors.black,
@@ -679,7 +720,7 @@ class _HomePageState extends State<HomePage> {
                               onPressed: disableFirstCancelOrder(appState)
                                   ? () {
                                       _publishMessage('0000', 'order1');
-                                      orderState.setFirstOrder('');
+                                      orderState.disposeFirstOrder();
                                       orderState.decrementOrderCount();
                                       firstWeightFraction = 0.0;
                                     }
@@ -824,25 +865,60 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.only(
+                              left: 0, top: 0, right: 0, bottom: 4),
+                          child: Text(
+                            'Color:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 0, vertical: 2),
-                          child: Text(
-                            'Color: ${currentAppState.getSecondColor}.',
-                            style: const TextStyle(fontSize: 15),
+                          padding: const EdgeInsets.only(
+                              left: 0, top: 0, right: 0, bottom: 8),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: appState.getSecondColor,
+                                borderRadius: BorderRadius.circular(4.0)),
+                            width: width - 32,
+                            height: 30,
                           ),
                         ),
                       ],
                     ),
                     Row(
                       children: [
+                        const Text(
+                          'Current weight: ',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '${currentAppState.getSecondOrderWeightText}g.',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: const [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 0, vertical: 2),
+                          padding: EdgeInsets.only(
+                              left: 0, top: 8, right: 0, bottom: 4),
                           child: Text(
-                            'Current weight: ${currentAppState.getSecondOrderWeightText}g.',
-                            style: const TextStyle(fontSize: 15),
+                            'Progress:',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -881,7 +957,7 @@ class _HomePageState extends State<HomePage> {
                                     height: 30,
                                     child: Center(
                                       child: Text(
-                                        'progress (${(secondWeightFraction * 100).toStringAsFixed(1)}%)',
+                                        '${(secondWeightFraction * 100).toStringAsFixed(1)}%',
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
                                           color: Colors.black,
@@ -906,7 +982,7 @@ class _HomePageState extends State<HomePage> {
                               onPressed: disableSecondCancelOrder(appState)
                                   ? () {
                                       _publishMessage('0000', 'order2');
-                                      orderState.setSecondOrder('');
+                                      orderState.disposeSecondOrder();
                                       orderState.decrementOrderCount();
                                       secondWeightFraction = 0.0;
                                     }
@@ -1143,9 +1219,12 @@ class _HomePageState extends State<HomePage> {
           // '0' when manual override is not enabled, '1' when override is enabled
           'distanceListener',
           // used for listening to the read sensor.
-          'colorData', // sending data from color sensor to app
-          'weightData', // sending data from weight sensor to app
-          'distData', // sending data from ultrasonic sensor to app
+          'colorData',
+          // sending data from color sensor to app
+          'weightData',
+          // sending data from weight sensor to app
+          'distData',
+          // sending data from ultrasonic sensor to app
           'colorCal'
           // for sending data of the color sensor calibration between app and Arduino
         ],

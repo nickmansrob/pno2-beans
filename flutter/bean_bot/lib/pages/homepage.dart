@@ -87,8 +87,11 @@ class _HomePageState extends State<HomePage> {
               _buildSecondOrder(currentAppState, currentOrderState),
             if (currentAppState.getSecondOrderDone == 'done')
               _buildSecondOrderDone(currentOrderState),
+            if (currentAppState.getFirstOrderDone == 'done' && currentAppState.getSecondOrderDone == 'done')
+              _buildReorderBeansButton(appState, orderState),
             _buildDivider(),
             _buildAdminInput(),
+
           ],
         ),
       ),
@@ -1036,6 +1039,28 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Creates the button to clear out the logs.
+  Widget _buildReorderBeansButton(MQTTAppState appState,
+      OrderState orderState) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: ElevatedButton(
+              onPressed: () {
+                appState.disposeAppState();
+                orderState.disposeOrderState();
+              },
+              child: const Text('Reorder beans'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+
   ////////////////////////// Helper Methods //////////////////////////
   // Gets the connection state and returns the associated string.
   String statusBarMessage(MQTTAppConnectionState state) {
@@ -1350,7 +1375,6 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 currentOrderState.disposeFirstOrder();
                 currentAppState.disposeFirstOrderAppState();
-                currentOrderState.decrementOrderCount();
                 Navigator.of(context, rootNavigator: true).maybePop();
               },
             ),
@@ -1382,7 +1406,6 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 currentOrderState.disposeSecondOrder();
                 currentAppState.disposeSecondOrderAppState();
-                currentOrderState.decrementOrderCount();
                 Navigator.of(context, rootNavigator: true).maybePop();
               },
             ),

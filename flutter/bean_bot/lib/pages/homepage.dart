@@ -721,6 +721,7 @@ class _HomePageState extends State<HomePage> {
                                   ? () {
                                       _publishMessage('0000', 'order1');
                                       orderState.disposeFirstOrder();
+                                      appState.disposeFirstOrderAppState();
                                       orderState.decrementOrderCount();
                                       firstWeightFraction = 0.0;
                                     }
@@ -983,6 +984,7 @@ class _HomePageState extends State<HomePage> {
                                   ? () {
                                       _publishMessage('0000', 'order2');
                                       orderState.disposeSecondOrder();
+                                      appState.disposeSecondOrderAppState();
                                       orderState.decrementOrderCount();
                                       secondWeightFraction = 0.0;
                                     }

@@ -47,14 +47,14 @@ LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB
 
 // Ultrasonic Sensor
 const uint8_t UTRIG_PIN = 10;
-const uint8_t UECHO_PIN = 8;
+const uint8_t UECHO_PIN = 17;
 uint8_t ultrasonicState = LOW;
 long lastReadingTimeDistance = 0;
 
 // RGB-led
-const uint8_t LEDR_PIN = 9;
-const uint8_t LEDG_PIN = 10;
-const uint8_t LEDB_PIN = 11;
+const uint8_t LEDR_PIN = 11;
+const uint8_t LEDG_PIN = 13;
+const uint8_t LEDB_PIN = 12;
 
 // Color Sensor
 const uint8_t KS2_PIN = 14;
@@ -123,15 +123,18 @@ void setup() {
   lcd.begin(16, 2);
   lcd.setCursor(0, 0);
   lcd.print("Weight [g]:");
+  lcd.setCursor(0, 1);
+  lcd.print("0");
 
-  while (!MyScale.begin()) {
-    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-    delay(1000);
-  }
-  //Manually set the calibration values
-  MyScale.setCalibration(2000.f);
-  //remove the peel
-  MyScale.peel();
+
+  //  while (!MyScale.begin()) {
+  //    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+  //    delay(1000);
+  //  }
+  //  //Manually set the calibration values
+  //  MyScale.setCalibration(2000.f);
+  //  //remove the peel
+  //  MyScale.peel();
 
 }
 
@@ -219,7 +222,7 @@ void manualFlow(String topic, String messageString) {
 
     servoThree.write(angle);
     servoThreeState = angle;
-  }  
+  }
   else if (topic == "servo4") {
     uint8_t angle = messageString.toInt();
 
@@ -230,12 +233,16 @@ void manualFlow(String topic, String messageString) {
   // Weight data
   else if (topic == "weight1") {
     lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Weight [g]:");
     lcd.setCursor(0, 1);
     lcd.print(messageString);
   }
 
   else if (topic == "weight2") {
     lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Weight [g]:");
     lcd.setCursor(0, 1);
     lcd.print(messageString);
   }
@@ -262,7 +269,7 @@ void manualFlow(String topic, String messageString) {
     if (messageString == "readWeight" && ultrasonicState == LOW) {
       ultrasonicState = HIGH;
       readUltrasonic();
-    } else if (messageString == "readWeight" && ultrasonicState == HIGH || messageString == "stopUltra") {
+    } else if (messageString == "readWeight" && ultrasonicState == HIGH || messageString == "stopWeight") {
       ultrasonicState = LOW;
     }
   } else if (topic == "debug") {
@@ -356,8 +363,9 @@ void readScaleWeight() {
       else {
         sendMessage = "log_orderStateBoundError";
       }
-
     }
+    // Important for being capable of receiving the stop message.
+    delay(100);
   }
 }
 
@@ -425,6 +433,9 @@ void readColor() {
       else {
       }
     }
+
+    // Important for being capable of receiving the stop message.
+    delay(100);
   }
 }
 
@@ -535,6 +546,7 @@ void readUltrasonic() {
       }
 
     }
+    // Important for being capable of receiving the stop message.
     delay(100);
   }
 }

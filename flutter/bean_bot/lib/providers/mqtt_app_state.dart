@@ -20,7 +20,7 @@ class MQTTAppState with ChangeNotifier {
   String _secondOrderWeightText = '0';
 
   String _logText = '';
-  String _hostIp = '';
+  String _hostIp = '192.168.137.1';
   bool _isSwitched = false;
 
   Color _firstColor = const Color.fromRGBO(0, 0, 0, 1);

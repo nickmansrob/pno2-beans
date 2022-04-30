@@ -324,6 +324,7 @@ class _HomePageState extends State<HomePage> {
   // Builds the widget to enter the IP address.
   Widget _buildAdminInput() {
     _idTextController.text = currentAppState.getAppId;
+    _ipTextController.text = currentAppState.getHostIP;
 
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 8),

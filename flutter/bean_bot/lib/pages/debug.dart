@@ -122,6 +122,7 @@ class _DebugPageState extends State<DebugPage> {
                         _firstServoController.text = '';
                         _secondServoController.text = '';
                         _thirdServoController.text = '';
+                        _fourthServoController.text = '';
                       }
                     },
                   ),
@@ -334,7 +335,7 @@ class _DebugPageState extends State<DebugPage> {
                       contentPadding: EdgeInsets.all(10),
                     ),
                     keyboardType: TextInputType.phone,
-                    controller: _thirdServoController,
+                    controller: _fourthServoController,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter the number of degrees';
@@ -354,9 +355,9 @@ class _DebugPageState extends State<DebugPage> {
                   child: ElevatedButton(
                     onPressed: appState.getIsSwitched
                         ? () {
-                            if (_servoForm3.currentState!.validate()) {
+                            if (_servoForm4.currentState!.validate()) {
                               _publishMessage(
-                                  _thirdServoController.text, 'servo4');
+                                  _fourthServoController.text, 'servo4');
                             }
                           }
                         : null,

@@ -175,7 +175,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
 
     // This functions loops over all the possible RGB colors, with increments of size n.
     // The plan is to synchronize the data via MQTT. When the user presses the button to start the calibration, the app sends 'start_calibration' via MQTT, then it listens for the Arduino to react. When connection is established, the app sends 'startRRRGGGBBB'. When the Arduino receives this code, it conduct three measurements and then sends 'stopRRRGGGBBB'. The then increases the counter and starts the process again.
-    int increment = 17;
+    int increment = 51;
     _publishMessage('calApp', 'colorCal');
 
     while (!(colorCalibrationState.getStartCalibration)) {
@@ -216,7 +216,7 @@ class _ColorCalibrationPageState extends State<ColorCalibrationPage> {
   // Function for dynamically setting the title text of the page.
   String calibrationTitleText(ColorCalibrationState colorCalibrationState) {
     if (calibrationState) {
-      return "Calibrating... (${colorCalibrationState.getCalibrationsDone}/3375)";
+      return "Calibrating... (${colorCalibrationState.getCalibrationsDone}/125)";
     } else {
       return "Color Calibration";
     }

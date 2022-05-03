@@ -22,11 +22,11 @@ bool motorTwoClockwise = true;
 // Servos
 Servo servoOne;
 const uint8_t SERVO1_PIN = 9;
-uint8_t servoOneState = 90;
+uint8_t servoOneState = 87;
 
 Servo servoTwo;
 const uint8_t SERVO2_PIN = 8;
-uint8_t servoTwoState = 90;
+uint8_t servoTwoState = 87;
 
 Servo servoThree;
 const uint8_t SERVO3_PIN = 5;
@@ -57,6 +57,8 @@ const uint8_t LEDG_PIN = 13;
 const uint8_t LEDB_PIN = 12;
 
 // Color Sensor
+const uint8_t KS0_PIN = 29;
+const uint8_t KS1_PIN = 33;
 const uint8_t KS2_PIN = 14;
 const uint8_t KS3_PIN = 19;
 const uint8_t KOUT_PIN = 38;
@@ -105,8 +107,15 @@ void setup() {
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
+  
+  pinMode(KS1_PIN, OUTPUT);
+  pinMode(KS0_PIN, OUTPUT);
   pinMode(KS2_PIN, OUTPUT);
   pinMode(KS3_PIN, OUTPUT);
+
+  // Settings the ouput frequency
+  digitalWrite(KS1_PIN, HIGH);
+  digitalWrite(KS0_PIN, LOW);
 
   /************************* Weight sensor *************************/
   pinMode(UTRIG_PIN, OUTPUT);
@@ -127,14 +136,14 @@ void setup() {
   lcd.print("0");
 
 
-  //  while (!MyScale.begin()) {
-  //    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-  //    delay(1000);
-  //  }
-  //  //Manually set the calibration values
-  //  MyScale.setCalibration(2000.f);
-  //  //remove the peel
-  //  MyScale.peel();
+  while (!MyScale.begin()) {
+    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+    delay(1000);
+  }
+  //Manually set the calibration values
+  MyScale.setCalibration(2000.f);
+  //remove the peel
+  MyScale.peel();
 
 }
 
@@ -266,11 +275,11 @@ void manualFlow(String topic, String messageString) {
   }
 
   else if (topic == "weightControl") {
-    if (messageString == "readWeight" && ultrasonicState == LOW) {
-      ultrasonicState = HIGH;
-      readUltrasonic();
-    } else if (messageString == "readWeight" && ultrasonicState == HIGH || messageString == "stopWeight") {
-      ultrasonicState = LOW;
+    if (messageString == "readWeight" && weightState == LOW) {
+      weightState = HIGH;
+      readScaleWeight();
+    } else if (messageString == "readWeight" && weightState == HIGH || messageString == "stopWeight") {
+      weightState = LOW;
     }
   } else if (topic == "debug") {
     if (messageString == "1") {
@@ -337,6 +346,7 @@ void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, ui
 void readScaleWeight() {
   while (weightState == HIGH) {
     if ((millis() - lastReadingTimeWeight) > 1000 && weightState == HIGH) {
+      Serial.println("Weight activated");
       // Used for clearing the cache of those variables.
       message = "";
       messageString = "";
@@ -348,6 +358,7 @@ void readScaleWeight() {
 
       weightInt = MyScale.readWeight(); // gets output values from the scale
       weight = String(weightInt);
+      Serial.println(weight);
 
       // If one second has passed, weight is updated.
 

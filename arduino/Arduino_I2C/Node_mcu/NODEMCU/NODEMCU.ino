@@ -1,4 +1,4 @@
-/************************* Libraries *************************/
+  /************************* Libraries *************************/
 #if defined(_AVR_)
 #include <WiFi.h>
 #elif defined(ESP8266)
@@ -238,7 +238,7 @@ void pollWire() {
     messageString = message.substring(indexDelimiter + 1, message.length());
   }
 
-  if (message != "" and messageString != "") {
+  if (message != "" && messageString != "") {
     logFlow(messageString);
     if (topic == "colorData")  {
       client.publish("colorData", messageString.c_str());

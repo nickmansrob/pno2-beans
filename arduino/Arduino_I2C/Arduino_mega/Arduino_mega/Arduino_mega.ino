@@ -511,7 +511,7 @@ void controlRGB(String messageString) {
   analogWrite(LEDG_PIN, green);
   analogWrite(LEDB_PIN, blue);
 
-  messagen = "";
+  message = "";
   messageString = "";
   topic = "";
 }

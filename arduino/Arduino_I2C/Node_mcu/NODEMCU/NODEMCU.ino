@@ -134,6 +134,8 @@ void reconnect() {
       client.subscribe("override");
       client.subscribe("colorCal");
 
+      client.subscribe("rgb");
+
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -200,7 +202,10 @@ void manualFlow(String topic, String messageString) {
   } else if (topic = "colorCal") {
     logFlow("ROUTE: From origin to colorCal");
     wireFlow("colorCal_" + messageString);
-  }
+  } else if (topic == "rgb") {
+    logFlow("ROUTE: From origin to colorCal");
+    wireFlow("rgb_" + messageString);
+    }
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }

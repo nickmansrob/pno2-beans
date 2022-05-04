@@ -66,7 +66,8 @@ uint8_t colorState = LOW;
 long lastReadingTimeColor = 0;
 
 // Weight sensor
-DFRobot_HX711_I2C MyScale;
+DFRobot_HX711_I2C MyScale(&Wire,/*addr=*/0x64);
+
 uint8_t weightState = LOW;
 long lastReadingTimeWeight = 0;
 
@@ -115,8 +116,8 @@ void setup() {
   pinMode(KS3_PIN, OUTPUT);
 
   // Settings the  frequency scaling (now to 20%)
-  digitalWrite(KS1_PIN, HIGH);
-  digitalWrite(KS0_PIN, LOW);
+  digitalWrite(KS1_PIN, LOW);
+  digitalWrite(KS0_PIN, HIGH);
 
   /************************* Weight sensor *************************/
   pinMode(UTRIG_PIN, OUTPUT);
@@ -135,21 +136,21 @@ void setup() {
   lcd.print("Weight [g]:");
   lcd.setCursor(0, 1);
   lcd.print("0");
-//
-//  // Starting up the weight sensor.
-//  while (weightCounter <= 5) {
-//    while (!MyScale.begin()) {
-//      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-//      delay(1000);  
-//      weightCounter ++;
-//    }
-//    
-//  }
-//
-//  //Manually set the calibration values
-//  MyScale.setCalibration(2000.f);
-//  //remove the peel
-//  MyScale.peel();
+
+  // Starting up the weight sensor.
+  while (weightCounter <= 5) {
+    while (!MyScale.begin()) {
+      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+      delay(1000);
+      weightCounter ++;
+    }
+
+  }
+
+  //Manually set the calibration values
+  MyScale.setCalibration(2000.f);
+  //remove the peel
+  MyScale.peel();
 
 }
 
@@ -296,6 +297,8 @@ void manualFlow(String topic, String messageString) {
     }
   } else if (topic == "colorCal") {
     calibrateColor(messageString);
+  } else if (topic == "rgb") {
+    controlRGB(messageString);
   }
 
   else {
@@ -352,7 +355,6 @@ void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, ui
 void readScaleWeight() {
   while (weightState == HIGH) {
     if ((millis() - lastReadingTimeWeight) > 1000 && weightState == HIGH) {
-      Serial.println("Weight activated");
       // Used for clearing the cache of those variables.
       message = "";
       messageString = "";
@@ -364,10 +366,8 @@ void readScaleWeight() {
 
       weightInt = MyScale.readWeight(); // gets output values from the scale
       weight = String(weightInt);
-      Serial.println(weight);
 
       // If one second has passed, weight is updated.
-
       if (debug) {
         sendMessage = "weightData_" + weight;
       }
@@ -500,6 +500,20 @@ String readColorCalibration() {
   }
 
   return redString + greenString + blueString;
+}
+
+void controlRGB(String messageString) {
+  int red = messageString.substring(0, 2).toInt();
+  int green = messageString.substring(3, 5).toInt();
+  int blue = messageString.substring(6, 8).toInt();
+
+  analogWrite(LEDR_PIN, red);
+  analogWrite(LEDG_PIN, green);
+  analogWrite(LEDB_PIN, blue);
+
+  messagen = "";
+  messageString = "";
+  topic = "";
 }
 
 void calibrateColor(String messageString) {

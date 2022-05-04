@@ -9,23 +9,23 @@
 // DC-motors
 const uint8_t MOTOR_VOLTAGE = 12;
 
-const uint8_t MOTOR1_PIN = 7;
+const uint8_t MOTOR1_PIN = 9;
 const uint8_t MOTOR1_RELAY_PIN = 24;
 uint8_t motorOneState = LOW;
 bool motorOneClockwise = true;
 
-const uint8_t MOTOR2_PIN = 6;
+const uint8_t MOTOR2_PIN = 8;
 const uint8_t MOTOR2_RELAY_PIN = 26;
 uint8_t motorTwoState = LOW;
 bool motorTwoClockwise = true;
 
 // Servos
 Servo servoOne;
-const uint8_t SERVO1_PIN = 9;
+const uint8_t SERVO1_PIN = 7;
 uint8_t servoOneState = 87;
 
 Servo servoTwo;
-const uint8_t SERVO2_PIN = 8;
+const uint8_t SERVO2_PIN = 6;
 uint8_t servoTwoState = 87;
 
 Servo servoThree;

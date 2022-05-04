@@ -80,6 +80,7 @@ String messageString;
 
 
 // Miscellaneous
+uint8_t weightCounter = 0;
 uint8_t orderState = 1;
 bool proceedNormalFlow = false;
 bool debug = false; // Enabled when in manualOverride color/weight/distance reading is enabled
@@ -107,13 +108,13 @@ void setup() {
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
-  
+
   pinMode(KS1_PIN, OUTPUT);
   pinMode(KS0_PIN, OUTPUT);
   pinMode(KS2_PIN, OUTPUT);
   pinMode(KS3_PIN, OUTPUT);
 
-  // Settings the ouput frequency
+  // Settings the  frequency scaling (now to 20%)
   digitalWrite(KS1_PIN, HIGH);
   digitalWrite(KS0_PIN, LOW);
 
@@ -134,16 +135,21 @@ void setup() {
   lcd.print("Weight [g]:");
   lcd.setCursor(0, 1);
   lcd.print("0");
-
-
-  while (!MyScale.begin()) {
-    Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-    delay(1000);
-  }
-  //Manually set the calibration values
-  MyScale.setCalibration(2000.f);
-  //remove the peel
-  MyScale.peel();
+//
+//  // Starting up the weight sensor.
+//  while (weightCounter <= 5) {
+//    while (!MyScale.begin()) {
+//      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+//      delay(1000);  
+//      weightCounter ++;
+//    }
+//    
+//  }
+//
+//  //Manually set the calibration values
+//  MyScale.setCalibration(2000.f);
+//  //remove the peel
+//  MyScale.peel();
 
 }
 
@@ -376,7 +382,7 @@ void readScaleWeight() {
       }
     }
     // Important for being capable of receiving the stop message.
-    delay(100);
+    delay(250);
   }
 }
 
@@ -446,7 +452,7 @@ void readColor() {
     }
 
     // Important for being capable of receiving the stop message.
-    delay(100);
+    delay(250);
   }
 }
 
@@ -558,7 +564,7 @@ void readUltrasonic() {
 
     }
     // Important for being capable of receiving the stop message.
-    delay(100);
+    delay(250);
   }
 }
 

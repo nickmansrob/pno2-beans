@@ -137,20 +137,20 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("0");
 
-  // Starting up the weight sensor.
-  while (weightCounter <= 5) {
-    while (!MyScale.begin()) {
-      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-      delay(1000);
-      weightCounter ++;
-    }
-
-  }
-
-  //Manually set the calibration values
-  MyScale.setCalibration(2000.f);
-  //remove the peel
-  MyScale.peel();
+//  // Starting up the weight sensor.
+//  while (weightCounter <= 5) {
+//    while (!MyScale.begin()) {
+//      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+//      delay(1000);
+//      weightCounter ++;
+//    }
+//
+//  }
+//
+//  //Manually set the calibration values
+//  MyScale.setCalibration(2000.f);
+//  //remove the peel
+//  MyScale.peel();
 
 }
 
@@ -506,6 +506,9 @@ void controlRGB(String messageString) {
   int red = messageString.substring(0, 2).toInt();
   int green = messageString.substring(3, 5).toInt();
   int blue = messageString.substring(6, 8).toInt();
+  Serial.println(red);
+  Serial.println(green);
+  Serial.println(blue);
 
   analogWrite(LEDR_PIN, red);
   analogWrite(LEDG_PIN, green);

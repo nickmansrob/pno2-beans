@@ -1,4 +1,4 @@
-  /************************* Libraries *************************/
+/************************* Libraries *************************/
 #if defined(_AVR_)
 #include <WiFi.h>
 #elif defined(ESP8266)
@@ -111,24 +111,24 @@ void reconnect() {
       // Subscribe
       client.subscribe("motor1");
       client.subscribe("motor2");
-      
+
       client.subscribe("servo1");
       client.subscribe("servo2");
       client.subscribe("servo3");
       client.subscribe("servo4");
-      
+
       client.subscribe("order1");
       client.subscribe("order2");
-      
+
       client.subscribe("weight1");
       client.subscribe("weight2");
-      
+
       client.subscribe("weightControl");
       client.subscribe("weightData");
-      
+
       client.subscribe("colorControl");
       client.subscribe("colorData");
-      
+
       client.subscribe("distControl");
 
       client.subscribe("override");
@@ -159,7 +159,9 @@ void manualFlow(String topic, String messageString) {
     } else {
       logFlow("ERROR: motor1 :: no message match");
     }
-  } else if (topic == "motor2") {
+  } 
+  
+  else if (topic == "motor2") {
     if (messageString == "toggle") {
       wireFlow("motor2_toggle");
     } else if (messageString == "change_rotation") {
@@ -168,44 +170,59 @@ void manualFlow(String topic, String messageString) {
       logFlow("ERROR: motor2 :: no message match");
     }
   }
+  
   //Servos
   else if (topic == "servo1") {
     wireFlow("servo1_" + messageString);
-
-  } else if (topic == "servo2") {
+  }
+  
+  else if (topic == "servo2") {
     wireFlow("servo2_" + messageString);
-
-  } else if (topic == "servo3") {
+  }
+  
+  else if (topic == "servo3") {
     wireFlow("servo3_" + messageString);
-
-  } else if (topic == "servo4") {
+  }
+  
+  else if (topic == "servo4") {
     wireFlow("servo4_" + messageString);
   }
+  
   else if (topic == "weight1") {
     logFlow("ROUTE: From origin to weight1");
     wireFlow("weight1_" + messageString);
-  } else if (topic == "weight2") {
+  }
+  
+  else if (topic == "weight2") {
     logFlow("ROUTE: From origin to weight2");
     wireFlow("weight2_" + messageString);
-  } else if (topic == "distControl") {
+  }
+  
+  else if (topic == "distControl") {
     logFlow("ROUTE: From origin to distControl");
     wireFlow("distControl_" + messageString);
-    Serial.println(messageString);
-
-  } else if (topic == "colorControl") {
+  }
+  
+  else if (topic == "colorControl") {
     logFlow("ROUTE: From origin to colorControl");
-    Serial.println(messageString);
     wireFlow("colorControl_" + messageString);
-  } else if (topic == "weightControl" ) {
+  }
+  
+  else if (topic == "weightControl" ) {
     logFlow("ROUTE: From origin to weightControl" );
     wireFlow("weightControl_" + messageString);
-  } else if (topic = "colorCal") {
+  }
+  
+  else if (topic == "colorCal") {
     logFlow("ROUTE: From origin to colorCal");
     wireFlow("colorCal_" + messageString);
-  } else if (topic == "rgb") {
-    logFlow("ROUTE: From origin to colorCal");
+  } 
+  
+  else if (topic == "rgb") {
+    logFlow("ROUTE: From origin to rgb");
     wireFlow("rgb_" + messageString);
-    }
+  }
+  
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
@@ -241,6 +258,8 @@ void pollWire() {
   else {
     topic = message.substring(0, indexDelimiter);
     messageString = message.substring(indexDelimiter + 1, message.length());
+    Serial.println(topic);
+    Serial.println(messageString);
   }
 
   if (message != "" && messageString != "") {

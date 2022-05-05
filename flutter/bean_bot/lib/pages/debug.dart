@@ -20,6 +20,10 @@ class _DebugPageState extends State<DebugPage> {
   final _servoForm3 = GlobalKey<FormState>();
   final _servoForm4 = GlobalKey<FormState>();
 
+  final _rForm = GlobalKey<FormState>();
+  final _gForm = GlobalKey<FormState>();
+  final _bForm = GlobalKey<FormState>();
+
   late MQTTAppState currentAppState;
   late OrderState currentOrderState;
   late MQTTManager manager;
@@ -28,6 +32,10 @@ class _DebugPageState extends State<DebugPage> {
   final TextEditingController _secondServoController = TextEditingController();
   final TextEditingController _thirdServoController = TextEditingController();
   final TextEditingController _fourthServoController = TextEditingController();
+
+  final TextEditingController _rController = TextEditingController();
+  final TextEditingController _gController = TextEditingController();
+  final TextEditingController _bController = TextEditingController();
 
   /////////////////////////// Widgets ///////////////////////////
   // Builds the main widget of the debug page.
@@ -165,12 +173,12 @@ class _DebugPageState extends State<DebugPage> {
                 ],
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 0),
+                      horizontal: 8, vertical: 0),
                       child: TextFormField(
                         enabled: appState.getIsSwitched,
                         decoration: const InputDecoration(
@@ -698,7 +706,6 @@ class _DebugPageState extends State<DebugPage> {
                               ),
                             ],
                           ),
-
                         ],
                       ),
                     ],
@@ -774,6 +781,155 @@ class _DebugPageState extends State<DebugPage> {
                               child: Text(
                                   'Weight [g]: ${currentAppState.getWeight}.'),
                             ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding:
+                        EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Text(
+                          'RGB Led',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Form(
+                                  key: _rForm,
+                                  child: Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 0),
+                                      child: TextFormField(
+                                        enabled: appState.getIsSwitched,
+                                        decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          hintText: 'Red',
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.all(10),
+                                        ),
+                                        keyboardType: TextInputType.phone,
+                                        controller: _rController,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter the red value';
+                                          }
+                                          if (int.parse(value) > 255 || int.parse(value) < 0) {
+                                            return 'Between 0 and 255!';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                              ),
+                              Form(
+                                key: _gForm,
+                                child: Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 0),
+                                    child: TextFormField(
+                                      enabled: appState.getIsSwitched,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        hintText: 'Green',
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.all(10),
+                                      ),
+                                      keyboardType: TextInputType.phone,
+                                      controller: _gController,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter the green value';
+                                        }
+                                        if (int.parse(value) > 255 || int.parse(value) < 0) {
+                                          return 'Between 0 and 255!';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Form(
+                                key: _bForm,
+                                child:Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 0),
+                                    child: TextFormField(
+                                      enabled: appState.getIsSwitched,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        hintText: 'Blue',
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.all(10),
+                                      ),
+                                      keyboardType: TextInputType.phone,
+                                      controller: _bController,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter the blue value';
+                                        }
+                                        if (int.parse(value) > 255 || int.parse(value) < 0) {
+                                          return 'Between 0 and 255!';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElevatedButton(
+                                    onPressed: appState.getIsSwitched
+                                        ? () {
+                                      if (_rForm.currentState!.validate() && _gForm.currentState!.validate() && _bForm.currentState!.validate()) {
+                                        _publishMessage(
+                                            sendRGB(_rController.text, _gController.text, _bController.text), 'rgb');
+                                      }
+                                    }
+                                        : null,
+                                    child: const Text('Set color'),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -875,6 +1031,22 @@ class _DebugPageState extends State<DebugPage> {
       case MQTTAppConnectionState.disconnected:
         return 'Disconnected';
     }
+  }
+
+  // Gets the RBG-values for sending them to the RGB-led.
+  String sendRGB(String r, String g, String b) {
+    if (r.length < 3 || g.length < 3 || b.length < 3) {
+      while (r.length != 3) {
+        r = '0' + r;
+      }
+      while (g.length != 3) {
+        g = '0' + g;
+      }
+      while (b.length != 3) {
+        b = '0' + b;
+      }
+    }
+    return r + g + b;
   }
 
   // Function to disable text-fields when not connected to the broker.

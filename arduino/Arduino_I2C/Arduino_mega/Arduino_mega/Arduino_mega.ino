@@ -137,20 +137,20 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("0");
 
-//  // Starting up the weight sensor.
-//  while (weightCounter <= 5) {
-//    while (!MyScale.begin()) {
-//      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-//      delay(1000);
-//      weightCounter ++;
-//    }
-//
-//  }
-//
-//  //Manually set the calibration values
-//  MyScale.setCalibration(2000.f);
-//  //remove the peel
-//  MyScale.peel();
+  //  // Starting up the weight sensor.
+  //  while (weightCounter <= 5) {
+  //    while (!MyScale.begin()) {
+  //      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
+  //      delay(1000);
+  //      weightCounter ++;
+  //    }
+  //
+  //  }
+  //
+  //  //Manually set the calibration values
+  //  MyScale.setCalibration(2000.f);
+  //  //remove the peel
+  //  MyScale.peel();
 
 }
 
@@ -311,6 +311,24 @@ void manualFlow(String topic, String messageString) {
 
 
 /************************* Voids *************************/
+// Turns the servo smoothly to the correct angle.
+void turnSerov(Servo servoObject, int degree, int servoState) {
+  // Turn counterclockwise.
+  if (degree < servoState) {
+    for (int pos = servoState; pos >= degree; pos--) {
+      servoObject.write(pos);
+      delay(10);
+    }
+  }
+  // Turn clockwise.
+  else if (degree > servoState  ) {
+    for (int pos = servoState; pos <= degree; pos++) {
+      servoObject.write(pos);
+      delay(10);
+    }
+  }
+}
+
 // Changes the rotation of the motor, keeps the state at its original level.
 void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
   if (motorClockwise == true) {

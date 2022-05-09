@@ -31,18 +31,16 @@ uint8_t servoTwoState = 87;
 Servo servoThree;
 const uint8_t SERVO3_PIN = 5;
 uint8_t servoThreeState = 90;
-
-Servo servoFour;
-const uint8_t SERVO4_PIN = 4;
-uint8_t servoFourState = 90;
+uint8_t servoThreeRelayState = LOW;
+uint8_t servoThreeRelayPin = 35;
 
 // LCD
 const uint8_t LCDRS_PIN = 50;
-const uint8_t LCDE_PIN = 49;
+const uint8_t LCDE_PIN = 43;
 const uint8_t LCDDB4_PIN = 46;
 const uint8_t LCDDB5_PIN = 52;
-const uint8_t LCDDB6_PIN = 47;
-const uint8_t LCDDB7_PIN = 45;
+const uint8_t LCDDB6_PIN = 41;
+const uint8_t LCDDB7_PIN = 39;
 LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
 // Ultrasonic Sensor
@@ -96,16 +94,18 @@ void setup() {
   pinMode(MOTOR1_RELAY_PIN, OUTPUT);
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
 
+  pinMode(servoThreeRelayPin, OUTPUT);
+
   // Servos
   servoOne.attach(SERVO1_PIN);
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
-  servoFour.attach(SERVO4_PIN);
+
+  digitalWrite(servoThreeRelayPin, HIGH);
 
   servoOne.write(servoOneState);
   servoTwo.write(servoTwoState);
   servoThree.write(servoThreeState);
-  servoFour.write(servoFourState);
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
@@ -238,12 +238,6 @@ void manualFlow(String topic, String messageString) {
 
     servoThree.write(angle);
     servoThreeState = angle;
-  }
-  else if (topic == "servo4") {
-    uint8_t angle = messageString.toInt();
-
-    servoFour.write(angle);
-    servoFourState = angle;
   }
 
   // Weight data

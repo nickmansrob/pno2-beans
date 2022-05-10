@@ -31,7 +31,7 @@ uint8_t servoTwoState = 87;
 Servo servoThree;
 const uint8_t SERVO3_PIN = 5;
 uint8_t servoThreeState = 90;
-uint8_t servoThreeRelayState = LOW;
+uint8_t servoThreeRelayState = HIGH;
 uint8_t servoThreeRelayPin = 35;
 
 // LCD
@@ -235,7 +235,24 @@ void manualFlow(String topic, String messageString) {
   else if (topic == "servo3") {
     uint8_t angle = messageString.toInt();
 
-    servoThreeState = turnServo(servoThree, angle, servoThreeState);
+    if (angle == 0) {
+      servoThreeRelayState = LOW;
+      digitalWrite(servoThreeRelayPin, LOW);
+      delay(500);
+      servoThree.write(85);
+    } else if (angle == 90) {
+      servoThreeRelayState = HIGH;
+      digitalWrite(servoThreeRelayPin, HIGH);
+      delay(500);
+      servoThree.write(87);
+    } else if (angle == 180) {
+      servoThreeRelayState = LOW;
+      digitalWrite(servoThreeRelayPin, LOW);
+      delay(500);
+      servoThree.write(180);
+    }
+    servoThree.write(angle);
+
     sendMessage = sendMessage + angle;
   }
 
@@ -305,7 +322,6 @@ void manualFlow(String topic, String messageString) {
 /************************* Voids *************************/
 // Turns the servo smoothly to the correct angle.
 uint8_t turnServo(Servo servoObject, uint8_t degree, uint8_t servoState) {
-  Serial.println(servoState);
   // Turn counterclockwise.
   if (degree < servoState) {
     for (int pos = servoState; pos >= degree; pos--) {
@@ -520,9 +536,6 @@ void controlRGB(String messageString) {
   int red = messageString.substring(0, 2).toInt();
   int green = messageString.substring(3, 5).toInt();
   int blue = messageString.substring(6, 8).toInt();
-  Serial.println(red);
-  Serial.println(green);
-  Serial.println(blue);
 
   analogWrite(LEDR_PIN, red);
   analogWrite(LEDG_PIN, green);
@@ -554,7 +567,6 @@ void calibrateColor(String messageString) {
     reading2 = readColorCalibration();
     delay(200);
     reading3 = readColorCalibration();
-    Serial.println(colorRGB + "," + reading1 + "," + reading2 + "," + reading3);
     sendMessage = "colorCal_stop" + colorRGB;
     message = "";
     messageString = "";
@@ -609,7 +621,6 @@ void receiveEvent(int howMany) {
   int indexDelimiter = message.indexOf('_');
 
   if (indexDelimiter == -1) {
-    Serial.println(message);
   }
   else {
     topic = message.substring(0, indexDelimiter);
@@ -635,10 +646,6 @@ void receiveEvent(int howMany) {
       weightState = LOW;
     }
   }
-
-  Serial.println(message);
-  Serial.println(messageString);
-  Serial.println(topic);
 }
 
 // Function that executes whenever data is requested from master.

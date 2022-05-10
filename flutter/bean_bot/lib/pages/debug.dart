@@ -31,7 +31,6 @@ class _DebugPageState extends State<DebugPage> {
   final TextEditingController _firstServoController = TextEditingController();
   final TextEditingController _secondServoController = TextEditingController();
   final TextEditingController _thirdServoController = TextEditingController();
-  final TextEditingController _fourthServoController = TextEditingController();
 
   final TextEditingController _rController = TextEditingController();
   final TextEditingController _gController = TextEditingController();
@@ -130,7 +129,6 @@ class _DebugPageState extends State<DebugPage> {
                         _firstServoController.text = '';
                         _secondServoController.text = '';
                         _thirdServoController.text = '';
-                        _fourthServoController.text = '';
                       }
                     },
                   ),
@@ -325,56 +323,59 @@ class _DebugPageState extends State<DebugPage> {
             ],
           ),
         ),
-        Form(
-          key: _servoForm4,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: TextFormField(
-                    enabled: appState.getIsSwitched,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Degrees servo 4',
-                      isDense: true,
-                      contentPadding: EdgeInsets.all(10),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    controller: _fourthServoController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter the number of degrees';
-                      }
-                      if (int.parse(value) > 180 || int.parse(value) < 0) {
-                        return 'Between 0 and 180!';
-                      }
-                      return null;
-                    },
-                  ),
+        const Padding(
+          padding:
+          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Text(
+            'Motor 1',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 15),
+          ),),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: appState.getIsSwitched
+                      ? () {
+                    _publishMessage('0', 'servo3');
+                  }
+                      : null,
+                  child: const Text('CCW'),
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  child: ElevatedButton(
-                    onPressed: appState.getIsSwitched
-                        ? () {
-                            if (_servoForm4.currentState!.validate()) {
-                              _publishMessage(
-                                  _fourthServoController.text, 'servo4');
-                            }
-                          }
-                        : null,
-                    child: const Text('Apply'),
-                  ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: appState.getIsSwitched
+                      ? () {
+                    _publishMessage(
+                        '90', 'servo3');
+                  }
+                      : null,
+                  child: const Text('Stop'),
                 ),
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: appState.getIsSwitched
+                      ? () {
+                    _publishMessage(
+                        '80', 'servo3');
+                  }
+                      : null,
+                  child: const Text('CW'),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -423,7 +424,7 @@ class _DebugPageState extends State<DebugPage> {
                             'Motor 1',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15),
-                          )),
+                          ),),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [

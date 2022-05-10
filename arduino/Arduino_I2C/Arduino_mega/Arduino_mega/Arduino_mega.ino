@@ -317,9 +317,6 @@ void manualFlow(String topic, String messageString) {
 }
 
 /************************* Helpers *************************/
-
-
-/************************* Voids *************************/
 // Turns the servo smoothly to the correct angle.
 uint8_t turnServo(Servo servoObject, uint8_t degree, uint8_t servoState) {
   // Turn counterclockwise.
@@ -341,6 +338,7 @@ uint8_t turnServo(Servo servoObject, uint8_t degree, uint8_t servoState) {
   return servoState;
 }
 
+/************************* Voids *************************/
 // Changes the rotation of the motor, keeps the state at its original level.
 void changeMotorRotation(const uint8_t motorPin, const uint8_t motorRelayPin, uint8_t motorState, bool motorClockwise) {
   if (motorClockwise == true) {

@@ -171,6 +171,186 @@ uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
   return map(motorVoltage, 0, 12, 0, 255);
 }
 
+void normalFlow(String topic, String messageString) {
+  /* Variables */
+  int firstSiloAngle = 0;
+  int secondSiloAngle = 0;
+  int thirdSiloAngle = 0;
+
+  /* Starting the flow. */
+  if (topic == 'order1') {
+    // Gets the silo number and the weight from the orderString of the form siloNunber_weight
+    int siloNumberFirstOrder = (messageString.substring(0, 1)).toInt();
+    int orderedWeightFirstOrder = (messageString.substring(1)).toInt();
+  }
+
+  else if (topic == 'order2') {
+    // Gets the silo number and the weight from the orderString of the form siloNunber_weight
+    int siloNumbderSecondOrder = (messageString.substring(0, 1)).toInt();
+    int orderedWeightSecondOrder = (messageString.substring(1)).toInt();
+  }
+}
+
+// Sets the bean Bot to default position.
+void section0() {
+  int servoOneDefaultAngle = 0; // CHANGE!!
+  int servoTwoDefaultAngle = 0; // CHANGE!!
+  int servoThreeDefaultAngle = 0; // CHANGE!!
+
+  // Writing to the servos.
+  servoOne.write(servoOneDefaultAngle);
+  servoTwo.write(servoTwoDefaultAngle);
+  servoThree.write(servoThreeDefaultAngle);
+}
+
+// First conveyor belt moves to the correct position
+void section1(int siloNumberFirstOrder, int firstSiloAngle, int secondSiloAngle, int thirdSiloAngle) {
+  // Sets first belt in the right angle position.
+  if (siloNumberFirstOrder == 0) {
+    servoOne.write(firstSiloAngle);
+  }
+  else if (siloNumberFirstOrder == 1) {
+    servoOne.write(secondSiloAngle);
+  }
+  else if (siloNumberFirstOrder == 2) {
+    servoOne.write(thirdSiloAngle);
+  }
+
+  // Dropping the belt onto the beans.
+  int firstBeltDownAngle = 0; // The angle of the third servo has to have in order for the belt to be completely down.
+  servoThree.write(firstBeltDownAngle); // CHANGE!!
+}
+
+// Second conveyor belt moves to correct position.
+void section2() {
+  String angle = getAngle();
+}
+
+// Loads the second conveyer belt.
+void section3() {
+  // The time the second servo has to turn in order to fill the entire belt.
+  int turningTimeSecondDC = 0; // CHANGE!!
+
+  // Starts the first DC.
+  analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+  delay(1000);
+  // Starts the second DC.
+  int motor2Voltage = 0;  // CHANGE!!
+  analogWrite(MOTOR2_PIN, getMotorVoltage(motor2Voltage));
+
+  // Waits for the second belt to fill.
+  delay(turningTimeSecondDC);
+
+  // Shutting down the DC's.
+  analogWrite(MOTOR1_PIN, 0);
+  delay(500);
+  analogWrite(MOTOR2_PIN, 0);
+}
+
+// Beans in container
+void section4(long distance, long orderedWeight) {
+  // Rotating the belt until weight is reached.
+
+  int criticalWeight = 25; // Grams per part
+  int weight = getWeight()
+
+  if ((orderedWeight - criticalWeight) < weight) {
+    // This is the last part
+    analogWrite(MOTOR2_PIN, getMotorVoltage(12));
+    while (weight < orderedWeight) {
+      weight = getWeight();
+      delay(500);
+    }
+    analogWrite(MOTOR2_PIN, 0);
+
+  } else {
+    
+    long newWeight();
+    analogWrite(MOTOR2_PIN, getMotorVoltage(12));
+    delay(3000); // Set delay according to min delay needed to get a change in weight
+    newWeight = getWeight();
+    
+    while (weight < newWeight()) { // If equals, no change in weight so no beans anymore, exit loop
+      weight = newWeight;
+      newWeight = getWeight();
+      delay(500);
+    }
+    analogWrite(MOTOR2_PIN, 0);
+  }
+}
+
+/*
+  Gets the angle
+*/
+String getAngle() {
+  long distance = 0;
+  int pos = 0;
+  for (int pos = 0; pos <= 70; pos++) { // Change to correct angle
+    distance = readDistance();
+    if (distance > 14 && distance < 40) {
+      break;
+    }
+    else {
+      servoOne.write(pos); // Add or subtract some extra degrees for spacing, afhankelijk van in welke richting de servo draait
+      delay(50);
+    }
+  }
+  return String(pos);
+}
+
+// This function reads the distance 3 times and returns the average of the three values.
+long readDistance() {
+  long averageDistance = 0;
+  int sum = 0;
+  long readings[3] = {0, 0, 0};
+
+  // Reads for three times and stores output in an array.
+  for (int i = 0; i <= 3; i++) {
+    double duration;
+    double distance;
+    digitalWrite(UTRIG_PIN, LOW);
+    delayMicroseconds(2);
+
+    digitalWrite(UTRIG_PIN, HIGH);
+    delayMicroseconds(10);
+
+    duration = pulseIn(UECHO_PIN, HIGH);
+    distance = duration * 0.034 / 2;
+    readings[i] = distance;
+    delay(100);
+  }
+
+  // Gets the average of the three outputs.
+  for (int i = 0; i < 3; i++ ) {
+    sum += readings[i];
+  }
+  averageDistance = sum / 3;
+
+  return averageDistance;
+}
+
+long getWeight() {
+  long readings[3] = {0, 0, 0};
+  long averageWeight = 0;
+  long sum = 0;
+
+  for (int i; i <= 3; i++) {
+    long weightInt = MyScale.readWeight();
+
+    readings[i] = weightInt;
+  }
+
+  // Gets the average of the three outputs.
+  for (int i = 0; i < 3; i++ ) {
+    sum += readings[i];
+  }
+
+  averageWeight = sum / 3;
+
+  return averageWeight;
+}
+
+
 void manualFlow(String topic, String messageString) {
   sendMessage = "log_";
 

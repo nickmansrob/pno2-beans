@@ -223,21 +223,20 @@ void manualFlow(String topic, String messageString) {
   else if (topic == "servo1") {
     uint8_t angle = messageString.toInt();
 
-    servoOne.write(angle);
-    servoOneState = angle;
+    servoOneState = turnServo(servoOne, angle, servoOneState);
     sendMessage = sendMessage + angle;
   }
   else if (topic == "servo2") {
     uint8_t angle = messageString.toInt();
 
-    servoTwo.write(angle);
-    servoTwoState = angle;
+    servoTwoState = turnServo(servoTwo, angle, servoTwoState);
+    sendMessage = sendMessage + angle;
   }
   else if (topic == "servo3") {
     uint8_t angle = messageString.toInt();
 
-    servoThree.write(angle);
-    servoThreeState = angle;
+    servoThreeState = turnServo(servoThree, angle, servoThreeState);
+    sendMessage = sendMessage + angle;
   }
 
   // Weight data
@@ -294,7 +293,6 @@ void manualFlow(String topic, String messageString) {
   } else if (topic == "rgb") {
     controlRGB(messageString);
   }
-
   else {
     sendMessage = "topic error";
   }
@@ -306,7 +304,8 @@ void manualFlow(String topic, String messageString) {
 
 /************************* Voids *************************/
 // Turns the servo smoothly to the correct angle.
-void turnSerov(Servo servoObject, int degree, int servoState) {
+uint8_t turnServo(Servo servoObject, uint8_t degree, uint8_t servoState) {
+  Serial.println(servoState);
   // Turn counterclockwise.
   if (degree < servoState) {
     for (int pos = servoState; pos >= degree; pos--) {
@@ -321,6 +320,9 @@ void turnSerov(Servo servoObject, int degree, int servoState) {
       delay(10);
     }
   }
+
+  servoState = degree;
+  return servoState;
 }
 
 // Changes the rotation of the motor, keeps the state at its original level.

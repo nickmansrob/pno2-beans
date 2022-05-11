@@ -31,16 +31,16 @@ uint8_t servoTwoState = 87;
 Servo servoThree;
 const uint8_t SERVO3_PIN = 5;
 uint8_t servoThreeState = 90;
-uint8_t servoThreeRelayState = HIGH;
+uint8_t servoThreeRelayState = LOW;
 uint8_t servoThreeRelayPin = 35;
 
 // LCD
 const uint8_t LCDRS_PIN = 50;
-const uint8_t LCDE_PIN = 43;
+const uint8_t LCDE_PIN = 39;
 const uint8_t LCDDB4_PIN = 46;
 const uint8_t LCDDB5_PIN = 52;
 const uint8_t LCDDB6_PIN = 41;
-const uint8_t LCDDB7_PIN = 39;
+const uint8_t LCDDB7_PIN = 43;
 LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
 // Ultrasonic Sensor
@@ -101,7 +101,7 @@ void setup() {
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
 
-  digitalWrite(servoThreeRelayPin, HIGH);
+  digitalWrite(servoThreeRelayPin, LOW);
 
   servoOne.write(servoOneState);
   servoTwo.write(servoTwoState);
@@ -191,7 +191,7 @@ void normalFlow(String topic, String messageString) {
   }
 }
 
-// Sets the bean Bot to default position.
+// Sets the Bean Bot and Arduino to default position.
 void section0() {
   int servoOneDefaultAngle = 0; // CHANGE!!
   int servoTwoDefaultAngle = 0; // CHANGE!!
@@ -203,24 +203,29 @@ void section0() {
   servoThree.write(servoThreeDefaultAngle);
 
   // Making sure the DC's are turned off.
-  digitalWrite(motor1Pin, LOW);
-  motor1State = LOW;
+  digitalWrite(MOTOR1_PIN, LOW);
+  motorOneState = LOW;
   delay(500);
-  digitalWrite(motor2Pin, LOW);
-  motor2State = LOW;
+  digitalWrite(MOTOR2_PIN, LOW);
+  motorTwoState = LOW;
 
   // Making sure no sensors are reading.
   colorState = LOW;
-  ultraState = LOW;
+  ultrasonicState = LOW;
   weightState = LOW;
+
+  // Making sure the messages are empty.
+  message = "";
+  messageString = "";
+  topic = "";
 }
 
 // First conveyor belt moves to the correct position
 void section1(int siloNumberFirstOrder) {
   int firstSiloAngle = 45;
   int secondSiloAngle = 90;
-  int thridSiloAngle = 135;
-  
+  int thirdSiloAngle = 135;
+
   // Sets first belt in the right angle position.
   if (siloNumberFirstOrder == 0) {
     servoOne.write(firstSiloAngle);
@@ -233,8 +238,22 @@ void section1(int siloNumberFirstOrder) {
   }
 
   // Dropping the belt onto the beans.
-  int firstBeltDownAngle = 0; // The angle of the third servo has to have in order for the belt to be completely down.
-  servoThree.write(firstBeltDownAngle); // CHANGE!!
+  int servoRotateTime = 0;
+  int beltDownTime = 0; // The time the third servo has to turn in order for the first belt to be completly down.
+
+  // Turning on the servo.
+  servoThreeRelayState = LOW;
+  digitalWrite(servoThreeRelayState, LOW);
+  servoThree.write(85); // CHANGE !! 
+  
+  // Rotate for the given amount of time.
+  if (millis() - servoRotateTime > beltDownTime) {
+    servoRotateTime = millis();
+  }
+  
+  // Turning off the servo.
+  servoThreeRelayState = LOW;
+  digitalWrite(servoThreeRelayState, LOW);
 }
 
 // Second conveyor belt moves to correct position.
@@ -242,57 +261,34 @@ void section2() {
   String angle = getAngle();
 }
 
-// Loads the second conveyer belt.
-void section3() {
-  // The time the second servo has to turn in order to fill the entire belt.
-  int turningTimeSecondDC = 0; // CHANGE!!
-
+// Starts the two belts when they are in position.
+void section3(int orderedWeight)  {
   // Starts the first DC.
   analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+  // Delay to spread the current peak.
   delay(1000);
   // Starts the second DC.
-  int motor2Voltage = 0;  // CHANGE!!
-  analogWrite(MOTOR2_PIN, getMotorVoltage(motor2Voltage));
+  analogWrite(MOTOR2_PIN, getMotorVoltage(12));
 
-  // Waits for the second belt to fill.
-  delay(turningTimeSecondDC);
+  int weight = getWeight();
 
-  // Shutting down the DC's.
+  while (weight < orderedWeight) {
+    // Writing the weight to the LCD.
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Weight [g]:");
+    lcd.setCursor(0, 1);
+    lcd.print(weight);
+    delay(1000);
+    // Getting the updated weight
+    weight = getWeight();
+  }
+
+  // Shutting down the DC's
   analogWrite(MOTOR1_PIN, 0);
   delay(500);
   analogWrite(MOTOR2_PIN, 0);
-}
 
-// Beans in container
-void section4(long distance, long orderedWeight) {
-  // Rotating the belt until weight is reached.
-
-  int criticalWeight = 25; // Grams per part
-  int weight = getWeight()
-
-  if ((orderedWeight - criticalWeight) < weight) {
-    // This is the last part
-    analogWrite(MOTOR2_PIN, getMotorVoltage(12));
-    while (weight < orderedWeight) {
-      weight = getWeight();
-      delay(500);
-    }
-    analogWrite(MOTOR2_PIN, 0);
-
-  } else {
-    
-    long newWeight();
-    analogWrite(MOTOR2_PIN, getMotorVoltage(12));
-    delay(3000); // Set delay according to min delay needed to get a change in weight
-    newWeight = getWeight();
-    
-    while (weight < newWeight()) { // If equals, no change in weight so no beans anymore, exit loop
-      weight = newWeight;
-      newWeight = getWeight();
-      delay(500);
-    }
-    analogWrite(MOTOR2_PIN, 0);
-  }
 }
 
 /*
@@ -432,20 +428,20 @@ void manualFlow(String topic, String messageString) {
     uint8_t angle = messageString.toInt();
 
     if (angle == 0) {
-      servoThreeRelayState = LOW;
-      digitalWrite(servoThreeRelayPin, LOW);
-      delay(500);
-      servoThree.write(85);
-    } else if (angle == 90) {
       servoThreeRelayState = HIGH;
       digitalWrite(servoThreeRelayPin, HIGH);
       delay(500);
-      servoThree.write(87);
-    } else if (angle == 180) {
+      servoThree.write(85);
+    } else if (angle == 90) {
       servoThreeRelayState = LOW;
       digitalWrite(servoThreeRelayPin, LOW);
       delay(500);
-      servoThree.write(180);
+      servoThree.write(87);
+    } else if (angle == 80) {
+      servoThreeRelayState = HIGH;
+      digitalWrite(servoThreeRelayPin, HIGH);
+      delay(500);
+      servoThree.write(92);
     }
     servoThree.write(angle);
 
@@ -840,6 +836,9 @@ void receiveEvent(int howMany) {
       weightState = LOW;
     }
   }
+  Serial.println(messageString);
+  Serial.println(topic);
+  Serial.println(message);
 }
 
 // Function that executes whenever data is requested from master.

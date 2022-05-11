@@ -94,7 +94,11 @@ void callback(char* topic, byte* message, unsigned int length) {
     if (manualOverride) {
       logFlow("ROUTE: From origin to manualFlow");
       manualFlow(topicString, messageString);
-    }  else {
+    }  else if ((topicString == order1) || (topicString == order2)) {
+      logFlow("ROUTE: From origin to normalFlow");
+      normalFlow(topicString, messageString);
+    }
+    else {
       logFlow("ERROR: callback() :: no matching topic or override not enabled.");
     }
 
@@ -159,8 +163,8 @@ void manualFlow(String topic, String messageString) {
     } else {
       logFlow("ERROR: motor1 :: no message match");
     }
-  } 
-  
+  }
+
   else if (topic == "motor2") {
     if (messageString == "toggle") {
       wireFlow("motor2_toggle");
@@ -170,62 +174,67 @@ void manualFlow(String topic, String messageString) {
       logFlow("ERROR: motor2 :: no message match");
     }
   }
-  
+
   //Servos
   else if (topic == "servo1") {
     wireFlow("servo1_" + messageString);
   }
-  
+
   else if (topic == "servo2") {
     wireFlow("servo2_" + messageString);
   }
-  
+
   else if (topic == "servo3") {
     wireFlow("servo3_" + messageString);
   }
-  
+
   else if (topic == "servo4") {
     wireFlow("servo4_" + messageString);
   }
-  
+
   else if (topic == "weight1") {
     logFlow("ROUTE: From origin to weight1");
     wireFlow("weight1_" + messageString);
   }
-  
+
   else if (topic == "weight2") {
     logFlow("ROUTE: From origin to weight2");
     wireFlow("weight2_" + messageString);
   }
-  
+
   else if (topic == "distControl") {
     logFlow("ROUTE: From origin to distControl");
     wireFlow("distControl_" + messageString);
   }
-  
+
   else if (topic == "colorControl") {
     logFlow("ROUTE: From origin to colorControl");
     wireFlow("colorControl_" + messageString);
   }
-  
+
   else if (topic == "weightControl" ) {
     logFlow("ROUTE: From origin to weightControl" );
     wireFlow("weightControl_" + messageString);
   }
-  
+
   else if (topic == "colorCal") {
     logFlow("ROUTE: From origin to colorCal");
     wireFlow("colorCal_" + messageString);
-  } 
-  
+  }
+
   else if (topic == "rgb") {
     logFlow("ROUTE: From origin to rgb");
     wireFlow("rgb_" + messageString);
   }
-  
+
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
+}
+
+void normalFlow(orderNumber, messageString) {
+  Serial.println(orderNumber);
+  wireFlow(orderNumber + "_" + messageString);
 }
 
 void logFlow(String message) {

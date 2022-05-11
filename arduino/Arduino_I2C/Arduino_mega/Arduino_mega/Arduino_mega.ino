@@ -36,7 +36,7 @@ Servo servoThree;
 const uint8_t SERVO3_PIN = 5;
 uint8_t servoThreeState = 85;
 uint8_t servoThreeRelayState = LOW;
-uint8_t servoThreeRelayPin = 35;
+uint8_t SERVO_RELAY_PIN = 35;
 
 // LCD
 const uint8_t LCDRS_PIN = 50;
@@ -129,16 +129,19 @@ void setup() {
   pinMode(MOTOR1_RELAY_PIN, OUTPUT);
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
 
+  digitalWrite(MOTOR1_RELAY_PIN, HIGH);
+  digitalWrite(MOTOR2_RELAY_PIN, HIGH);
+
   pinMode(BUTTON_PIN, INPUT);
 
-  pinMode(servoThreeRelayPin, OUTPUT);
+  pinMode(SERVO_RELAY_PIN, OUTPUT);
 
   // Servos
   servoOne.attach(SERVO1_PIN);
   servoTwo.attach(SERVO2_PIN);
   servoThree.attach(SERVO3_PIN);
 
-  digitalWrite(servoThreeRelayPin, LOW);
+  digitalWrite(SERVO_RELAY_PIN, LOW);
 
   servoOne.write(servoOneState);
   servoTwo.write(servoTwoState);
@@ -168,21 +171,23 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("0");
 
-  //  // Starting up the weight sensor.
-  //  while (weightCounter <= 5) {
-  //    while (!MyScale.begin()) {
-  //      Serial.println("The initialization of the chip is failed, please confirm whether the chip connection is correct");
-  //      delay(1000);
-  //      weightCounter ++;
-  //    }
-  //
-  //  }
-  //
-  //  //Manually set the calibration values
-  //  MyScale.setCalibration(2000.f);
-  //  //remove the peel
-  //  MyScale.peel();
+  // Starting up the weight sensor.
+  while (!MyScale.begin()) {
+    Serial.println("The initialization of the chip is failed.");
+    delay(1000);
+    weightCounter ++;
 
+    if (weightCounter == 5) {
+      break;
+    }
+  }
+
+  if (MyScale.begin()) {
+    //Manually set the calibration values
+    MyScale.setCalibration(2000.f);
+    //remove the peel
+    MyScale.peel();
+  }
 }
 
 void loop() {
@@ -437,17 +442,17 @@ void manualFlow(String topic, String messageString) {
 
     if (angle == 0) {
       servoThreeRelayState = HIGH;
-      digitalWrite(servoThreeRelayPin, HIGH);
+      digitalWrite(SERVO_RELAY_PIN, HIGH);
       delay(500);
       servoThree.write(85);
     } else if (angle == 90) {
       servoThreeRelayState = LOW;
-      digitalWrite(servoThreeRelayPin, LOW);
+      digitalWrite(SERVO_RELAY_PIN, LOW);
       delay(500);
       servoThree.write(87);
     } else if (angle == 80) {
       servoThreeRelayState = HIGH;
-      digitalWrite(servoThreeRelayPin, HIGH);
+      digitalWrite(SERVO_RELAY_PIN, HIGH);
       delay(500);
       servoThree.write(92);
     }

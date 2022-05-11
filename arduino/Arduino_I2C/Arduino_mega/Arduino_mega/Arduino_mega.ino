@@ -36,11 +36,11 @@ uint8_t servoThreeRelayPin = 35;
 
 // LCD
 const uint8_t LCDRS_PIN = 50;
-const uint8_t LCDE_PIN = 39;
+const uint8_t LCDE_PIN = 43;
 const uint8_t LCDDB4_PIN = 46;
 const uint8_t LCDDB5_PIN = 52;
 const uint8_t LCDDB6_PIN = 41;
-const uint8_t LCDDB7_PIN = 43;
+const uint8_t LCDDB7_PIN = 39;
 LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
 // Ultrasonic Sensor
@@ -201,10 +201,26 @@ void section0() {
   servoOne.write(servoOneDefaultAngle);
   servoTwo.write(servoTwoDefaultAngle);
   servoThree.write(servoThreeDefaultAngle);
+
+  // Making sure the DC's are turned off.
+  digitalWrite(motor1Pin, LOW);
+  motor1State = LOW;
+  delay(500);
+  digitalWrite(motor2Pin, LOW);
+  motor2State = LOW;
+
+  // Making sure no sensors are reading.
+  colorState = LOW;
+  ultraState = LOW;
+  weightState = LOW;
 }
 
 // First conveyor belt moves to the correct position
-void section1(int siloNumberFirstOrder, int firstSiloAngle, int secondSiloAngle, int thirdSiloAngle) {
+void section1(int siloNumberFirstOrder) {
+  int firstSiloAngle = 45;
+  int secondSiloAngle = 90;
+  int thridSiloAngle = 135;
+  
   // Sets first belt in the right angle position.
   if (siloNumberFirstOrder == 0) {
     servoOne.write(firstSiloAngle);
@@ -252,7 +268,7 @@ void section4(long distance, long orderedWeight) {
   // Rotating the belt until weight is reached.
 
   int criticalWeight = 25; // Grams per part
-  int weight = getWeight();
+  int weight = getWeight()
 
   if ((orderedWeight - criticalWeight) < weight) {
     // This is the last part
@@ -265,12 +281,12 @@ void section4(long distance, long orderedWeight) {
 
   } else {
     
-    long newWeight;
+    long newWeight();
     analogWrite(MOTOR2_PIN, getMotorVoltage(12));
     delay(3000); // Set delay according to min delay needed to get a change in weight
     newWeight = getWeight();
     
-    while (weight < newWeight) { // If equals, no change in weight so no beans anymore, exit loop
+    while (weight < newWeight()) { // If equals, no change in weight so no beans anymore, exit loop
       weight = newWeight;
       newWeight = getWeight();
       delay(500);

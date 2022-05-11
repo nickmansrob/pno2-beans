@@ -6,6 +6,10 @@
 #include <PubSubClient.h>
 
 /************************* Pins and variables *************************/
+// Pullup button
+const uint8_t BUTTON_PIN = 2;
+uint8_t buttonState = LOW;
+
 // DC-motors
 const uint8_t MOTOR_VOLTAGE = 12;
 
@@ -22,15 +26,15 @@ bool motorTwoClockwise = true;
 // Servos
 Servo servoOne;
 const uint8_t SERVO1_PIN = 7;
-uint8_t servoOneState = 87;
+uint8_t servoOneState = 90;
 
 Servo servoTwo;
 const uint8_t SERVO2_PIN = 6;
-uint8_t servoTwoState = 87;
+uint8_t servoTwoState = 90;
 
 Servo servoThree;
 const uint8_t SERVO3_PIN = 5;
-uint8_t servoThreeState = 90;
+uint8_t servoThreeState = 85;
 uint8_t servoThreeRelayState = LOW;
 uint8_t servoThreeRelayPin = 35;
 
@@ -55,8 +59,6 @@ const uint8_t LEDG_PIN = 13;
 const uint8_t LEDB_PIN = 12;
 
 // Color Sensor
-const uint8_t KS0_PIN = 29;
-const uint8_t KS1_PIN = 33;
 const uint8_t KS2_PIN = 14;
 const uint8_t KS3_PIN = 19;
 const uint8_t KOUT_PIN = 38;
@@ -81,9 +83,42 @@ String messageString;
 // Miscellaneous
 uint8_t weightCounter = 0;
 uint8_t orderState = 1;
-bool proceedNormalFlow = false;
 bool debug = false; // Enabled when in manualOverride color/weight/distance reading is enabled
 
+void initialize() {
+  buttonState = LOW;
+
+  motorOneState = LOW;
+  motorOneClockwise = true;
+
+  delay(500);
+
+  motorTwoState = LOW;
+  motorTwoClockwise = true;
+
+  servoOneState = 90;
+
+  servoTwoState = 90;
+
+  servoThreeState = 90;
+  servoThreeRelayState = LOW;
+
+  ultrasonicState = LOW;
+  lastReadingTimeDistance = 0;
+
+  colorState = LOW;
+  lastReadingTimeColor = 0;
+
+  weightState = LOW;
+  lastReadingTimeWeight = 0;
+
+  sendMessage = "";
+  message = "";
+
+  weightCounter = 0;
+  orderState = 1;
+  debug = false;
+}
 
 void setup() {
   /************************* Variables *************************/
@@ -93,6 +128,8 @@ void setup() {
 
   pinMode(MOTOR1_RELAY_PIN, OUTPUT);
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
+
+  pinMode(BUTTON_PIN, INPUT);
 
   pinMode(servoThreeRelayPin, OUTPUT);
 
@@ -110,14 +147,8 @@ void setup() {
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
 
-  pinMode(KS1_PIN, OUTPUT);
-  pinMode(KS0_PIN, OUTPUT);
   pinMode(KS2_PIN, OUTPUT);
   pinMode(KS3_PIN, OUTPUT);
-
-  // Settings the  frequency scaling (now to 20%)
-  digitalWrite(KS1_PIN, LOW);
-  digitalWrite(KS0_PIN, HIGH);
 
   /************************* Weight sensor *************************/
   pinMode(UTRIG_PIN, OUTPUT);
@@ -171,12 +202,12 @@ uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
   return map(motorVoltage, 0, 12, 0, 255);
 }
 
-void normalFlow(String topic, String messageString) {
-  /* Variables */
-  int firstSiloAngle = 0;
-  int secondSiloAngle = 0;
-  int thirdSiloAngle = 0;
+/*******************************Globals*****************************/
+int firstSiloAngle = 45;
+int secondSiloAngle = 90;
+int thirdSiloAngle = 135;
 
+void normalFlow(String topic, String messageString) {
   /* Starting the flow. */
   if (topic == 'order1') {
     // Gets the silo number and the weight from the orderString of the form siloNunber_weight
@@ -193,38 +224,15 @@ void normalFlow(String topic, String messageString) {
 
 // Sets the Bean Bot and Arduino to default position.
 void section0() {
-  int servoOneDefaultAngle = 0; // CHANGE!!
-  int servoTwoDefaultAngle = 0; // CHANGE!!
-  int servoThreeDefaultAngle = 0; // CHANGE!!
-
-  // Writing to the servos.
-  servoOne.write(servoOneDefaultAngle);
-  servoTwo.write(servoTwoDefaultAngle);
-  servoThree.write(servoThreeDefaultAngle);
-
-  // Making sure the DC's are turned off.
-  digitalWrite(MOTOR1_PIN, LOW);
-  motorOneState = LOW;
-  delay(500);
-  digitalWrite(MOTOR2_PIN, LOW);
-  motorTwoState = LOW;
-
-  // Making sure no sensors are reading.
-  colorState = LOW;
-  ultrasonicState = LOW;
-  weightState = LOW;
+  initialize();
 
   // Making sure the messages are empty.
-  message = "";
   messageString = "";
   topic = "";
 }
 
 // First conveyor belt moves to the correct position
 void section1(int siloNumberFirstOrder) {
-  int firstSiloAngle = 45;
-  int secondSiloAngle = 90;
-  int thirdSiloAngle = 135;
 
   // Sets first belt in the right angle position.
   if (siloNumberFirstOrder == 0) {
@@ -244,13 +252,13 @@ void section1(int siloNumberFirstOrder) {
   // Turning on the servo.
   servoThreeRelayState = LOW;
   digitalWrite(servoThreeRelayState, LOW);
-  servoThree.write(85); // CHANGE !! 
-  
+  servoThree.write(85); // CHANGE !!
+
   // Rotate for the given amount of time.
   if (millis() - servoRotateTime > beltDownTime) {
     servoRotateTime = millis();
   }
-  
+
   // Turning off the servo.
   servoThreeRelayState = LOW;
   digitalWrite(servoThreeRelayState, LOW);

@@ -85,7 +85,8 @@ uint8_t weightCounter = 0;
 uint8_t orderState = 1;
 bool debug = false; // Enabled when in manualOverride color/weight/distance reading is enabled
 
-void initialize() {
+// Initilazes all variables of the function.
+void initialize(int orderCount) {
   buttonState = LOW;
 
   motorOneState = LOW;
@@ -114,9 +115,11 @@ void initialize() {
 
   sendMessage = "";
   message = "";
+  messageString = "";
+  topic = "";
 
   weightCounter = 0;
-  orderState = 1;
+  orderState = orderCount; // CHANGE !!
   debug = false;
 }
 
@@ -188,6 +191,8 @@ void setup() {
     //remove the peel
     MyScale.peel();
   }
+
+  setRGB(0, 0, 255);
 }
 
 void loop() {
@@ -215,30 +220,50 @@ int thirdSiloAngle = 135;
 void normalFlow(String topic, String messageString) {
   /* Starting the flow. */
   if (topic == 'order1') {
-    // Gets the silo number and the weight from the orderString of the form siloNunber_weight
+    // Gets the silo number and the weight from the orderString of the form siloNumber_weight
     int siloNumberFirstOrder = (messageString.substring(0, 1)).toInt();
     int orderedWeightFirstOrder = (messageString.substring(1)).toInt();
+    setRGB(255, 0, 0);
+
+    section0(1);
+    sendMessage = "";
+    section1(siloNumberFirstOrder);
+    sendMessage = "";
+    section2();
+    sendMessage = "";
+    section3(orderedWeightFirstOrder, orderCount);
+
+    setRGB(0, 0, 255);
   }
 
   else if (topic == 'order2') {
-    // Gets the silo number and the weight from the orderString of the form siloNunber_weight
-    int siloNumbderSecondOrder = (messageString.substring(0, 1)).toInt();
+    // Gets the silo number and the weight from the orderString of the form siloNumber_weight
+    int siloNumberSecondOrder = (messageString.substring(0, 1)).toInt();
     int orderedWeightSecondOrder = (messageString.substring(1)).toInt();
+    setRGB(255, 0, 0);
+
+    section0(2);
+    sendMessage = "";
+    section1(siloNumberSecondOrder);
+    sendMessage = "";
+    section2();
+    sendMessage = "";
+    section3(orderedWeightSecondOrder, orderCount);
+
+    setRGB(0, 0, 255);
+
   }
 }
 
 // Sets the Bean Bot and Arduino to default position.
-void section0() {
-  initialize();
+void section0(int orderCount) {
+  initialize(orderCount);
 
-  // Making sure the messages are empty.
-  messageString = "";
-  topic = "";
+  sendMessage = "log_initialized";
 }
 
 // First conveyor belt moves to the correct position
 void section1(int siloNumberFirstOrder) {
-
   // Sets first belt in the right angle position.
   if (siloNumberFirstOrder == 0) {
     servoOne.write(firstSiloAngle);
@@ -267,21 +292,25 @@ void section1(int siloNumberFirstOrder) {
   // Turning off the servo.
   servoThreeRelayState = LOW;
   digitalWrite(servoThreeRelayState, LOW);
+
+  sendMessage = "log_belt1done";
 }
 
 // Second conveyor belt moves to correct position.
 void section2() {
-  String angle = getAngle();
+  setSecondBelt();
+
+  sendMessage = "log_belt2done";
 }
 
 // Starts the two belts when they are in position.
-void section3(int orderedWeight)  {
-  // Starts the first DC.
-  analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+void section3(int orderedWeight, int orderCount)  {
+  // Starts the sccond DC before the first DC.
+  analogWrite(MOTOR2_PIN, getMotorVoltage(12));
   // Delay to spread the current peak.
   delay(1000);
   // Starts the second DC.
-  analogWrite(MOTOR2_PIN, getMotorVoltage(12));
+  analogWrite(MOTOR1_PIN, getMotorVoltage(12));
 
   int weight = getWeight();
 
@@ -293,21 +322,23 @@ void section3(int orderedWeight)  {
     lcd.setCursor(0, 1);
     lcd.print(weight);
     delay(1000);
+    getBeanColor(orderCount);
     // Getting the updated weight
-    weight = getWeight();
+    weight = getWeight(orderCount);
   }
 
   // Shutting down the DC's
   analogWrite(MOTOR1_PIN, 0);
-  delay(500);
+  delay(1500);
   analogWrite(MOTOR2_PIN, 0);
-
+  
+  sendMessage = "log_section3done";
 }
 
 /*
-  Gets the angle
+  Rotates until the second belt is in the correct position for the container.
 */
-String getAngle() {
+void setSecondBelt() {
   long distance = 0;
   int pos = 0;
   for (int pos = 0; pos <= 70; pos++) { // Change to correct angle
@@ -320,7 +351,6 @@ String getAngle() {
       delay(50);
     }
   }
-  return String(pos);
 }
 
 // This function reads the distance 3 times and returns the average of the three values.
@@ -361,7 +391,6 @@ long getWeight() {
 
   for (int i; i <= 3; i++) {
     long weightInt = MyScale.readWeight();
-
     readings[i] = weightInt;
   }
 
@@ -372,9 +401,91 @@ long getWeight() {
 
   averageWeight = sum / 3;
 
+  // Sending the weight to the app.
+  sendMessage = averageWeight;
   return averageWeight;
 }
 
+void getBeanColor(int orderCount) {
+  // Reads the color of the bean three times and publishes the average of the values.
+  long redReadings[3] = {0, 0, 0};
+  long greenReadings[3] = {0, 0, 0};
+  long blueReadings[3] = {0, 0, 0};
+
+  int redSum = 0;
+  int greenSum = 0;
+  int blueSum = 0;
+
+  int averageRed = 0;
+  int averageGreen = 0;
+  int averagaeBlue = 0;
+
+  String redAverageString = "";
+  String greenAverageString = "";
+  String blueAverageString = "";
+
+  String averageColorString = "";
+
+  for (int i; i <= 3; i++) {
+    uint8_t red = 0;
+    uint8_t green = 0;
+    uint8_t blue = 0;
+
+    // Red
+    digitalWrite(KS2_PIN, LOW);
+    digitalWrite(KS3_PIN, LOW);
+    red = pulseIn(KOUT_PIN, LOW);
+    redReadings[i] = red;
+
+    // Green
+    digitalWrite(KS2_PIN, HIGH);
+    digitalWrite(KS3_PIN, HIGH);
+    green = pulseIn(KOUT_PIN, LOW);
+    greenReadings[i] = green;
+
+    // Blue
+    digitalWrite(KS2_PIN, LOW);
+    digitalWrite(KS3_PIN, HIGH);
+    blue = pulseIn(KOUT_PIN, LOW);
+    blueReadings[i] = blue;
+  }
+
+  for (int i = 0; i < 3; i++ ) {
+    redSum += redReadings[i];
+    greenSum += greenReadings[i];
+    blueSum += blueReadings[i];
+  }
+
+  redAverageString = String(round(redSum / 3));
+  greenAverageString = String(round(greenSum / 3));
+  blueAverageString = String(round(blueSum / 3));
+
+  if (redAverageString.length() == 1) {
+    redAverageString = "00" + redAverageString;
+  } else if (redAverageString.length() == 2) {
+    redAverageString = "0" + redAverageString;
+  }
+
+  if (greenAverageString.length() == 1) {
+    greenAverageString = "00" + greenAverageString;
+  } else if (greenAverageString.length() == 2) {
+    greenAverageString = "0" + greenAverageString;
+  }
+
+  if (blueAverageString.length() == 1) {
+    blueAverageString = "00" + blueAverageString;
+  } else if (blueAverageString.length() == 2) {
+    blueAverageString = "0" + blueAverageString;
+  }
+
+  if (orderCount == 1) {
+    sendMessage = "color1_" + redAverageString + greenAverageString = blueAverageString;
+  }
+  else if (orderCount == 1) {
+    sendMessage = "color2_" + redAverageString + greenAverageString = blueAverageString;
+  }
+  
+}
 
 void manualFlow(String topic, String messageString) {
   sendMessage = "log_";
@@ -528,14 +639,14 @@ uint8_t turnServo(Servo servoObject, uint8_t degree, uint8_t servoState) {
   if (degree < servoState) {
     for (int pos = servoState; pos >= degree; pos--) {
       servoObject.write(pos);
-      delay(10);
+      delay(12);
     }
   }
   // Turn clockwise.
   else if (degree > servoState  ) {
     for (int pos = servoState; pos <= degree; pos++) {
       servoObject.write(pos);
-      delay(10);
+      delay(12);
     }
   }
 
@@ -812,6 +923,13 @@ void readUltrasonic() {
     // Important for being capable of receiving the stop message.
     delay(250);
   }
+}
+
+// Sets the RGB-LED to the right color.
+void setRGB(int R, int G, int B) {
+  analogWrite(LEDR_PIN, R);
+  analogWrite(LEDG_PIN, G);
+  analogWrite(LEDB_PIN, B);
 }
 
 // Receives wire events.

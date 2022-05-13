@@ -224,8 +224,6 @@ void normalFlow(String topic, String messageString, int orderCount) {
     // Gets the silo number and the weight from the orderString of the form siloNumber_weight
     int siloNumberFirstOrder = (messageString.substring(0, 1)).toInt();
     int orderedWeightFirstOrder = (messageString.substring(1)).toInt();
-
-    int orderCount = 1;
     setRGB(255, 0, 0);
 
     section0(orderCount);
@@ -243,8 +241,6 @@ void normalFlow(String topic, String messageString, int orderCount) {
     // Gets the silo number and the weight from the orderString of the form siloNumber_weight
     int siloNumberSecondOrder = (messageString.substring(0, 1)).toInt();
     int orderedWeightSecondOrder = (messageString.substring(1)).toInt();
-
-    int orderCount = 2;
     setRGB(255, 0, 0);
 
     section0(orderCount);
@@ -264,6 +260,22 @@ void normalFlow(String topic, String messageString, int orderCount) {
 void section0(int orderCount) {
   initialize(orderCount);
 
+  // Set first belt to horizontal
+
+  // Turning on the servo.
+  servoThreeRelayState = LOW;
+  digitalWrite(servoThreeRelayState, LOW);
+  servoThree.write(95); // CHANGE !!
+
+  // Rotate for the given amount of time.
+  while (digitalRead != HIGH) {
+    delay(100);
+  }
+
+  // Turning off the servo.
+  servoThreeRelayState = LOW;
+  digitalWrite(servoThreeRelayState, LOW);
+  
   sendMessage = "log_initialized";
 }
 
@@ -281,7 +293,7 @@ void section1(int siloNumberFirstOrder) {
   }
 
   // Dropping the belt onto the beans.
-  int servoRotateTime = 0;
+  long servoRotateTime = 0;
   int beltDownTime = 0; // The time the third servo has to turn in order for the first belt to be completly down.
 
   // Turning on the servo.
@@ -484,10 +496,10 @@ void getBeanColor(int orderCount) {
   }
 
   if (orderCount == 1) {
-    sendMessage = "color1_" + redAverageString + greenAverageString = blueAverageString;
+    sendMessage = "color1_" + redAverageString + greenAverageString + blueAverageString;
   }
   else if (orderCount == 1) {
-    sendMessage = "color2_" + redAverageString + greenAverageString = blueAverageString;
+    sendMessage = "color2_" + redAverageString + greenAverageString + blueAverageString;
   }
   
 }

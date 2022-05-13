@@ -175,22 +175,21 @@ void setup() {
   lcd.print("0");
 
   // Starting up the weight sensor.
-  while (!MyScale.begin()) {
-    Serial.println("The initialization of the chip is failed.");
-    delay(1000);
-    weightCounter ++;
-
-    if (weightCounter == 5) {
-      break;
-    }
-  }
-
-  if (MyScale.begin()) {
-    //Manually set the calibration values
-    MyScale.setCalibration(2000.f);
-    //remove the peel
-    MyScale.peel();
-  }
+//  while (!MyScale.begin()) {
+//    Serial.println("The initialization of the chip is failed.");
+//    delay(1000);
+//    weightCounter ++;
+//    if (weightCounter == 5) {
+//      break;
+//    }
+//  }
+//
+//  if (MyScale.begin()) {
+//    //Manually set the calibration values
+//    MyScale.setCalibration(2000.f);
+//    //remove the peel
+//    MyScale.peel();
+//  }
 
   setRGB(0, 0, 255);
 }
@@ -201,6 +200,8 @@ void loop() {
   if (message != "" and topic != "") {
     manualFlow(topic, messageString);
   }
+  colorState = HIGH;
+  readColor();
 
   message = "";
   messageString = "";
@@ -217,7 +218,7 @@ int firstSiloAngle = 45;
 int secondSiloAngle = 90;
 int thirdSiloAngle = 135;
 
-void normalFlow(String topic, String messageString) {
+void normalFlow(String topic, String messageString, int orderCount) {
   /* Starting the flow. */
   if (topic == 'order1') {
     // Gets the silo number and the weight from the orderString of the form siloNumber_weight
@@ -328,7 +329,7 @@ void section3(int orderedWeight, int orderCount)  {
     delay(1000);
     getBeanColor(orderCount);
     // Getting the updated weight
-    weight = getWeight(orderCount);
+    weight = getWeight();
   }
 
   // Shutting down the DC's
@@ -784,7 +785,7 @@ void readColor() {
       } else if (blueString.length() == 2) {
         blueString  = "0" + blueString ;
       }
-
+      Serial.println(redString + greenString + blueString);
       // Publish
       if (debug) {
         sendMessage = "colorData_" + redString + greenString + blueString;

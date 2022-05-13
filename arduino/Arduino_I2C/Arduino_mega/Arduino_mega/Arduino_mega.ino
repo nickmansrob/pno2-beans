@@ -201,7 +201,7 @@ void loop() {
     normalFlow(topic, message, 1);
   } else if (message != "" and topic == "order2") {
     normalFlow(topic, message, 2);
-  } else if (message != "" and topic != "") {
+  } else if (message != "" and topic == "override") {
     manualFlow(topic, messageString);
   }
 

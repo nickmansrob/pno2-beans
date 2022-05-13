@@ -85,7 +85,7 @@ uint8_t weightCounter = 0;
 uint8_t orderState = 1;
 bool debug = false; // Enabled when in manualOverride color/weight/distance reading is enabled
 
-// Initilazes all variables of the function.
+// Initialize all variables of the function.
 void initialize(int orderCount) {
   buttonState = LOW;
 
@@ -223,9 +223,11 @@ void normalFlow(String topic, String messageString) {
     // Gets the silo number and the weight from the orderString of the form siloNumber_weight
     int siloNumberFirstOrder = (messageString.substring(0, 1)).toInt();
     int orderedWeightFirstOrder = (messageString.substring(1)).toInt();
+
+    int orderCount = 1;
     setRGB(255, 0, 0);
 
-    section0(1);
+    section0(orderCount);
     sendMessage = "";
     section1(siloNumberFirstOrder);
     sendMessage = "";
@@ -240,9 +242,11 @@ void normalFlow(String topic, String messageString) {
     // Gets the silo number and the weight from the orderString of the form siloNumber_weight
     int siloNumberSecondOrder = (messageString.substring(0, 1)).toInt();
     int orderedWeightSecondOrder = (messageString.substring(1)).toInt();
+
+    int orderCount = 2;
     setRGB(255, 0, 0);
 
-    section0(2);
+    section0(orderCount);
     sendMessage = "";
     section1(siloNumberSecondOrder);
     sendMessage = "";

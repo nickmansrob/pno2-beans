@@ -541,6 +541,7 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           currentOrderState.setFirstOrder('');
           _showFirstEndOrderMessage();
+          _publishMessage(currentAppState.getOrderMessage, 'order2');
         });
       });
       return null;
@@ -1331,10 +1332,8 @@ class _HomePageState extends State<HomePage> {
                   if (currentOrderState.getFirstOrder == '' &&
                       currentOrderState.getSecondOrder == '') {
                     _publishMessage(currentAppState.getOrderMessage, "order1");
-                  } else if (currentOrderState.getFirstOrder != '' &&
-                      currentOrderState.getSecondOrder == '') {
-                    _publishMessage(currentAppState.getOrderMessage, "order2");
                   }
+
                   currentOrderState.setOrder(currentOrder);
                   currentOrderState
                       .setSiloNumber(currentOrderState.getSiloChoiceNumber);

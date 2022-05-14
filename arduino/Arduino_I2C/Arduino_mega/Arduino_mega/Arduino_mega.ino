@@ -175,21 +175,21 @@ void setup() {
   lcd.print("0");
 
   // Starting up the weight sensor.
-//  while (!MyScale.begin()) {
-//    Serial.println("The initialization of the chip is failed.");
-//    delay(1000);
-//    weightCounter ++;
-//    if (weightCounter == 5) {
-//      break;
-//    }
-//  }
-//
-//  if (MyScale.begin()) {
-//    //Manually set the calibration values
-//    MyScale.setCalibration(2000.f);
-//    //remove the peel
-//    MyScale.peel();
-//  }
+  //  while (!MyScale.begin()) {
+  //    Serial.println("The initialization of the chip is failed.");
+  //    delay(1000);
+  //    weightCounter ++;
+  //    if (weightCounter == 5) {
+  //      break;
+  //    }
+  //  }
+  //
+  //  if (MyScale.begin()) {
+  //    //Manually set the calibration values
+  //    MyScale.setCalibration(2000.f);
+  //    //remove the peel
+  //    MyScale.peel();
+  //  }
 
   setRGB(0, 0, 255);
 }
@@ -201,7 +201,7 @@ void loop() {
     normalFlow(topic, message, 1);
   } else if (message != "" and topic == "order2") {
     normalFlow(topic, message, 2);
-  } else if (message != "" and topic == "override") {
+  } else if (message != "" and topic != "") {
     manualFlow(topic, messageString);
   }
 
@@ -235,6 +235,9 @@ void normalFlow(String topic, String messageString, int orderCount) {
     section2();
     sendMessage = "";
     section3(orderedWeightFirstOrder, orderCount);
+    sendMessage = ""
+    section4();
+    sendMessage = "weight1_done";
 
     setRGB(0, 0, 255);
   }
@@ -252,6 +255,9 @@ void normalFlow(String topic, String messageString, int orderCount) {
     section2();
     sendMessage = "";
     section3(orderedWeightSecondOrder, orderCount);
+    sendMessage = "";
+    section4();
+    sendMessage = "weight2_done";
 
     setRGB(0, 0, 255);
 
@@ -277,7 +283,7 @@ void section0(int orderCount) {
   // Turning off the servo.
   servoThreeRelayState = LOW;
   digitalWrite(servoThreeRelayState, LOW);
-  
+
   sendMessage = "log_initialized";
 }
 
@@ -324,7 +330,7 @@ void section2() {
 
 // Starts the two belts when they are in position.
 void section3(int orderedWeight, int orderCount)  {
-  // Starts the sccond DC before the first DC.
+  // Starts the second DC before the first DC.
   analogWrite(MOTOR2_PIN, getMotorVoltage(12));
   // Delay to spread the current peak.
   delay(1000);
@@ -350,10 +356,29 @@ void section3(int orderedWeight, int orderCount)  {
   analogWrite(MOTOR1_PIN, 0);
   delay(1500);
   analogWrite(MOTOR2_PIN, 0);
-  
+
   sendMessage = "log_section3done";
 }
 
+void section4() {
+  // Empties both conveyor belts.
+  int emptyTime = 0; // The time it takes to empty the whole system, when it's fully loaded, experimentally determined.
+  // Starts the second DC before the first DC.
+  analogWrite(MOTOR2_PIN, getMotorVoltage(12));
+  // Delay to spread the current peak.
+  delay(1000);
+  // Starts the second DC.
+  analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+
+  // Wait for the system to empty.
+  delay(emptyTime);
+
+  // Shutting down the DC's
+  analogWrite(MOTOR1_PIN, 0);
+  delay(1500);
+  analogWrite(MOTOR2_PIN, 0);
+
+}
 /*
   Rotates until the second belt is in the correct position for the container.
 */
@@ -503,7 +528,7 @@ void getBeanColor(int orderCount) {
   else if (orderCount == 1) {
     sendMessage = "color2_" + redAverageString + greenAverageString + blueAverageString;
   }
-  
+
 }
 
 void manualFlow(String topic, String messageString) {

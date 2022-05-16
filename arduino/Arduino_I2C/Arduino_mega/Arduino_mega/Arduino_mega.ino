@@ -10,6 +10,12 @@
 const uint8_t BUTTON_PIN = 2;
 uint8_t buttonState = LOW;
 
+const uint8_t INTERRUPT_PIN = 3;
+const uint8_t STOP_PIN = 28;
+long interruptTime = 0;
+long lastInterruptTime = 0;
+bool STOP_EXECUTED = false;
+
 // DC-motors
 const uint8_t MOTOR_VOLTAGE = 12;
 
@@ -137,6 +143,7 @@ void setup() {
   digitalWrite(MOTOR2_RELAY_PIN, HIGH);
 
   pinMode(BUTTON_PIN, INPUT);
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
 
   pinMode(SERVO_RELAY_PIN, OUTPUT);
 
@@ -150,6 +157,8 @@ void setup() {
   servoOne.write(servoOneState);
   servoTwo.write(servoTwoState);
   servoThree.write(servoThreeState);
+
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), stopFlow, RISING);
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
@@ -229,15 +238,34 @@ void normalFlow(String topic, String messageString, int orderCount) {
     int orderedWeightFirstOrder = (messageString.substring(1)).toInt();
     setRGB(255, 0, 0);
 
+    if (STOP_EXECUTED) {
+      return;
+    }
+
     section0(orderCount);
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "";
     section1(siloNumberFirstOrder);
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "";
     section2();
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "";
     section3(orderedWeightFirstOrder, orderCount);
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "";
     section4();
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "weight1_done";
 
     setRGB(0, 0, 255);
@@ -249,25 +277,49 @@ void normalFlow(String topic, String messageString, int orderCount) {
     int orderedWeightSecondOrder = (messageString.substring(1)).toInt();
     setRGB(255, 0, 0);
 
+    if (STOP_EXECUTED) {
+      return;
+    }
+
     section0(orderCount);
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "";
     section1(siloNumberSecondOrder);
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "";
     section2();
     sendMessage = "";
     section3(orderedWeightSecondOrder, orderCount);
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "";
     section4();
+    if (STOP_EXECUTED) {
+      return;
+    }
     sendMessage = "weight2_done";
 
     setRGB(0, 0, 255);
 
+  }
+
+  if (STOP_EXECUTED) {
+    return;
   }
 }
 
 // Sets the Bean Bot and Arduino to default position.
 void section0(int orderCount) {
   initialize(orderCount);
+
+  if (STOP_EXECUTED) {
+    return;
+  }
 
   // Set first belt to horizontal
 
@@ -279,11 +331,20 @@ void section0(int orderCount) {
   // Rotate for the given amount of time.
   while (digitalRead != HIGH) {
     delay(100);
+
+    if (STOP_EXECUTED) {
+      digitalWrite(SERVO_RELAY_PIN, LOW);
+      servoThreeRelayState = LOW;
+    }
   }
 
   // Turning off the servo.
   digitalWrite(SERVO_RELAY_PIN, LOW);
   servoThreeRelayState = LOW;
+
+  if (STOP_EXECUTED) {
+    return;
+  }
 
   sendMessage = "log_initialized";
 }
@@ -301,8 +362,11 @@ void section1(int siloNumberFirstOrder) {
     servoOne.write(thirdSiloAngle);
   }
 
+  if (STOP_EXECUTED) {
+    return;
+  }
+
   // Dropping the belt onto the beans.
-  long servoRotateTime = 0;
   int beltDownTime = 4000; // The time the third servo has to turn in order for the first belt to be completly down.
 
   // Turning on the servo.
@@ -311,13 +375,15 @@ void section1(int siloNumberFirstOrder) {
   servoThree.write(85); // CHANGE !!
 
   // Rotate for the given amount of time.
-  if (millis() - servoRotateTime > beltDownTime) {
-    servoRotateTime = millis();
-  }
+  delay(beltDownTime);
 
   // Turning off the servo.
   servoThreeRelayState = LOW;
   digitalWrite(SERVO_RELAY_PIN, LOW);
+
+  if (STOP_EXECUTED) {
+    return;
+  }
 
   sendMessage = "log_belt1done";
 }
@@ -326,6 +392,10 @@ void section1(int siloNumberFirstOrder) {
 void section2() {
   setSecondBelt();
 
+  if (STOP_EXECUTED) {
+    return;
+  }
+
   sendMessage = "log_belt2done";
 }
 
@@ -333,10 +403,19 @@ void section2() {
 void section3(int orderedWeight, int orderCount)  {
   // Starts the second DC before the first DC.
   analogWrite(MOTOR2_PIN, getMotorVoltage(12));
+
+  if (STOP_EXECUTED) {
+    return;
+  }
+
   // Delay to spread the current peak.
   delay(1000);
   // Starts the second DC.
   analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+
+  if (STOP_EXECUTED) {
+    return;
+  }
 
   int weight = getWeight();
 
@@ -351,10 +430,20 @@ void section3(int orderedWeight, int orderCount)  {
     getBeanColor(orderCount);
     // Getting the updated weight
     weight = getWeight();
+
+    if (STOP_EXECUTED) {
+      return;
+    }
+
   }
 
   // Shutting down the DC's
   analogWrite(MOTOR1_PIN, 0);
+
+  if (STOP_EXECUTED) {
+    return;
+  }
+
   delay(1500);
   analogWrite(MOTOR2_PIN, 0);
 
@@ -366,16 +455,28 @@ void section4() {
   int emptyTime = 10000; // The time it takes to empty the whole system, when it's fully loaded, experimentally determined.
   // Starts the second DC before the first DC.
   analogWrite(MOTOR2_PIN, getMotorVoltage(12));
+
+  if (STOP_EXECUTED) {
+    return;
+  }
   // Delay to spread the current peak.
   delay(1000);
   // Starts the second DC.
   analogWrite(MOTOR1_PIN, getMotorVoltage(12));
+
+  if (STOP_EXECUTED) {
+    return;
+  }
 
   // Wait for the system to empty.
   delay(emptyTime);
 
   // Shutting down the DC's
   analogWrite(MOTOR1_PIN, 0);
+
+  if (STOP_EXECUTED) {
+    return;
+  }
   delay(1500);
   analogWrite(MOTOR2_PIN, 0);
 
@@ -385,7 +486,8 @@ void section4() {
 */
 void setSecondBelt() {
   long distance = 0;
-  for (int pos = 90; pos <= 135; pos++) { // Change to correct angle
+  int pos;
+  for (pos = 90; pos <= 135; pos++) { // Change to correct angle
     distance = readDistance();
     if (distance > 14 && distance < 40) {
       break;
@@ -393,8 +495,17 @@ void setSecondBelt() {
     else {
       servoOne.write(pos);
       delay(50);
+
+      if (STOP_EXECUTED) {
+        return;
+      }
     }
   }
+
+  if (STOP_EXECUTED) {
+    return;
+  }
+
   servoOne.write(pos + 5);
 }
 
@@ -975,6 +1086,17 @@ void setRGB(int R, int G, int B) {
   analogWrite(LEDR_PIN, R);
   analogWrite(LEDG_PIN, G);
   analogWrite(LEDB_PIN, B);
+}
+
+void stopFlow() {
+  interruptTime = millis();
+
+  if (interruptTime - lastInterruptTime > 250) {
+    sendMessage = "log_interrupt";
+    STOP_EXECUTED = true;
+  }
+
+  lastInterruptTime = interruptTime;
 }
 
 // Receives wire events.

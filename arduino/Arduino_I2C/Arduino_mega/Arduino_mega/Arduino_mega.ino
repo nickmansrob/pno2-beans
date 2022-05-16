@@ -143,7 +143,11 @@ void setup() {
   digitalWrite(MOTOR2_RELAY_PIN, HIGH);
 
   pinMode(BUTTON_PIN, INPUT);
+  
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  pinMode(STOP_PIN, OUTPUT);
+
+  digitalWrite(STOP_PIN, HIGH);
 
   pinMode(SERVO_RELAY_PIN, OUTPUT);
 
@@ -158,7 +162,7 @@ void setup() {
   servoTwo.write(servoTwoState);
   servoThree.write(servoThreeState);
 
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), stopFlow, RISING);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), stopFlow, FALLING);
 
   /************************* Color sensor *************************/
   pinMode(KOUT_PIN, INPUT);
@@ -206,8 +210,10 @@ void setup() {
 
 void loop() {
   delay(100);
-
-  if (message != "" and topic == "order1") {
+  if (message != "" and topic == "stop") {
+    digitalWrite(STOP_PIN, LOW);
+  }
+  else if (message != "" and topic == "order1") {
     normalFlow(topic, message, 1);
   } else if (message != "" and topic == "order2") {
     normalFlow(topic, message, 2);

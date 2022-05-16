@@ -49,7 +49,7 @@ class _DebugPageState extends State<DebugPage> {
           PopupMenuButton<MenuItem>(
             onSelected: (item) => onSelected(context, item),
             itemBuilder: (context) =>
-                [...MenuItems.items.map(buildItem).toList()],
+            [...MenuItems.items.map(buildItem).toList()],
           ),
         ],
       ),
@@ -160,7 +160,7 @@ class _DebugPageState extends State<DebugPage> {
                 children: const <Widget>[
                   Padding(
                       padding:
-                          EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
+                      EdgeInsets.only(left: 8, top: 0, right: 8, bottom: 4),
                       child: Text(
                         'Servos',
                         style: TextStyle(
@@ -206,11 +206,11 @@ class _DebugPageState extends State<DebugPage> {
                       child: ElevatedButton(
                         onPressed: appState.getIsSwitched
                             ? () {
-                                if (_servoForm1.currentState!.validate()) {
-                                  _publishMessage(
-                                      _firstServoController.text, 'servo1');
-                                }
-                              }
+                          if (_servoForm1.currentState!.validate()) {
+                            _publishMessage(
+                                _firstServoController.text, 'servo1');
+                          }
+                        }
                             : null,
                         child: const Text('Apply'),
                       ),
@@ -229,7 +229,7 @@ class _DebugPageState extends State<DebugPage> {
               Expanded(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: TextFormField(
                     enabled: appState.getIsSwitched,
                     decoration: const InputDecoration(
@@ -255,15 +255,15 @@ class _DebugPageState extends State<DebugPage> {
               Expanded(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: ElevatedButton(
                     onPressed: appState.getIsSwitched
                         ? () {
-                            if (_servoForm2.currentState!.validate()) {
-                              _publishMessage(
-                                  _secondServoController.text, 'servo2');
-                            }
-                          }
+                      if (_servoForm2.currentState!.validate()) {
+                        _publishMessage(
+                            _secondServoController.text, 'servo2');
+                      }
+                    }
                         : null,
                     child: const Text('Apply'),
                   ),
@@ -280,7 +280,7 @@ class _DebugPageState extends State<DebugPage> {
               Expanded(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: TextFormField(
                     enabled: appState.getIsSwitched,
                     decoration: const InputDecoration(
@@ -306,15 +306,15 @@ class _DebugPageState extends State<DebugPage> {
               Expanded(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   child: ElevatedButton(
                     onPressed: appState.getIsSwitched
                         ? () {
-                            if (_servoForm3.currentState!.validate()) {
-                              _publishMessage(
-                                  _thirdServoController.text, 'servo3');
-                            }
-                          }
+                      if (_servoForm3.currentState!.validate()) {
+                        _publishMessage(
+                            _thirdServoController.text, 'servo3');
+                      }
+                    }
                         : null,
                     child: const Text('Apply'),
                   ),
@@ -342,8 +342,8 @@ class _DebugPageState extends State<DebugPage> {
                     child: ElevatedButton(
                       onPressed: appState.getIsSwitched
                           ? () {
-                              _publishMessage('0', 'servo3');
-                            }
+                        _publishMessage('0', 'servo3');
+                      }
                           : null,
                       child: const Text('CCW'),
                     ),
@@ -355,8 +355,8 @@ class _DebugPageState extends State<DebugPage> {
                     child: ElevatedButton(
                       onPressed: appState.getIsSwitched
                           ? () {
-                              _publishMessage('90', 'servo3');
-                            }
+                        _publishMessage('90', 'servo3');
+                      }
                           : null,
                       child: const Text('Stop'),
                     ),
@@ -368,8 +368,8 @@ class _DebugPageState extends State<DebugPage> {
                     child: ElevatedButton(
                       onPressed: appState.getIsSwitched
                           ? () {
-                              _publishMessage('80', 'servo3');
-                            }
+                        _publishMessage('80', 'servo3');
+                      }
                           : null,
                       child: const Text('CW'),
                     ),
@@ -412,7 +412,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -421,7 +421,7 @@ class _DebugPageState extends State<DebugPage> {
                     children: [
                       const Padding(
                         padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: Text(
                           'Motor 1',
                           style: TextStyle(
@@ -437,8 +437,8 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage('toggle', 'motor1');
-                                      }
+                                  _publishMessage('toggle', 'motor1');
+                                }
                                     : null,
                                 child: const Text('Toggle'),
                               ),
@@ -450,9 +450,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage(
-                                            'change_rotation', 'motor1');
-                                      }
+                                  _publishMessage(
+                                      'change_rotation', 'motor1');
+                                }
                                     : null,
                                 child: const Text('Change rotation'),
                               ),
@@ -475,7 +475,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -484,7 +484,7 @@ class _DebugPageState extends State<DebugPage> {
                     children: [
                       const Padding(
                           padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
                             'Motor 2',
                             style: TextStyle(
@@ -499,8 +499,8 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage('toggle', 'motor2');
-                                      }
+                                  _publishMessage('toggle', 'motor2');
+                                }
                                     : null,
                                 child: const Text('Toggle'),
                               ),
@@ -512,9 +512,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage(
-                                            'change_rotation', 'motor2');
-                                      }
+                                  _publishMessage(
+                                      'change_rotation', 'motor2');
+                                }
                                     : null,
                                 child: const Text('Change rotation'),
                               ),
@@ -539,7 +539,10 @@ class _DebugPageState extends State<DebugPage> {
 
   // Creates the widgets for the color sensor and the ultrasonic sensor.
   Widget _buildSensors(MQTTAppState appState) {
-    double width = MediaQuery.of(context).size.width;
+    double width = MediaQuery
+        .of(context)
+        .size
+        .width;
 
     return Column(
       children: [
@@ -567,7 +570,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -576,7 +579,7 @@ class _DebugPageState extends State<DebugPage> {
                     children: [
                       const Padding(
                           padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
                             'Ultrasonic sensor',
                             style: TextStyle(
@@ -591,9 +594,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage(
-                                            'readUltra', 'distControl');
-                                      }
+                                  _publishMessage(
+                                      'readUltra', 'distControl');
+                                }
                                     : null,
                                 child: const Text('Start reading'),
                               ),
@@ -605,9 +608,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage(
-                                            'stopUltra', 'distControl');
-                                      }
+                                  _publishMessage(
+                                      'stopUltra', 'distControl');
+                                }
                                     : null,
                                 child: const Text('Stop reading'),
                               ),
@@ -622,7 +625,8 @@ class _DebugPageState extends State<DebugPage> {
                                 left: 8, top: 0, right: 8, bottom: 8),
                             child: Center(
                               child: Text(
-                                  'Distance [cm]: ${currentAppState.getDistance}.'),
+                                  'Distance [cm]: ${currentAppState
+                                      .getDistance}.'),
                             ),
                           ),
                         ],
@@ -643,7 +647,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -652,7 +656,7 @@ class _DebugPageState extends State<DebugPage> {
                     children: [
                       const Padding(
                         padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: Text(
                           'Color sensor',
                           style: TextStyle(
@@ -670,9 +674,9 @@ class _DebugPageState extends State<DebugPage> {
                                   child: ElevatedButton(
                                     onPressed: appState.getIsSwitched
                                         ? () {
-                                            _publishMessage(
-                                                'readColor', 'colorControl');
-                                          }
+                                      _publishMessage(
+                                          'readColor', 'colorControl');
+                                    }
                                         : null,
                                     child: const Text('Start reading'),
                                   ),
@@ -684,9 +688,9 @@ class _DebugPageState extends State<DebugPage> {
                                   child: ElevatedButton(
                                     onPressed: appState.getIsSwitched
                                         ? () {
-                                            _publishMessage(
-                                                'stopColor', 'colorControl');
-                                          }
+                                      _publishMessage(
+                                          'stopColor', 'colorControl');
+                                    }
                                         : null,
                                     child: const Text('Stop reading'),
                                   ),
@@ -728,7 +732,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -737,7 +741,7 @@ class _DebugPageState extends State<DebugPage> {
                     children: [
                       const Padding(
                           padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
                             'Weight sensor',
                             style: TextStyle(
@@ -752,9 +756,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage(
-                                            'readWeight', 'weightControl');
-                                      }
+                                  _publishMessage(
+                                      'readWeight', 'weightControl');
+                                }
                                     : null,
                                 child: const Text('Start reading'),
                               ),
@@ -766,9 +770,9 @@ class _DebugPageState extends State<DebugPage> {
                               child: ElevatedButton(
                                 onPressed: appState.getIsSwitched
                                     ? () {
-                                        _publishMessage(
-                                            'stopWeight', 'weightControl');
-                                      }
+                                  _publishMessage(
+                                      'stopWeight', 'weightControl');
+                                }
                                     : null,
                                 child: const Text('Stop reading'),
                               ),
@@ -804,7 +808,7 @@ class _DebugPageState extends State<DebugPage> {
                 child: InputDecorator(
                   decoration: InputDecoration(
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(5.0)),
                   ),
@@ -813,7 +817,7 @@ class _DebugPageState extends State<DebugPage> {
                     children: [
                       const Padding(
                         padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: Text(
                           'RGB Led',
                           style: TextStyle(
@@ -926,19 +930,19 @@ class _DebugPageState extends State<DebugPage> {
                                   child: ElevatedButton(
                                     onPressed: appState.getIsSwitched
                                         ? () {
-                                            if (_rForm.currentState!.validate() &&
-                                                _gForm.currentState!
-                                                    .validate() &&
-                                                _bForm.currentState!
-                                                    .validate()) {
-                                              _publishMessage(
-                                                  sendRGB(
-                                                      _rController.text,
-                                                      _gController.text,
-                                                      _bController.text),
-                                                  'rgb');
-                                            }
-                                          }
+                                      if (_rForm.currentState!.validate() &&
+                                          _gForm.currentState!
+                                              .validate() &&
+                                          _bForm.currentState!
+                                              .validate()) {
+                                        _publishMessage(
+                                            sendRGB(
+                                                _rController.text,
+                                                _gController.text,
+                                                _bController.text),
+                                            'rgb');
+                                      }
+                                    }
                                         : null,
                                     child: const Text('Set color'),
                                   ),
@@ -989,27 +993,10 @@ class _DebugPageState extends State<DebugPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               child: ElevatedButton(
                 onPressed: () {
-                  _showRestoreConfirmMessage(currentAppState);
+                  _showAbortConfirmationMessage(currentAppState);
                   // Respond to button press
                 },
-                child: const Text('Restore'),
-                style: TextButton.styleFrom(
-                  primary: Colors.white,
-                  backgroundColor: Colors.red,
-                  onSurface: Colors.redAccent,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: ElevatedButton(
-                onPressed: () {
-                  _showResetConfirmMessage(currentAppState);
-                  // Respond to button press
-                },
-                child: const Text('Reset'),
+                child: const Text('Abort!'),
                 style: TextButton.styleFrom(
                   primary: Colors.white,
                   backgroundColor: Colors.red,
@@ -1020,7 +1007,7 @@ class _DebugPageState extends State<DebugPage> {
           ),
         ],
       ),
-    ]);
+    ],);
   }
 
   /////////////////////////// Helper functions ///////////////////////////
@@ -1104,48 +1091,14 @@ class _DebugPageState extends State<DebugPage> {
   }
 
   // Creates the navigation menu.
-  PopupMenuItem<MenuItem> buildItem(MenuItem item) => PopupMenuItem(
+  PopupMenuItem<MenuItem> buildItem(MenuItem item) =>
+      PopupMenuItem(
         value: item,
         child: Text(item.text),
       );
 
-  // Creates a dialog box when the user wants to rest the Arduino.
-  void _showResetConfirmMessage(MQTTAppState currentAppState) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Reset Arduino'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const [
-                Text("You're about to reset the Arduino. Are you sure?"),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                currentAppState.setResetPressed(true);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   // Creates a dialog box when the user wants to restore the Bean Bot.
-  void _showRestoreConfirmMessage(MQTTAppState currentAppState) {
+  void _showAbortConfirmationMessage(MQTTAppState currentAppState) {
     showDialog(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -1155,7 +1108,7 @@ class _DebugPageState extends State<DebugPage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: const [
-                Text("You're about to restore the Bean Bot. Are you sure?"),
+                Text("You're about to abort te normalFlow()! Are you sure?"),
               ],
             ),
           ),
@@ -1164,7 +1117,7 @@ class _DebugPageState extends State<DebugPage> {
               child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
-                currentAppState.setRestorePressed(true);
+                _publishMessage('stop', 'stop');
               },
             ),
             TextButton(
@@ -1182,9 +1135,9 @@ class _DebugPageState extends State<DebugPage> {
   // Publishes message on MQTT.
   void _publishMessage(String text, String topic) {
     final MQTTAppState appState =
-        Provider.of<MQTTAppState>(context, listen: false);
+    Provider.of<MQTTAppState>(context, listen: false);
     final OrderState orderState =
-        Provider.of<OrderState>(context, listen: false);
+    Provider.of<OrderState>(context, listen: false);
 
     // Keep a reference to the app state and order.
     currentAppState = appState;

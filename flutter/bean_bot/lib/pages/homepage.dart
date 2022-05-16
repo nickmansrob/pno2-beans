@@ -1255,6 +1255,7 @@ class _HomePageState extends State<HomePage> {
           'colorCal',
           // for sending data of the color sensor calibration between app and Arduino
           'rgb',
+          'stop',
         ],
         identifier: currentAppState.getAppId,
         state: currentAppState,

@@ -1,7 +1,7 @@
-class customMenuItem {
+class MenuItem {
   final String text;
 
-  const customMenuItem({
+  const MenuItem({
     required this.text,
   });
 }

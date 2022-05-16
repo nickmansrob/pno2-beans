@@ -133,6 +133,7 @@ void setup() {
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
 
   digitalWrite(MOTOR1_RELAY_PIN, HIGH);
+  delay(500);
   digitalWrite(MOTOR2_RELAY_PIN, HIGH);
 
   pinMode(BUTTON_PIN, INPUT);
@@ -235,7 +236,7 @@ void normalFlow(String topic, String messageString, int orderCount) {
     section2();
     sendMessage = "";
     section3(orderedWeightFirstOrder, orderCount);
-    sendMessage = ""
+    sendMessage = "";
     section4();
     sendMessage = "weight1_done";
 

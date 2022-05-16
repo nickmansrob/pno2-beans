@@ -40,11 +40,11 @@ uint8_t SERVO_RELAY_PIN = 35;
 
 // LCD
 const uint8_t LCDRS_PIN = 50;
-const uint8_t LCDE_PIN = 39;
+const uint8_t LCDE_PIN = 41;
 const uint8_t LCDDB4_PIN = 46;
 const uint8_t LCDDB5_PIN = 52;
-const uint8_t LCDDB6_PIN = 41;
-const uint8_t LCDDB7_PIN = 43;
+const uint8_t LCDDB6_PIN = 43;
+const uint8_t LCDDB7_PIN = 45;
 LiquidCrystal lcd(LCDRS_PIN, LCDE_PIN, LCDDB4_PIN, LCDDB5_PIN, LCDDB6_PIN, LCDDB7_PIN);
 
 // Ultrasonic Sensor
@@ -133,7 +133,7 @@ void setup() {
   pinMode(MOTOR2_RELAY_PIN, OUTPUT);
 
   digitalWrite(MOTOR1_RELAY_PIN, HIGH);
-  delay(500);
+  delay(1000);
   digitalWrite(MOTOR2_RELAY_PIN, HIGH);
 
   pinMode(BUTTON_PIN, INPUT);

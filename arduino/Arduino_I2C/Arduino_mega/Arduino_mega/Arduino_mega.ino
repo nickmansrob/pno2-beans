@@ -272,8 +272,8 @@ void section0(int orderCount) {
   // Set first belt to horizontal
 
   // Turning on the servo.
-  servoThreeRelayState = LOW;
-  digitalWrite(servoThreeRelayState, LOW);
+  digitalWrite(SERVO_RELAY_PIN, HIGH);
+  servoThreeRelayState = HIGH;
   servoThree.write(95); // CHANGE !!
 
   // Rotate for the given amount of time.
@@ -282,8 +282,8 @@ void section0(int orderCount) {
   }
 
   // Turning off the servo.
+  digitalWrite(SERVO_RELAY_PIN, LOW);
   servoThreeRelayState = LOW;
-  digitalWrite(servoThreeRelayState, LOW);
 
   sendMessage = "log_initialized";
 }
@@ -303,11 +303,11 @@ void section1(int siloNumberFirstOrder) {
 
   // Dropping the belt onto the beans.
   long servoRotateTime = 0;
-  int beltDownTime = 0; // The time the third servo has to turn in order for the first belt to be completly down.
+  int beltDownTime = 4000; // The time the third servo has to turn in order for the first belt to be completly down.
 
   // Turning on the servo.
   servoThreeRelayState = LOW;
-  digitalWrite(servoThreeRelayState, LOW);
+  digitalWrite(SERVO_RELAY_PIN, LOW);
   servoThree.write(85); // CHANGE !!
 
   // Rotate for the given amount of time.
@@ -317,7 +317,7 @@ void section1(int siloNumberFirstOrder) {
 
   // Turning off the servo.
   servoThreeRelayState = LOW;
-  digitalWrite(servoThreeRelayState, LOW);
+  digitalWrite(SERVO_RELAY_PIN, LOW);
 
   sendMessage = "log_belt1done";
 }
@@ -363,7 +363,7 @@ void section3(int orderedWeight, int orderCount)  {
 
 void section4() {
   // Empties both conveyor belts.
-  int emptyTime = 0; // The time it takes to empty the whole system, when it's fully loaded, experimentally determined.
+  int emptyTime = 10000; // The time it takes to empty the whole system, when it's fully loaded, experimentally determined.
   // Starts the second DC before the first DC.
   analogWrite(MOTOR2_PIN, getMotorVoltage(12));
   // Delay to spread the current peak.
@@ -385,17 +385,17 @@ void section4() {
 */
 void setSecondBelt() {
   long distance = 0;
-  int pos = 0;
-  for (int pos = 0; pos <= 70; pos++) { // Change to correct angle
+  for (int pos = 90; pos <= 135; pos++) { // Change to correct angle
     distance = readDistance();
     if (distance > 14 && distance < 40) {
       break;
     }
     else {
-      servoOne.write(pos); // Add or subtract some extra degrees for spacing, afhankelijk van in welke richting de servo draait
+      servoOne.write(pos);
       delay(50);
     }
   }
+  servoOne.write(pos + 5);
 }
 
 // This function reads the distance 3 times and returns the average of the three values.

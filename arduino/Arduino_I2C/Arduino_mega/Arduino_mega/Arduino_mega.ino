@@ -188,22 +188,22 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("0");
 
-  // Starting up the weight sensor.
-  //  while (!MyScale.begin()) {
-  //    Serial.println("The initialization of the chip is failed.");
-  //    delay(1000);
-  //    weightCounter ++;
-  //    if (weightCounter == 5) {
-  //      break;
-  //    }
-  //  }
-  //
-  //  if (MyScale.begin()) {
-  //    //Manually set the calibration values
-  //    MyScale.setCalibration(2000.f);
-  //    //remove the peel
-  //    MyScale.peel();
-  //  }
+  //Starting up the weight sensor.
+  while (!MyScale.begin()) {
+    Serial.println("The initialization of the chip is failed.");
+    delay(1000);
+    weightCounter ++;
+    if (weightCounter == 5) {
+      break;
+    }
+  }
+
+  if (MyScale.begin()) {
+    //Manually set the calibration values
+    MyScale.setCalibration(2000.f);
+    //remove the peel
+    MyScale.peel();
+  }
 
   setRGB(0, 0, 255);
 }
@@ -238,6 +238,10 @@ int secondSiloAngle = 90;
 int thirdSiloAngle = 135;
 
 void normalFlow(String topic, String messageString, int orderCount) {
+  messageString = "";
+  message = "";
+  topic = "";
+
   /* Starting the flow. */
   if (topic == 'order1') {
     // Gets the silo number and the weight from the orderString of the form siloNumber_weight
@@ -253,32 +257,44 @@ void normalFlow(String topic, String messageString, int orderCount) {
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "";
     section1(siloNumberFirstOrder);
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "";
     section2();
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "";
     section3(orderedWeightFirstOrder, orderCount);
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "";
     section4();
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "weight1_done";
+
+    delay(1500);
+    Serial.println("Test6");
 
     setRGB(0, 0, 255);
   }
 
   else if (topic == 'order2') {
+    messageString = "";
+    message = "";
+    topic = "";
+
     // Gets the silo number and the weight from the orderString of the form siloNumber_weight
     int siloNumberSecondOrder = (messageString.substring(0, 1)).toInt();
     int orderedWeightSecondOrder = (messageString.substring(1)).toInt();
@@ -292,27 +308,34 @@ void normalFlow(String topic, String messageString, int orderCount) {
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "";
     section1(siloNumberSecondOrder);
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "";
     section2();
+    if (STOP_EXECUTED) {
+      return;
+    }
+    delay(500);
     sendMessage = "";
     section3(orderedWeightSecondOrder, orderCount);
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "";
     section4();
     if (STOP_EXECUTED) {
       return;
     }
+    delay(500);
     sendMessage = "weight2_done";
 
     setRGB(0, 0, 255);
-
   }
 
   if (STOP_EXECUTED) {
@@ -361,6 +384,7 @@ void section0(int orderCount) {
   }
 
   sendMessage = "log_initialized";
+  Serial.println("Test3");
 }
 
 // First conveyor belt moves to the correct position
@@ -375,6 +399,8 @@ void section1(int siloNumberFirstOrder) {
   else if (siloNumberFirstOrder == 2) {
     servoOne.write(thirdSiloAngle);
   }
+
+  Serial.println("Test4");
 
   if (STOP_EXECUTED) {
     return;
@@ -400,6 +426,7 @@ void section1(int siloNumberFirstOrder) {
   }
 
   sendMessage = "log_belt1done";
+  Serial.println("Test5");
 }
 
 // Second conveyor belt moves to correct position.
@@ -434,6 +461,7 @@ void section3(int orderedWeight, int orderCount)  {
   int weight = getWeight();
 
   while (weight < orderedWeight) {
+    Serial.println(weight);
     // Writing the weight to the LCD.
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -493,6 +521,8 @@ void section4() {
   }
   delay(1500);
   analogWrite(MOTOR2_PIN, 0);
+
+  sendMessage = "section4done";
 
 }
 /*
@@ -1172,11 +1202,10 @@ void receiveEvent(int howMany) {
 // Function that executes whenever data is requested from master.
 void sendText(int numBytes) {
   if (sendMessage != "") {
-    Serial.println("initialmessage" + sendMessage);
+    Serial.println("initialmessage " + sendMessage);
     while (sendMessage.length() != 32) {
       sendMessage = sendMessage + "@";
     }
-    Serial.println(sendMessage);
     Wire.write(sendMessage.c_str());
   }
   sendMessage = "";

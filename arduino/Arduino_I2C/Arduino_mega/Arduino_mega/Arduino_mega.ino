@@ -250,35 +250,41 @@ void normalFlow(String topic, String messageString, int orderCount) {
     setRGB(255, 0, 0);
 
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
 
     section0(orderCount);
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section1(siloNumberFirstOrder);
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section2();
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section3(orderedWeightFirstOrder, orderCount);
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section4();
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
@@ -301,35 +307,41 @@ void normalFlow(String topic, String messageString, int orderCount) {
     setRGB(255, 0, 0);
 
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
 
     section0(orderCount);
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section1(siloNumberSecondOrder);
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section2();
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section3(orderedWeightSecondOrder, orderCount);
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
     sendMessage = "";
     section4();
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
     delay(500);
@@ -339,6 +351,7 @@ void normalFlow(String topic, String messageString, int orderCount) {
   }
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
   messageString = "";
@@ -351,6 +364,7 @@ void section0(int orderCount) {
   initialize(orderCount);
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -359,7 +373,7 @@ void section0(int orderCount) {
   // Turning on the servo.
   digitalWrite(SERVO_RELAY_PIN, HIGH);
   servoThreeRelayState = HIGH;
-  servoThree.write(95); // CHANGE !!
+  servoThree.write(94); // CHANGE !!
 
   Serial.println("Test1");
 
@@ -368,6 +382,7 @@ void section0(int orderCount) {
     delay(100);
 
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       digitalWrite(SERVO_RELAY_PIN, LOW);
       servoThreeRelayState = LOW;
     }
@@ -380,6 +395,7 @@ void section0(int orderCount) {
   servoThreeRelayState = LOW;
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -403,6 +419,7 @@ void section1(int siloNumberFirstOrder) {
   Serial.println("Test4");
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -412,7 +429,7 @@ void section1(int siloNumberFirstOrder) {
   // Turning on the servo.
   servoThreeRelayState = LOW;
   digitalWrite(SERVO_RELAY_PIN, LOW);
-  servoThree.write(85); // CHANGE !!
+  servoThree.write(84); // CHANGE !!
 
   // Rotate for the given amount of time.
   delay(beltDownTime);
@@ -422,6 +439,7 @@ void section1(int siloNumberFirstOrder) {
   digitalWrite(SERVO_RELAY_PIN, LOW);
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -434,6 +452,7 @@ void section2() {
   setSecondBelt();
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -446,6 +465,7 @@ void section3(int orderedWeight, int orderCount)  {
   analogWrite(MOTOR2_PIN, getMotorVoltage(12));
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -455,6 +475,7 @@ void section3(int orderedWeight, int orderCount)  {
   analogWrite(MOTOR1_PIN, getMotorVoltage(12));
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -474,6 +495,7 @@ void section3(int orderedWeight, int orderCount)  {
     weight = getWeight();
 
     if (STOP_EXECUTED) {
+      STOP_EXECUTED = false;
       return;
     }
 
@@ -483,6 +505,7 @@ void section3(int orderedWeight, int orderCount)  {
   analogWrite(MOTOR1_PIN, 0);
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -499,6 +522,7 @@ void section4() {
   analogWrite(MOTOR2_PIN, getMotorVoltage(12));
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
   // Delay to spread the current peak.
@@ -507,6 +531,7 @@ void section4() {
   analogWrite(MOTOR1_PIN, getMotorVoltage(12));
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
@@ -517,6 +542,7 @@ void section4() {
   analogWrite(MOTOR1_PIN, 0);
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
   delay(1500);
@@ -541,16 +567,18 @@ void setSecondBelt() {
       delay(50);
 
       if (STOP_EXECUTED) {
+        STOP_EXECUTED = false;
         return;
       }
     }
   }
 
   if (STOP_EXECUTED) {
+    STOP_EXECUTED = false;
     return;
   }
 
-  servoOne.write(pos + 5);
+  servoOne.write(pos + 15);
 }
 
 // This function reads the distance 3 times and returns the average of the three values.
@@ -755,7 +783,7 @@ void manualFlow(String topic, String messageString) {
       servoThreeRelayState = HIGH;
       digitalWrite(SERVO_RELAY_PIN, HIGH);
       delay(500);
-      servoThree.write(85);
+      servoThree.write(94);
     } else if (angle == 90) {
       servoThreeRelayState = LOW;
       digitalWrite(SERVO_RELAY_PIN, LOW);
@@ -765,7 +793,7 @@ void manualFlow(String topic, String messageString) {
       servoThreeRelayState = HIGH;
       digitalWrite(SERVO_RELAY_PIN, HIGH);
       delay(500);
-      servoThree.write(92);
+      servoThree.write(84);
     }
     servoThree.write(angle);
 

@@ -143,7 +143,7 @@ void setup() {
   digitalWrite(MOTOR2_RELAY_PIN, HIGH);
 
   pinMode(BUTTON_PIN, INPUT);
-  
+
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   pinMode(STOP_PIN, OUTPUT);
 
@@ -211,12 +211,13 @@ void setup() {
 void loop() {
   delay(100);
   if (message != "" and topic == "stop") {
+    Serial.println("ROUTE: From origin to stopFlow");
     digitalWrite(STOP_PIN, LOW);
   }
-  else if (message != "" and topic == "order1") {
-    normalFlow(topic, message, 1);
-  } else if (message != "" and topic == "order2") {
-    normalFlow(topic, message, 2);
+  else if (message != "" and topic == "order1" and messageString != "0000") {
+    normalFlow(topic, messageString, 1);
+  } else if (message != "" and topic == "order2" and messageString != "0000") {
+    normalFlow(topic, messageString, 2);
   } else if (message != "" and topic != "") {
     manualFlow(topic, messageString);
   }
@@ -317,6 +318,9 @@ void normalFlow(String topic, String messageString, int orderCount) {
   if (STOP_EXECUTED) {
     return;
   }
+  messageString = "";
+  message = "";
+  topic = "";
 }
 
 // Sets the Bean Bot and Arduino to default position.
@@ -334,8 +338,10 @@ void section0(int orderCount) {
   servoThreeRelayState = HIGH;
   servoThree.write(95); // CHANGE !!
 
+  Serial.println("Test1");
+
   // Rotate for the given amount of time.
-  while (digitalRead != HIGH) {
+  while (digitalRead(BUTTON_PIN) != HIGH) {
     delay(100);
 
     if (STOP_EXECUTED) {
@@ -343,6 +349,8 @@ void section0(int orderCount) {
       servoThreeRelayState = LOW;
     }
   }
+
+  Serial.println("Test2");
 
   // Turning off the servo.
   digitalWrite(SERVO_RELAY_PIN, LOW);
@@ -1099,10 +1107,17 @@ void stopFlow() {
 
   if (interruptTime - lastInterruptTime > 250) {
     sendMessage = "log_interrupt";
+    Serial.println("INTERRUPT!");
     STOP_EXECUTED = true;
   }
 
   lastInterruptTime = interruptTime;
+
+  messageString = "";
+  message = "";
+  topic = "";
+
+  setRGB(0, 0, 255);
 }
 
 // Receives wire events.
@@ -1140,17 +1155,28 @@ void receiveEvent(int howMany) {
       weightState = LOW;
     }
   }
-  Serial.println(messageString);
-  Serial.println(topic);
-  Serial.println(message);
+  Serial.println("receiveEvent() messageString :: " + messageString);
+  Serial.println("receiveEvent() topic :: " + topic);
+  Serial.println("receiveEvent() message :: " + message);
+
+  if (message != "" and topic == "stop") {
+    Serial.println("SERIAL ROUTE: From origin to stopFlow");
+    digitalWrite(STOP_PIN, LOW);
+
+    messageString = "";
+    message = "";
+    topic = "";
+  }
 }
 
 // Function that executes whenever data is requested from master.
 void sendText(int numBytes) {
   if (sendMessage != "") {
+    Serial.println("initialmessage" + sendMessage);
     while (sendMessage.length() != 32) {
       sendMessage = sendMessage + "@";
     }
+    Serial.println(sendMessage);
     Wire.write(sendMessage.c_str());
   }
   sendMessage = "";

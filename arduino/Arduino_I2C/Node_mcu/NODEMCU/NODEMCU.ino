@@ -94,9 +94,11 @@ void callback(char* topic, byte* message, unsigned int length) {
     if (manualOverride) {
       logFlow("ROUTE: From origin to manualFlow");
       manualFlow(topicString, messageString);
-    }  else if ((topicString == order1) || (topicString == order2)) {
+    }  else if ((topicString == "order1") || (topicString == "order2") && messageString != "0000") {
       logFlow("ROUTE: From origin to normalFlow");
       normalFlow(topicString, messageString);
+    } else if (topicString == "stop") {
+      stopFlow();
     }
     else {
       logFlow("ERROR: callback() :: no matching topic or override not enabled.");
@@ -139,6 +141,8 @@ void reconnect() {
       client.subscribe("colorCal");
 
       client.subscribe("rgb");
+
+      client.subscribe("stop");
 
     } else {
       Serial.print("failed, rc=");
@@ -226,15 +230,19 @@ void manualFlow(String topic, String messageString) {
     logFlow("ROUTE: From origin to rgb");
     wireFlow("rgb_" + messageString);
   }
-
   else {
     logFlow("ERROR: manualFlow() :: no topic match");
   }
 }
 
-void normalFlow(orderNumber, messageString) {
+void normalFlow(String orderNumber, String messageString) {
   Serial.println(orderNumber);
   wireFlow(orderNumber + "_" + messageString);
+}
+
+void stopFlow() {
+  logFlow("ROUTE: From origin to stop");
+  wireFlow("stop_stop");
 }
 
 void logFlow(String message) {

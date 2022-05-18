@@ -189,21 +189,21 @@ void setup() {
   lcd.print("0");
 
   //Starting up the weight sensor.
-  //  while (!MyScale.begin()) {
-  //    Serial.println("The initialization of the chip is failed.");
-  //    delay(1000);
-  //    weightCounter ++;
-  //    if (weightCounter == 5) {
-  //      break;
-  //    }
-  //  }
-  //
-  //  if (MyScale.begin()) {
-  //    //Manually set the calibration values
-  //    MyScale.setCalibration(2000.f);
-  //    //remove the peel
-  //    MyScale.peel();
-  //  }
+    while (!MyScale.begin()) {
+      Serial.println("The initialization of the chip is failed.");
+      delay(1000);
+      weightCounter ++;
+      if (weightCounter == 5) {
+        break;
+      }
+    }
+  
+    if (MyScale.begin()) {
+      //Manually set the calibration values
+      MyScale.setCalibration(2000.f);
+      //remove the peel
+      MyScale.peel();
+    }
 
   setRGB(0, 0, 255);
 }
@@ -561,13 +561,13 @@ void section4() {
 void setSecondBelt() {
   long distance = 0;
   int pos;
-  for (pos = 90; pos <= 135; pos++) { // Change to correct angle
+  for (pos = 90; pos >= 60; pos--) { // Change to correct angle
     distance = readDistance();
-    if (distance > 14 && distance < 40) {
+    if (distance > 10 && distance < 30) {
       break;
     }
     else {
-      servoOne.write(pos);
+      servoTwo.write(pos);
       delay(50);
 
       if (STOP_EXECUTED) {
@@ -582,7 +582,7 @@ void setSecondBelt() {
     return;
   }
 
-  servoOne.write(pos + 15);
+  servoTwo.write(pos + 15);
 }
 
 // This function reads the distance 3 times and returns the average of the three values.

@@ -40,7 +40,7 @@ uint8_t servoTwoState = 90;
 
 Servo servoThree;
 const uint8_t SERVO3_PIN = 5;
-uint8_t servoThreeState = 85;
+uint8_t servoThreeState = 87;
 uint8_t servoThreeRelayState = LOW;
 uint8_t SERVO_RELAY_PIN = 35;
 
@@ -107,7 +107,7 @@ void initialize(int orderCount) {
 
   servoTwoState = 90;
 
-  servoThreeState = 90;
+  servoThreeState = 87;
   servoThreeRelayState = LOW;
 
   ultrasonicState = LOW;
@@ -189,21 +189,21 @@ void setup() {
   lcd.print("0");
 
   //Starting up the weight sensor.
-  while (!MyScale.begin()) {
-    Serial.println("The initialization of the chip is failed.");
-    delay(1000);
-    weightCounter ++;
-    if (weightCounter == 5) {
-      break;
-    }
-  }
-
-  if (MyScale.begin()) {
-    //Manually set the calibration values
-    MyScale.setCalibration(2000.f);
-    //remove the peel
-    MyScale.peel();
-  }
+  //  while (!MyScale.begin()) {
+  //    Serial.println("The initialization of the chip is failed.");
+  //    delay(1000);
+  //    weightCounter ++;
+  //    if (weightCounter == 5) {
+  //      break;
+  //    }
+  //  }
+  //
+  //  if (MyScale.begin()) {
+  //    //Manually set the calibration values
+  //    MyScale.setCalibration(2000.f);
+  //    //remove the peel
+  //    MyScale.peel();
+  //  }
 
   setRGB(0, 0, 255);
 }
@@ -233,9 +233,9 @@ uint8_t getMotorVoltage(uint8_t motorVoltage = MOTOR_VOLTAGE) {
 }
 
 /*******************************Globals*****************************/
-int firstSiloAngle = 45;
+int firstSiloAngle = 30;
 int secondSiloAngle = 90;
-int thirdSiloAngle = 135;
+int thirdSiloAngle = 140;
 
 void normalFlow(String topic, String messageString, int orderCount) {
   messageString = "";
@@ -373,7 +373,7 @@ void section0(int orderCount) {
   // Turning on the servo.
   digitalWrite(SERVO_RELAY_PIN, HIGH);
   servoThreeRelayState = HIGH;
-  servoThree.write(94); // CHANGE !!
+  servoThree.write(92); // CHANGE !!
 
   Serial.println("Test1");
 
@@ -387,6 +387,8 @@ void section0(int orderCount) {
       servoThreeRelayState = LOW;
     }
   }
+
+  delay(400);
 
   Serial.println("Test2");
 
@@ -407,16 +409,17 @@ void section0(int orderCount) {
 void section1(int siloNumberFirstOrder) {
   // Sets first belt in the right angle position.
   if (siloNumberFirstOrder == 0) {
-    servoOne.write(firstSiloAngle);
+    turnServo(servoOne, firstSiloAngle, servoOneState);
   }
   else if (siloNumberFirstOrder == 1) {
-    servoOne.write(secondSiloAngle);
+    turnServo(servoOne, secondSiloAngle, servoOneState);
   }
   else if (siloNumberFirstOrder == 2) {
-    servoOne.write(thirdSiloAngle);
+    turnServo(servoOne, thirdSiloAngle, servoOneState);
   }
 
-  Serial.println("Test4");
+  sendMessage = "log_turnServo1";
+  delay(300);
 
   if (STOP_EXECUTED) {
     STOP_EXECUTED = false;
@@ -424,12 +427,12 @@ void section1(int siloNumberFirstOrder) {
   }
 
   // Dropping the belt onto the beans.
-  int beltDownTime = 4000; // The time the third servo has to turn in order for the first belt to be completly down.
+  int beltDownTime = 4200; // The time the third servo has to turn in order for the first belt to be completly down.
 
   // Turning on the servo.
-  servoThreeRelayState = LOW;
-  digitalWrite(SERVO_RELAY_PIN, LOW);
-  servoThree.write(84); // CHANGE !!
+  servoThreeRelayState = HIGH;
+  digitalWrite(SERVO_RELAY_PIN, HIGH);
+  servoThree.write(80); // CHANGE !!
 
   // Rotate for the given amount of time.
   delay(beltDownTime);
@@ -443,7 +446,7 @@ void section1(int siloNumberFirstOrder) {
     return;
   }
 
-  sendMessage = "log_belt1done";
+  sendMessage = "log_section1done";
   Serial.println("Test5");
 }
 
@@ -456,7 +459,7 @@ void section2() {
     return;
   }
 
-  sendMessage = "log_belt2done";
+  sendMessage = "log_section2done";
 }
 
 // Starts the two belts when they are in position.
@@ -479,7 +482,7 @@ void section3(int orderedWeight, int orderCount)  {
     return;
   }
 
-  int weight = getWeight();
+  int weight = 0;
 
   while (weight < orderedWeight) {
     Serial.println(weight);
@@ -492,7 +495,8 @@ void section3(int orderedWeight, int orderCount)  {
     delay(1000);
     getBeanColor(orderCount);
     // Getting the updated weight
-    weight = getWeight();
+    //weight = getWeight();
+    weight = weight + 5;
 
     if (STOP_EXECUTED) {
       STOP_EXECUTED = false;
@@ -782,20 +786,19 @@ void manualFlow(String topic, String messageString) {
     if (angle == 0) {
       servoThreeRelayState = HIGH;
       digitalWrite(SERVO_RELAY_PIN, HIGH);
-      delay(500);
-      servoThree.write(94);
+      delay(50);
+      servoThree.write(92);
     } else if (angle == 90) {
       servoThreeRelayState = LOW;
       digitalWrite(SERVO_RELAY_PIN, LOW);
-      delay(500);
+      delay(50);
       servoThree.write(87);
     } else if (angle == 80) {
       servoThreeRelayState = HIGH;
       digitalWrite(SERVO_RELAY_PIN, HIGH);
-      delay(500);
-      servoThree.write(84);
+      delay(50);
+      servoThree.write(80);
     }
-    servoThree.write(angle);
 
     sendMessage = sendMessage + angle;
   }
